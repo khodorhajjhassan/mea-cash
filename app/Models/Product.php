@@ -14,6 +14,7 @@ class Product extends Model
     protected $fillable = [
         'subcategory_id',
         'supplier_id',
+        'product_type_id',
         'name_ar',
         'name_en',
         'description_ar',
@@ -53,6 +54,11 @@ class Product extends Model
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    public function productTypeDefinition(): BelongsTo
+    {
+        return $this->belongsTo(ProductType::class, 'product_type_id');
     }
 
     public function packages(): HasMany

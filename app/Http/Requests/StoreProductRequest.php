@@ -21,8 +21,8 @@ class StoreProductRequest extends FormRequest
             'name_en' => ['required', 'string', 'max:255'],
             'description_ar' => ['nullable', 'string'],
             'description_en' => ['nullable', 'string'],
-            'slug' => ['nullable', 'string', 'max:255', Rule::unique('products', 'slug')],
-            'product_type' => ['required', Rule::in(['fixed_package', 'custom_quantity', 'account_topup', 'manual_service'])],
+            'slug' => ['nullable', 'string', 'max:255'],
+            'product_type' => ['required', Rule::in(['top_up', 'key', 'account'])],
             'delivery_type' => ['required', Rule::in(['instant', 'timed', 'manual'])],
             'delivery_time_minutes' => ['nullable', 'integer', 'min:1'],
             'cost_price' => ['nullable', 'numeric', 'min:0'],
@@ -38,6 +38,7 @@ class StoreProductRequest extends FormRequest
             'seo_description' => ['nullable', 'string'],
             'seo_keywords' => ['nullable', 'string'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
+            'force_apply_template' => ['nullable', 'boolean'],
         ];
     }
 }

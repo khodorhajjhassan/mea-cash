@@ -21,6 +21,7 @@ class ProductFormField extends Model
         'is_required',
         'sort_order',
         'validation_rules',
+        'ui_meta',
     ];
 
     protected function casts(): array
@@ -28,6 +29,7 @@ class ProductFormField extends Model
         return [
             'is_required' => 'boolean',
             'validation_rules' => 'array',
+            'ui_meta' => 'array',
         ];
     }
 

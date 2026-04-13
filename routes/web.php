@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\Web\OrderController;
 use App\Http\Controllers\Admin\Web\PaymentMethodController;
 use App\Http\Controllers\Admin\Web\ProductController;
 use App\Http\Controllers\Admin\Web\ProductPackageController;
+use App\Http\Controllers\Admin\Web\ProductTypeController;
 use App\Http\Controllers\Admin\Web\SettingController;
 use App\Http\Controllers\Admin\Web\SubcategoryController;
 use App\Http\Controllers\Admin\Web\SupplierController;
@@ -49,6 +50,7 @@ Route::prefix('admin')
 
         Route::resource('categories', CategoryController::class);
         Route::resource('subcategories', SubcategoryController::class);
+        Route::resource('product-types', ProductTypeController::class);
         Route::resource('products', ProductController::class);
         Route::resource('product-packages', ProductPackageController::class);
 
@@ -92,6 +94,7 @@ Route::prefix('admin')
         Route::get('analytics/revenue', [AnalyticsController::class, 'revenue'])->name('analytics.revenue');
         Route::get('analytics/products', [AnalyticsController::class, 'products'])->name('analytics.products');
         Route::get('analytics/profit', [AnalyticsController::class, 'profit'])->name('analytics.profit');
+        Route::get('analytics/users', [AnalyticsController::class, 'users'])->name('analytics.users');
 
         Route::get('contact', [ContactController::class, 'index'])->name('contact.index');
         Route::get('contact/{contact}', [ContactController::class, 'show'])->name('contact.show');
@@ -109,6 +112,7 @@ Route::prefix('admin')
         Route::post('products/{product}/packages', [ProductController::class, 'storePackage'])->name('products.packages.store');
         Route::put('products/packages/{package}', [ProductController::class, 'updatePackage'])->name('products.packages.update');
         Route::post('products/{product}/fields', [ProductController::class, 'storeField'])->name('products.fields.store');
+        Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
     });
 
 Route::prefix('admin/api')

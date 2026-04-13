@@ -13,6 +13,7 @@ use App\Models\Product;
 use App\Models\ProductCode;
 use App\Models\ProductFormField;
 use App\Models\ProductPackage;
+use App\Models\ProductType;
 use App\Models\Subcategory;
 use App\Models\Supplier;
 use App\Models\TopupRequest;
@@ -53,6 +54,111 @@ class DemoDataSeeder extends Seeder
             ['name' => 'Digital Wallet Source', 'contact_name' => 'Mina K', 'email' => 'support@dwsource.example', 'phone' => '71110003', 'notes' => 'Flexible payment products', 'is_active' => true],
             ['name' => 'GiftCard Depot', 'contact_name' => 'Rana F', 'email' => 'team@giftcarddepot.example', 'phone' => '71110004', 'notes' => null, 'is_active' => true],
         ])->map(fn (array $data) => Supplier::query()->updateOrCreate(['name' => $data['name']], $data));
+
+        $productTypes = collect([
+            [
+                'name' => 'Account ID Required',
+                'key' => 'account-id-required',
+                'description' => 'Requires one account ID input before checkout.',
+                'is_active' => true,
+                'schema' => [
+                    'modes' => ['package'],
+                    'fields' => [
+                        [
+                            'key' => 'account_id',
+                            'label' => 'Account ID',
+                            'type' => 'text',
+                            'required' => true,
+                            'placeholder' => 'Enter your account ID',
+                            'rules' => ['required', 'string', 'max:120'],
+                            'sort_order' => 1,
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'name' => 'Account + Login Credentials',
+                'key' => 'account-login-credentials',
+                'description' => 'Requires account ID, login email, and password.',
+                'is_active' => true,
+                'schema' => [
+                    'modes' => ['package', 'quantity'],
+                    'fields' => [
+                        [
+                            'key' => 'account_id',
+                            'label' => 'Account ID',
+                            'type' => 'text',
+                            'required' => true,
+                            'placeholder' => 'Enter your account ID',
+                            'rules' => ['required', 'string', 'max:120'],
+                            'sort_order' => 1,
+                        ],
+                        [
+                            'key' => 'email',
+                            'label' => 'Login Email',
+                            'type' => 'email',
+                            'required' => true,
+                            'placeholder' => 'Enter your email',
+                            'rules' => ['required', 'email'],
+                            'sort_order' => 2,
+                        ],
+                        [
+                            'key' => 'password',
+                            'label' => 'Password',
+                            'type' => 'password',
+                            'required' => true,
+                            'placeholder' => 'Enter your password',
+                            'rules' => ['required', 'string', 'min:6'],
+                            'sort_order' => 3,
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'name' => 'Quantity or Price Mode',
+                'key' => 'quantity-or-price',
+                'description' => 'Supports quantity/price purchase mode with account ID.',
+                'is_active' => true,
+                'schema' => [
+                    'modes' => ['quantity', 'price'],
+                    'fields' => [
+                        [
+                            'key' => 'account_id',
+                            'label' => 'Account ID',
+                            'type' => 'text',
+                            'required' => true,
+                            'placeholder' => 'Enter your account ID',
+                            'rules' => ['required', 'string', 'max:120'],
+                            'sort_order' => 1,
+                        ],
+                        [
+                            'key' => 'quantity',
+                            'label' => 'Quantity',
+                            'type' => 'number',
+                            'required' => true,
+                            'placeholder' => 'Enter quantity',
+                            'rules' => ['required', 'numeric', 'min:1'],
+                            'sort_order' => 2,
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'name' => 'Package Only',
+                'key' => 'package-only',
+                'description' => 'No additional inputs required, only package selection.',
+                'is_active' => true,
+                'schema' => [
+                    'modes' => ['package'],
+                    'fields' => [],
+                ],
+            ],
+        ])->map(function (array $data) {
+            return ProductType::query()->updateOrCreate(
+                ['key' => $data['key']],
+                $data
+            );
+        })->keyBy('key');
 
         $catalogMap = [
             'Gaming' => [
@@ -118,12 +224,19 @@ class DemoDataSeeder extends Seeder
 
                 $supplierId = $suppliers->random()->id;
                 $isCustom = in_array($subcategoryName, ['BIGO Live', 'TikTok Coins'], true);
+                $templateKey = match ($subcategoryName) {
+                    'TikTok Coins' => 'account-login-credentials',
+                    'BIGO Live' => 'quantity-or-price',
+                    'USDT (TRC20)', 'Perfect Money', 'Payeer' => 'package-only',
+                    default => 'account-id-required',
+                };
 
                 $product = Product::query()->updateOrCreate(
                     ['slug' => Str::slug($subcategoryName.' package')],
                     [
                         'subcategory_id' => $subcategory->id,
                         'supplier_id' => $supplierId,
+                        'product_type_id' => $productTypes->get($templateKey)?->id,
                         'name_en' => $subcategoryName.' Recharge',
                         'name_ar' => $subcategoryName.' Recharge',
                         'description_en' => 'Instant delivery for '.$subcategoryName,
@@ -148,56 +261,33 @@ class DemoDataSeeder extends Seeder
                 );
 
                 $allProducts->push($product);
-
-                ProductFormField::query()->updateOrCreate(
-                    ['product_id' => $product->id, 'field_key' => 'account_id'],
-                    [
-                        'label_en' => 'Account ID',
-                        'label_ar' => 'Account ID',
-                        'field_type' => 'text',
-                        'placeholder_en' => 'Enter account ID',
-                        'placeholder_ar' => 'Enter account ID',
-                        'is_required' => true,
-                        'sort_order' => 1,
-                        'validation_rules' => ['required', 'string', 'max:120'],
-                    ]
-                );
-
-                if ($subcategoryName === 'TikTok Coins') {
-                    ProductFormField::query()->updateOrCreate(
-                        ['product_id' => $product->id, 'field_key' => 'email'],
-                        [
-                            'label_en' => 'Login Email',
-                            'label_ar' => 'Login Email',
-                            'field_type' => 'email',
-                            'placeholder_en' => 'Email',
-                            'placeholder_ar' => 'Email',
-                            'is_required' => true,
-                            'sort_order' => 2,
-                            'validation_rules' => ['required', 'email'],
-                        ]
-                    );
-                }
+                $this->seedProductFormFieldsFromTemplate($product);
 
                 foreach ($packages as $index => $packageName) {
                     $amount = (float) preg_replace('/[^0-9.]/', '', $packageName) ?: ($index + 1) * 10;
                     $costPrice = max(0.5, $amount * 0.008);
                     $sellPrice = round($costPrice * 1.15, 2);
 
-                    $package = ProductPackage::query()->create([
-                        'product_id' => $product->id,
-                        'name_en' => $packageName,
-                        'name_ar' => $packageName,
-                        'amount' => $amount,
-                        'cost_price' => $costPrice,
-                        'selling_price' => $sellPrice,
-                        'image' => null,
-                        'badge_text' => $index === 0 ? 'Fast' : null,
-                        'is_available' => true,
-                        'sort_order' => $index + 1,
-                    ]);
+                    $package = ProductPackage::query()->updateOrCreate(
+                        ['product_id' => $product->id, 'name_en' => $packageName],
+                        [
+                            'name_ar' => $packageName,
+                            'amount' => $amount,
+                            'cost_price' => $costPrice,
+                            'selling_price' => $sellPrice,
+                            'image' => null,
+                            'badge_text' => $index === 0 ? 'Fast' : null,
+                            'is_available' => true,
+                            'sort_order' => $index + 1,
+                        ]
+                    );
 
-                    for ($i = 0; $i < 15; $i++) {
+                    $existingCodeCount = ProductCode::query()
+                        ->where('product_id', $product->id)
+                        ->where('package_id', $package->id)
+                        ->count();
+
+                    for ($i = $existingCodeCount; $i < 15; $i++) {
                         ProductCode::query()->create([
                             'product_id' => $product->id,
                             'package_id' => $package->id,
@@ -249,21 +339,22 @@ class DemoDataSeeder extends Seeder
         $users = collect();
 
         for ($i = 1; $i <= 120; $i++) {
-            $user = User::query()->create([
-                'name' => $faker->name(),
-                'email' => 'user'.$i.'@meacash.dev',
-                'phone' => '79'.str_pad((string) $i, 6, '0', STR_PAD_LEFT),
-                'password' => Hash::make('password'),
-                'preferred_language' => $faker->randomElement(['en', 'ar']),
-                'is_active' => true,
-                'is_admin' => false,
-            ]);
+            $user = User::query()->updateOrCreate(
+                ['email' => 'user'.$i.'@meacash.dev'],
+                [
+                    'name' => $faker->name(),
+                    'phone' => '79'.str_pad((string) $i, 6, '0', STR_PAD_LEFT),
+                    'password' => Hash::make('password'),
+                    'preferred_language' => $faker->randomElement(['en', 'ar']),
+                    'is_active' => true,
+                    'is_admin' => false,
+                ]
+            );
 
-            $wallet = Wallet::query()->create([
-                'user_id' => $user->id,
-                'balance' => rand(20, 700),
-                'currency' => 'USD',
-            ]);
+            $wallet = Wallet::query()->updateOrCreate(
+                ['user_id' => $user->id],
+                ['balance' => rand(20, 700), 'currency' => 'USD']
+            );
 
             for ($t = 0; $t < rand(2, 8); $t++) {
                 $amount = rand(5, 120);
@@ -312,27 +403,30 @@ class DemoDataSeeder extends Seeder
                 $quantity = rand(1, 3);
                 $total = round($unitPrice * $quantity, 2);
 
-                $order = Order::query()->create([
-                    'order_number' => 'MC-2026-'.str_pad((string) $orderCounter++, 6, '0', STR_PAD_LEFT),
-                    'user_id' => $user->id,
-                    'product_id' => $product->id,
-                    'package_id' => $package?->id,
-                    'quantity' => $quantity,
-                    'unit_price' => $unitPrice,
-                    'total_price' => $total,
-                    'cost_price' => round($costPrice * $quantity, 2),
-                    'profit' => round(($unitPrice - $costPrice) * $quantity, 2),
-                    'status' => collect(['pending', 'processing', 'completed', 'failed', 'refunded'])->random(),
-                    'delivery_type' => $product->delivery_type,
-                    'fulfillment_data' => [
-                        'account_id' => 'ACC'.rand(100000, 999999),
-                    ],
-                    'delivery_notes' => null,
-                    'fulfilled_at' => now()->subDays(rand(0, 40)),
-                    'confirmed_at' => rand(0, 1) ? now()->subDays(rand(0, 35)) : null,
-                    'created_at' => now()->subDays(rand(0, 60)),
-                    'updated_at' => now()->subDays(rand(0, 30)),
-                ]);
+                $orderNumber = 'MC-2026-'.str_pad((string) $orderCounter++, 6, '0', STR_PAD_LEFT);
+                $order = Order::query()->updateOrCreate(
+                    ['order_number' => $orderNumber],
+                    [
+                        'user_id' => $user->id,
+                        'product_id' => $product->id,
+                        'package_id' => $package?->id,
+                        'quantity' => $quantity,
+                        'unit_price' => $unitPrice,
+                        'total_price' => $total,
+                        'cost_price' => round($costPrice * $quantity, 2),
+                        'profit' => round(($unitPrice - $costPrice) * $quantity, 2),
+                        'status' => collect(['pending', 'processing', 'completed', 'failed', 'refunded'])->random(),
+                        'delivery_type' => $product->delivery_type,
+                        'fulfillment_data' => [
+                            'account_id' => 'ACC'.rand(100000, 999999),
+                        ],
+                        'delivery_notes' => null,
+                        'fulfilled_at' => now()->subDays(rand(0, 40)),
+                        'confirmed_at' => rand(0, 1) ? now()->subDays(rand(0, 35)) : null,
+                        'created_at' => now()->subDays(rand(0, 60)),
+                        'updated_at' => now()->subDays(rand(0, 30)),
+                    ]
+                );
 
                 $availableCode = ProductCode::query()
                     ->where('product_id', $product->id)
@@ -348,21 +442,27 @@ class DemoDataSeeder extends Seeder
                     ]);
                 }
 
-                OrderItem::query()->create([
-                    'order_id' => $order->id,
-                    'code_id' => $availableCode?->id,
-                    'delivered_value' => $availableCode?->code ?? 'Manual fulfillment note',
-                    'type' => $availableCode ? 'code' : 'manual_note',
-                    'revealed_at' => now()->subDays(rand(0, 20)),
-                ]);
+                OrderItem::query()->updateOrCreate(
+                    ['order_id' => $order->id],
+                    [
+                        'code_id' => $availableCode?->id,
+                        'delivered_value' => $availableCode?->code ?? 'Manual fulfillment note',
+                        'type' => $availableCode ? 'code' : 'manual_note',
+                        'revealed_at' => now()->subDays(rand(0, 20)),
+                    ]
+                );
 
                 if ($order->status === 'completed' && rand(0, 100) < 55) {
-                    Feedback::query()->create([
-                        'user_id' => $user->id,
-                        'order_id' => $order->id,
-                        'rating' => rand(3, 5),
-                        'comment' => $faker->sentence(),
-                    ]);
+                    Feedback::query()->updateOrCreate(
+                        [
+                            'user_id' => $user->id,
+                            'order_id' => $order->id,
+                        ],
+                        [
+                            'rating' => rand(3, 5),
+                            'comment' => $faker->sentence(),
+                        ]
+                    );
                 }
             }
         }
@@ -386,6 +486,52 @@ class DemoDataSeeder extends Seeder
             ['key' => 'payment_receipt_visibility', 'value' => 'private', 'group' => 'payment'],
         ] as $setting) {
             AdminSetting::query()->updateOrCreate(['key' => $setting['key']], $setting);
+        }
+    }
+
+    private function seedProductFormFieldsFromTemplate(Product $product): void
+    {
+        $product->loadMissing('productTypeDefinition');
+        $schema = $product->productTypeDefinition?->schema;
+        $fields = is_array($schema) && array_key_exists('fields', $schema) ? $schema['fields'] : $schema;
+
+        if (!is_array($fields)) {
+            return;
+        }
+
+        ProductFormField::query()->where('product_id', $product->id)->delete();
+
+        foreach ($fields as $index => $field) {
+            if (!is_array($field)) {
+                continue;
+            }
+
+            $fieldType = (string) ($field['type'] ?? 'text');
+            if (!in_array($fieldType, ['text', 'email', 'password', 'number', 'select'], true)) {
+                $fieldType = 'text';
+            }
+
+            $isRequired = (bool) ($field['required'] ?? false);
+            $rules = $field['rules'] ?? [];
+            if (!is_array($rules)) {
+                $rules = [];
+            }
+            if ($isRequired && !in_array('required', $rules, true)) {
+                $rules[] = 'required';
+            }
+
+            ProductFormField::query()->create([
+                'product_id' => $product->id,
+                'field_key' => (string) ($field['key'] ?? 'field_'.$index),
+                'label_en' => (string) ($field['label_en'] ?? $field['label'] ?? Str::headline((string) ($field['key'] ?? 'Field '.$index))),
+                'label_ar' => (string) ($field['label_ar'] ?? $field['label'] ?? Str::headline((string) ($field['key'] ?? 'Field '.$index))),
+                'field_type' => $fieldType,
+                'placeholder_en' => (string) ($field['placeholder_en'] ?? $field['placeholder'] ?? ''),
+                'placeholder_ar' => (string) ($field['placeholder_ar'] ?? $field['placeholder'] ?? ''),
+                'is_required' => $isRequired,
+                'sort_order' => (int) ($field['sort_order'] ?? $index + 1),
+                'validation_rules' => $rules,
+            ]);
         }
     }
 }

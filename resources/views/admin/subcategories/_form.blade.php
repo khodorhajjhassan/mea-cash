@@ -8,11 +8,21 @@
             @endforeach
         </select>
     </div>
+    <div class="field">
+        <label>Product Type Template</label>
+        <select name="product_type_id">
+            <option value="">No template</option>
+            @foreach($productTypes as $type)
+                <option value="{{ $type->id }}" @selected(old('product_type_id', $subcategory->product_type_id ?? null) == $type->id)>{{ $type->name }} ({{ $type->key }})</option>
+            @endforeach
+        </select>
+    </div>
     <div class="field"><label>Name (EN)</label><input type="text" name="name_en" value="{{ old('name_en', $subcategory->name_en ?? '') }}" required></div>
     <div class="field"><label>Name (AR)</label><input type="text" name="name_ar" value="{{ old('name_ar', $subcategory->name_ar ?? '') }}" required></div>
     <div class="field"><label>Slug</label><input type="text" name="slug" value="{{ old('slug', $subcategory->slug ?? '') }}"></div>
     <div class="field"><label>Sort Order</label><input type="number" min="0" name="sort_order" value="{{ old('sort_order', $subcategory->sort_order ?? 0) }}"></div>
     <div class="field"><label>Status</label><select name="is_active"><option value="1" @selected(old('is_active', $subcategory->is_active ?? true)==1)>Active</option><option value="0" @selected(old('is_active', $subcategory->is_active ?? true)==0)>Disabled</option></select></div>
+    <div class="field"><label>Featured</label><select name="is_featured"><option value="1" @selected(old('is_featured', $subcategory->is_featured ?? false)==1)>Yes</option><option value="0" @selected(old('is_featured', $subcategory->is_featured ?? false)==0)>No</option></select></div>
 </div>
 <div class="field mt-4"><label>SEO Title</label><input type="text" name="seo_title" value="{{ old('seo_title', $subcategory->seo_title ?? '') }}"></div>
 <div class="field mt-4"><label>SEO Description</label><textarea name="seo_description" rows="3">{{ old('seo_description', $subcategory->seo_description ?? '') }}</textarea></div>

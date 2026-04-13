@@ -10,7 +10,9 @@
     @endif
     <p><strong>Arabic:</strong> {{ $subcategory->name_ar }}</p>
     <p><strong>Category:</strong> {{ $subcategory->category?->name_en ?? '-' }}</p>
+    <p><strong>Product Type Template:</strong> {{ $subcategory->productTypeDefinition?->name ?? '-' }}</p>
     <p><strong>Slug:</strong> {{ $subcategory->slug }}</p>
+    <p><strong>Featured:</strong> {{ $subcategory->is_featured ? 'Yes' : 'No' }}</p>
     <a href="{{ route('admin.subcategories.edit', $subcategory) }}" class="btn-primary no-underline">Edit</a>
 </section>
 @endsection

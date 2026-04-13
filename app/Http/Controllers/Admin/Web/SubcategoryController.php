@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSubcategoryRequest;
 use App\Http\Requests\UpdateSubcategoryRequest;
 use App\Models\Category;
+use App\Models\ProductType;
 use App\Models\Subcategory;
 use App\Services\Media\ImageStorageService;
 use Exception;
@@ -21,7 +22,7 @@ class SubcategoryController extends Controller
     public function index(Request $request)
     {
         $subcategories = Subcategory::query()
-            ->with('category:id,name_en')
+            ->with(['category:id,name_en', 'productTypeDefinition:id,name,key'])
             ->when($request->filled('q'), function ($query) use ($request): void {
                 $q = trim((string) $request->string('q'));
                 $query->where(function ($nested) use ($q): void {
@@ -35,11 +36,14 @@ class SubcategoryController extends Controller
             ->when($request->filled('status'), function ($query) use ($request): void {
                 $query->where('is_active', $request->string('status')->value() === 'active');
             })
+            ->when($request->filled('featured'), function ($query) use ($request): void {
+                $query->where('is_featured', $request->string('featured')->value() === 'yes');
+            })
             ->latest('id')
             ->paginate(15)
             ->withQueryString();
 
-        $filters = $request->only(['q', 'status']);
+        $filters = $request->only(['q', 'status', 'featured']);
 
         return view('admin.subcategories.index', compact('subcategories', 'filters'));
     }
@@ -47,8 +51,9 @@ class SubcategoryController extends Controller
     public function create()
     {
         $categories = Category::query()->where('is_active', true)->orderBy('name_en')->get(['id', 'name_en']);
+        $productTypes = ProductType::query()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'key']);
 
-        return view('admin.subcategories.create', compact('categories'));
+        return view('admin.subcategories.create', compact('categories', 'productTypes'));
     }
 
     public function store(StoreSubcategoryRequest $request)
@@ -73,7 +78,7 @@ class SubcategoryController extends Controller
 
     public function show(Subcategory $subcategory)
     {
-        $subcategory->load('category:id,name_en');
+        $subcategory->load(['category:id,name_en', 'productTypeDefinition:id,name,key']);
 
         return view('admin.subcategories.show', compact('subcategory'));
     }
@@ -81,8 +86,9 @@ class SubcategoryController extends Controller
     public function edit(Subcategory $subcategory)
     {
         $categories = Category::query()->where('is_active', true)->orderBy('name_en')->get(['id', 'name_en']);
+        $productTypes = ProductType::query()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'key']);
 
-        return view('admin.subcategories.edit', compact('subcategory', 'categories'));
+        return view('admin.subcategories.edit', compact('subcategory', 'categories', 'productTypes'));
     }
 
     public function update(UpdateSubcategoryRequest $request, Subcategory $subcategory)
