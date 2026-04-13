@@ -14,11 +14,28 @@ class UserController extends Controller
     {
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::query()->with('wallet')->latest('id')->paginate(20);
+        $users = User::query()
+            ->with('wallet')
+            ->when($request->filled('q'), function ($query) use ($request): void {
+                $q = trim((string) $request->string('q'));
+                $query->where(function ($inner) use ($q): void {
+                    $inner->where('name', 'like', "%{$q}%")
+                        ->orWhere('email', 'like', "%{$q}%")
+                        ->orWhere('phone', 'like', "%{$q}%");
+                });
+            })
+            ->when($request->filled('status'), function ($query) use ($request): void {
+                $query->where('is_active', $request->string('status')->value() === 'active');
+            })
+            ->latest('id')
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('admin.users.index', compact('users'));
+        $filters = $request->only(['q', 'status']);
+
+        return view('admin.users.index', compact('users', 'filters'));
     }
 
     public function show(User $user)

@@ -9,11 +9,27 @@ use Illuminate\Http\Request;
 
 class PaymentMethodController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $methods = PaymentMethod::query()->orderBy('method')->get();
+        $methods = PaymentMethod::query()
+            ->when($request->filled('q'), function ($query) use ($request): void {
+                $q = trim((string) $request->string('q'));
+                $query->where(function ($inner) use ($q): void {
+                    $inner->where('method', 'like', "%{$q}%")
+                        ->orWhere('display_name_en', 'like', "%{$q}%")
+                        ->orWhere('display_name_ar', 'like', "%{$q}%")
+                        ->orWhere('account_identifier', 'like', "%{$q}%");
+                });
+            })
+            ->when($request->filled('status'), function ($query) use ($request): void {
+                $query->where('is_active', $request->string('status')->value() === 'active');
+            })
+            ->orderBy('method')
+            ->get();
 
-        return view('admin.payment-methods.index', compact('methods'));
+        $filters = $request->only(['q', 'status']);
+
+        return view('admin.payment-methods.index', compact('methods', 'filters'));
     }
 
     public function update(Request $request, PaymentMethod $paymentMethod)

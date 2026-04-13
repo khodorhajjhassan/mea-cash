@@ -14,11 +14,25 @@ class TopupController extends Controller
     {
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $topups = TopupRequest::query()->with('user:id,name', 'processor:id,name')->latest('id')->paginate(20);
+        $topups = TopupRequest::query()
+            ->with('user:id,name', 'processor:id,name')
+            ->when($request->filled('q'), function ($query) use ($request): void {
+                $q = trim((string) $request->string('q'));
+                $query->where(function ($nested) use ($q): void {
+                    $nested->where('payment_method', 'like', "%{$q}%")
+                        ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$q}%"));
+                });
+            })
+            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')->value()))
+            ->latest('id')
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('admin.topups.index', compact('topups'));
+        $filters = $request->only(['q', 'status']);
+
+        return view('admin.topups.index', compact('topups', 'filters'));
     }
 
     public function show(TopupRequest $topup)

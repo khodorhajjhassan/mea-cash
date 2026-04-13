@@ -9,18 +9,48 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::query()->with('user:id,name', 'product:id,name_en')->latest('id')->paginate(20);
+        $orders = Order::query()
+            ->with('user:id,name', 'product:id,name_en')
+            ->when($request->filled('q'), function ($query) use ($request): void {
+                $q = trim((string) $request->string('q'));
+                $query->where(function ($nested) use ($q): void {
+                    $nested->where('order_number', 'like', "%{$q}%")
+                        ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$q}%"))
+                        ->orWhereHas('product', fn ($productQuery) => $productQuery->where('name_en', 'like', "%{$q}%"));
+                });
+            })
+            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')->value()))
+            ->latest('id')
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('admin.orders.index', compact('orders'));
+        $filters = $request->only(['q', 'status']);
+
+        return view('admin.orders.index', compact('orders', 'filters'));
     }
 
-    public function pending()
+    public function pending(Request $request)
     {
-        $orders = Order::query()->with('user:id,name', 'product:id,name_en')->whereIn('status', ['pending', 'processing'])->latest('id')->paginate(20);
+        $orders = Order::query()
+            ->with('user:id,name', 'product:id,name_en')
+            ->whereIn('status', ['pending', 'processing'])
+            ->when($request->filled('q'), function ($query) use ($request): void {
+                $q = trim((string) $request->string('q'));
+                $query->where(function ($nested) use ($q): void {
+                    $nested->where('order_number', 'like', "%{$q}%")
+                        ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$q}%"))
+                        ->orWhereHas('product', fn ($productQuery) => $productQuery->where('name_en', 'like', "%{$q}%"));
+                });
+            })
+            ->latest('id')
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('admin.orders.pending', compact('orders'));
+        $filters = $request->only(['q']);
+
+        return view('admin.orders.pending', compact('orders', 'filters'));
     }
 
     public function show(Order $order)

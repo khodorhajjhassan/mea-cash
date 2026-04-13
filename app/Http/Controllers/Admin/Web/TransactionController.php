@@ -15,18 +15,47 @@ class TransactionController extends Controller
     {
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $transactions = WalletTransaction::query()->with('wallet.user:id,name')->latest('id')->paginate(25);
+        $transactions = WalletTransaction::query()
+            ->with('wallet.user:id,name')
+            ->when($request->filled('q'), function ($query) use ($request): void {
+                $q = trim((string) $request->string('q'));
+                $query->where(function ($nested) use ($q): void {
+                    $nested->where('description_en', 'like', "%{$q}%")
+                        ->orWhere('description_ar', 'like', "%{$q}%")
+                        ->orWhereHas('wallet.user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$q}%"));
+                });
+            })
+            ->when($request->filled('type'), fn ($query) => $query->where('type', $request->string('type')->value()))
+            ->latest('id')
+            ->paginate(25)
+            ->withQueryString();
 
-        return view('admin.transactions.index', compact('transactions'));
+        $filters = $request->only(['q', 'type']);
+
+        return view('admin.transactions.index', compact('transactions', 'filters'));
     }
 
-    public function user(User $user)
+    public function user(Request $request, User $user)
     {
-        $transactions = WalletTransaction::query()->whereHas('wallet', fn ($query) => $query->where('user_id', $user->id))->latest('id')->paginate(25);
+        $transactions = WalletTransaction::query()
+            ->whereHas('wallet', fn ($query) => $query->where('user_id', $user->id))
+            ->when($request->filled('q'), function ($query) use ($request): void {
+                $q = trim((string) $request->string('q'));
+                $query->where(function ($nested) use ($q): void {
+                    $nested->where('description_en', 'like', "%{$q}%")
+                        ->orWhere('description_ar', 'like', "%{$q}%");
+                });
+            })
+            ->when($request->filled('type'), fn ($query) => $query->where('type', $request->string('type')->value()))
+            ->latest('id')
+            ->paginate(25)
+            ->withQueryString();
 
-        return view('admin.transactions.user', compact('transactions', 'user'));
+        $filters = $request->only(['q', 'type']);
+
+        return view('admin.transactions.user', compact('transactions', 'user', 'filters'));
     }
 
     public function adjust(Request $request)

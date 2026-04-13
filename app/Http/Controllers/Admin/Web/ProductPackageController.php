@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductPackage;
 use App\Services\Media\ImageStorageService;
 use Exception;
+use Illuminate\Http\Request;
 
 class ProductPackageController extends Controller
 {
@@ -16,11 +17,30 @@ class ProductPackageController extends Controller
     {
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $packages = ProductPackage::query()->with('product:id,name_en')->latest('id')->paginate(15);
+        $packages = ProductPackage::query()
+            ->with('product:id,name_en')
+            ->when($request->filled('q'), function ($query) use ($request): void {
+                $q = trim((string) $request->string('q'));
+                $query->where(function ($nested) use ($q): void {
+                    $nested->where(function ($inner) use ($q): void {
+                        $inner->where('name_en', 'like', "%{$q}%")
+                            ->orWhere('name_ar', 'like', "%{$q}%")
+                            ->orWhere('badge_text', 'like', "%{$q}%");
+                    })->orWhereHas('product', fn ($productQuery) => $productQuery->where('name_en', 'like', "%{$q}%"));
+                });
+            })
+            ->when($request->filled('status'), function ($query) use ($request): void {
+                $query->where('is_available', $request->string('status')->value() === 'available');
+            })
+            ->latest('id')
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('admin.product-packages.index', compact('packages'));
+        $filters = $request->only(['q', 'status']);
+
+        return view('admin.product-packages.index', compact('packages', 'filters'));
     }
 
     public function create()

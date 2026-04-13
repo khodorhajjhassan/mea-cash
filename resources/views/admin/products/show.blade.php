@@ -2,8 +2,12 @@
 @section('title', 'Product Details')
 @section('header', 'Product Details')
 @section('content')
+@php($disk = config('media.disk', config('filesystems.default')))
 <section class="panel prose prose-slate max-w-none">
 <h2>{{ $product->name_en }}</h2>
+@if($product->image)
+<img src="{{ \Illuminate\Support\Facades\Storage::disk($disk)->url($product->image) }}" alt="{{ $product->name_en }}" class="my-4 h-48 w-48 rounded-xl object-cover not-prose">
+@endif
 <p><strong>Arabic:</strong> {{ $product->name_ar }}</p>
 <p><strong>Type:</strong> {{ str_replace('_', ' ', $product->product_type) }}</p>
 <p><strong>Delivery:</strong> {{ $product->delivery_type }}</p>

@@ -3,6 +3,11 @@
 @section('header','Payment Methods')
 @section('content')
 <section class="panel space-y-4">
+<form method="GET" action="{{ route('admin.payment-methods.index') }}" class="grid gap-3 md:grid-cols-4">
+<div class="field md:col-span-2"><label>Search</label><input type="text" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="Method, label, account"></div>
+<div class="field"><label>Status</label><select name="status"><option value="">All</option><option value="active" @selected(($filters['status'] ?? '')==='active')>Active</option><option value="inactive" @selected(($filters['status'] ?? '')==='inactive')>Inactive</option></select></div>
+<div class="flex items-end gap-2"><button class="btn-primary" type="submit">Filter</button><a class="btn-ghost" href="{{ route('admin.payment-methods.index') }}">Reset</a></div>
+</form>
 @foreach($methods as $method)
 <form method="POST" action="{{ route('admin.payment-methods.update', $method) }}" class="rounded-xl border border-slate-200 p-4">@csrf @method('PUT')
 <div class="grid gap-3 md:grid-cols-2">

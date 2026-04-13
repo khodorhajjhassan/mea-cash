@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Category;
 use App\Services\Media\ImageStorageService;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class CategoryController extends Controller
@@ -16,11 +17,27 @@ class CategoryController extends Controller
     {
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $categories = Category::query()->latest('id')->paginate(15);
+        $categories = Category::query()
+            ->when($request->filled('q'), function ($query) use ($request): void {
+                $q = trim((string) $request->string('q'));
+                $query->where(function ($inner) use ($q): void {
+                    $inner->where('name_en', 'like', "%{$q}%")
+                        ->orWhere('name_ar', 'like', "%{$q}%")
+                        ->orWhere('slug', 'like', "%{$q}%");
+                });
+            })
+            ->when($request->filled('status'), function ($query) use ($request): void {
+                $query->where('is_active', $request->string('status')->value() === 'active');
+            })
+            ->latest('id')
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('admin.categories.index', compact('categories'));
+        $filters = $request->only(['q', 'status']);
+
+        return view('admin.categories.index', compact('categories', 'filters'));
     }
 
     public function create()

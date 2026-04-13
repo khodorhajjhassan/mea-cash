@@ -10,9 +10,26 @@ class SettingController extends Controller
 {
     public function index()
     {
-        $settings = AdminSetting::query()->orderBy('group')->orderBy('key')->get();
+        $request = request();
 
-        return view('admin.settings.index', compact('settings'));
+        $settings = AdminSetting::query()
+            ->when($request->filled('q'), function ($query) use ($request): void {
+                $q = trim((string) $request->string('q'));
+                $query->where(function ($inner) use ($q): void {
+                    $inner->where('group', 'like', "%{$q}%")
+                        ->orWhere('key', 'like', "%{$q}%")
+                        ->orWhere('value', 'like', "%{$q}%");
+                });
+            })
+            ->when($request->filled('group'), fn ($query) => $query->where('group', $request->string('group')->value()))
+            ->orderBy('group')
+            ->orderBy('key')
+            ->paginate(30)
+            ->withQueryString();
+
+        $filters = $request->only(['q', 'group']);
+
+        return view('admin.settings.index', compact('settings', 'filters'));
     }
 
     public function update(Request $request)

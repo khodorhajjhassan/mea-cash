@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Subcategory;
 use App\Services\Media\ImageStorageService;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class SubcategoryController extends Controller
@@ -17,11 +18,30 @@ class SubcategoryController extends Controller
     {
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $subcategories = Subcategory::query()->with('category:id,name_en')->latest('id')->paginate(15);
+        $subcategories = Subcategory::query()
+            ->with('category:id,name_en')
+            ->when($request->filled('q'), function ($query) use ($request): void {
+                $q = trim((string) $request->string('q'));
+                $query->where(function ($nested) use ($q): void {
+                    $nested->where(function ($inner) use ($q): void {
+                        $inner->where('name_en', 'like', "%{$q}%")
+                            ->orWhere('name_ar', 'like', "%{$q}%")
+                            ->orWhere('slug', 'like', "%{$q}%");
+                    })->orWhereHas('category', fn ($categoryQuery) => $categoryQuery->where('name_en', 'like', "%{$q}%"));
+                });
+            })
+            ->when($request->filled('status'), function ($query) use ($request): void {
+                $query->where('is_active', $request->string('status')->value() === 'active');
+            })
+            ->latest('id')
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('admin.subcategories.index', compact('subcategories'));
+        $filters = $request->only(['q', 'status']);
+
+        return view('admin.subcategories.index', compact('subcategories', 'filters'));
     }
 
     public function create()

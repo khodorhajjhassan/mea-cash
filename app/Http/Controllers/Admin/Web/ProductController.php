@@ -12,6 +12,7 @@ use App\Models\Subcategory;
 use App\Models\Supplier;
 use App\Services\Media\ImageStorageService;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -20,14 +21,31 @@ class ProductController extends Controller
     {
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $products = Product::query()
             ->with(['subcategory:id,name_en', 'supplier:id,name'])
+            ->when($request->filled('q'), function ($query) use ($request): void {
+                $q = trim((string) $request->string('q'));
+                $query->where(function ($inner) use ($q): void {
+                    $inner->where('name_en', 'like', "%{$q}%")
+                        ->orWhere('name_ar', 'like', "%{$q}%")
+                        ->orWhere('slug', 'like', "%{$q}%");
+                });
+            })
+            ->when($request->filled('status'), function ($query) use ($request): void {
+                $query->where('is_active', $request->string('status')->value() === 'active');
+            })
+            ->when($request->filled('type'), function ($query) use ($request): void {
+                $query->where('product_type', $request->string('type')->value());
+            })
             ->latest('id')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('admin.products.index', compact('products'));
+        $filters = $request->only(['q', 'status', 'type']);
+
+        return view('admin.products.index', compact('products', 'filters'));
     }
 
     public function create()

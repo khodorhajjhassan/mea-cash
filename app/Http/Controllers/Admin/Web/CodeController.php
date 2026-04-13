@@ -10,11 +10,27 @@ use Illuminate\Http\Request;
 
 class CodeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $codes = ProductCode::query()->with(['product:id,name_en', 'package:id,name_en'])->latest('id')->paginate(20);
+        $codes = ProductCode::query()
+            ->with(['product:id,name_en', 'package:id,name_en'])
+            ->when($request->filled('q'), function ($query) use ($request): void {
+                $q = trim((string) $request->string('q'));
+                $query->where(function ($nested) use ($q): void {
+                    $nested->where('notes', 'like', "%{$q}%")
+                        ->orWhere('code', 'like', "%{$q}%")
+                        ->orWhereHas('product', fn ($productQuery) => $productQuery->where('name_en', 'like', "%{$q}%"));
+                });
+            })
+            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')->value()))
+            ->when($request->filled('product_id'), fn ($query) => $query->where('product_id', (int) $request->integer('product_id')))
+            ->latest('id')
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('admin.codes.index', compact('codes'));
+        $filters = $request->only(['q', 'status', 'product_id']);
+
+        return view('admin.codes.index', compact('codes', 'filters'));
     }
 
     public function import()
