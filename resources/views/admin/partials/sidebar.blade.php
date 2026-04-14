@@ -67,7 +67,7 @@
         </nav>
     </div>
 
-    <div class="text-xs text-slate-500 lg:block hidden">
+    <div class="text-xs text-slate-500 mt-10 lg:block hidden">
         <p>Modern Dashboard, built by <a class="text-blue-500 hover:text-blue-700" target="_blank"
                 href="https://broadstark.com">Broadstark</a>.</p>
     </div>
