@@ -9,10 +9,12 @@ use App\Models\Order;
 use App\Models\ProductCode;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\OrderFulfilledMail;
-
 class OrderFulfillmentService
 {
+    public function __construct(private readonly WalletService $walletService)
+    {
+    }
+
     /**
      * Fulfill an order with manual data or automated inventory.
      *
@@ -37,7 +39,13 @@ class OrderFulfillmentService
                         'pass' => $data['account_pass'] ?? '',
                         'link' => $data['account_link'] ?? '',
                     ],
-                    FulfillmentType::Topup => ['transaction_id' => $data['transaction_id'] ?? ''],
+                    FulfillmentType::Topup => [
+                        'transaction_id' => $data['transaction_id'] ?? '',
+                        'user' => $data['account_user'] ?? '',
+                        'pass' => $data['account_pass'] ?? '',
+                        'link' => $data['account_link'] ?? '',
+                        'keys' => $data['keys'] ?? '',
+                    ],
                     FulfillmentType::Note => ['note' => $data['admin_note'] ?? ''],
                 },
             ];
@@ -98,11 +106,34 @@ class OrderFulfillmentService
         return $order;
     }
 
-    public function processRefund(Order $order): Order
+    public function processRefund(Order $order, ?string $notes = null, bool $notifyEmail = false): Order
     {
-        return DB::transaction(function () use ($order) {
-            $order->update(['status' => OrderStatus::Refunded]);
-            // Logic to refund wallet balance should be called here too
+        return DB::transaction(function () use ($order, $notes, $notifyEmail) {
+            // 1. Update order status and notes
+            $order->update([
+                'status' => OrderStatus::Refunded,
+                'refund_notes' => $notes,
+            ]);
+
+            // 2. Process financial refund back to wallet
+            if ($order->user) {
+                $description = "Refund for Order #{$order->order_number}" . ($notes ? ": $notes" : "");
+                
+                $this->walletService->credit(
+                    user: $order->user,
+                    amount: (string) $order->total_price,
+                    description: $description,
+                    reference: $order,
+                    processedBy: auth()->id(),
+                    type: \App\Enums\WalletTransactionType::Refund
+                );
+
+                // 3. Optional Email Notification
+                if ($notifyEmail) {
+                    \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderRefundedMail($order));
+                }
+            }
+
             return $order;
         });
     }

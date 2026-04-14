@@ -23,11 +23,11 @@ class FulfillOrderRequest extends FormRequest
     {
         return [
             'fulfillment_type' => ['required', new Enum(FulfillmentType::class)],
-            'keys' => ['required_if:fulfillment_type,key', 'nullable', 'string'],
-            'account_user' => ['required_if:fulfillment_type,account', 'nullable', 'string'],
-            'account_pass' => ['required_if:fulfillment_type,account', 'nullable', 'string'],
+            'keys' => ['nullable', 'string'],
+            'account_user' => ['nullable', 'string'],
+            'account_pass' => ['nullable', 'string'],
             'account_link' => ['nullable', 'url'],
-            'transaction_id' => ['required_if:fulfillment_type,topup', 'nullable', 'string'],
+            'transaction_id' => ['nullable', 'string'],
             'admin_note' => ['nullable', 'string'],
             'notify_email' => ['sometimes', 'boolean'],
             'notify_whatsapp' => ['sometimes', 'boolean'],

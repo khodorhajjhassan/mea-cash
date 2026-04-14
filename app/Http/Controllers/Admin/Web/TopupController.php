@@ -16,6 +16,9 @@ class TopupController extends Controller
 
     public function index(Request $request)
     {
+        $startDate = $request->filled('from_date') ? $request->date('from_date') : now()->subMonths(2);
+        $endDate = $request->filled('to_date') ? $request->date('to_date') : null;
+
         $topups = TopupRequest::query()
             ->with('user:id,name', 'processor:id,name')
             ->when($request->filled('q'), function ($query) use ($request): void {
@@ -25,7 +28,17 @@ class TopupController extends Controller
                         ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$q}%"));
                 });
             })
-            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')->value()))
+            // Status logic: if explicitly provided (even if empty string for "All"), use that. Otherwise default to 'pending'.
+            ->when($request->has('status'), function ($query) use ($request) {
+                if ($request->filled('status')) {
+                    $query->where('status', $request->string('status')->value());
+                }
+            }, function ($query) {
+                $query->where('status', 'pending');
+            })
+            // Default date filtering
+            ->whereDate('created_at', '>=', $startDate)
+            ->when($endDate, fn ($query) => $query->whereDate('created_at', '<=', $endDate))
             ->latest('id')
             ->paginate(20)
             ->withQueryString();

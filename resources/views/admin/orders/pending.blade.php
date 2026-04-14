@@ -4,13 +4,25 @@
 @section('content')
 
 <section class="panel">
-    <form method="GET" action="{{ route('admin.orders.pending') }}" class="mb-4 grid gap-3 md:grid-cols-4">
-        <div class="field md:col-span-3">
+    <form method="GET" action="{{ route('admin.orders.pending') }}" class="mb-4 grid gap-3 md:grid-cols-5">
+        <div class="field md:col-span-1">
             <label>Search Orders</label>
-            <input type="text" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="Order #, User name, or Product...">
+            <input type="text" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="Order #, user...">
         </div>
-        <div class="flex items-end gap-2">
-            <button class="btn-primary grow" type="submit">Search</button>
+        <div class="field">
+            <label>Status</label>
+            <select name="status">
+                <option value="">All Pending</option>
+                <option value="pending" @selected(($filters['status'] ?? '') === 'pending')>Pending</option>
+                <option value="processing" @selected(($filters['status'] ?? '') === 'processing')>Processing</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>From Date</label>
+            <input type="date" name="from_date" value="{{ $filters['from_date'] ?? '' }}">
+        </div>
+        <div class="flex items-end gap-2 md:col-span-2">
+            <button class="btn-primary grow" type="submit">Filter</button>
             <a class="btn-ghost" href="{{ route('admin.orders.pending') }}">Clear</a>
         </div>
     </form>
@@ -58,8 +70,18 @@
                             </span>
                         </td>
                         <td>
-                            <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full {{ $order->status === 'processing' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700' }}">
-                                {{ $order->status }}
+                            @php
+                                $statusColors = [
+                                    'pending' => 'bg-amber-100 text-amber-700',
+                                    'processing' => 'bg-blue-100 text-blue-700',
+                                    'completed' => 'bg-emerald-100 text-emerald-700',
+                                    'failed' => 'bg-rose-100 text-rose-700',
+                                    'refunded' => 'bg-rose-100 text-rose-700',
+                                ];
+                                $colorClass = $statusColors[$order->status->value] ?? 'bg-slate-100 text-slate-600';
+                            @endphp
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider {{ $colorClass }}">
+                                {{ $order->status->value }}
                             </span>
                         </td>
                         <td class="text-right">

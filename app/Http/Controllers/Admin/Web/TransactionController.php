@@ -17,6 +17,9 @@ class TransactionController extends Controller
 
     public function index(Request $request)
     {
+        $startDate = $request->filled('from_date') ? $request->date('from_date') : now()->subMonths(2);
+        $endDate = $request->filled('to_date') ? $request->date('to_date') : null;
+
         $transactions = WalletTransaction::query()
             ->with('wallet.user:id,name', 'processor:id,name')
             ->when($request->filled('q'), function ($query) use ($request): void {
@@ -28,8 +31,8 @@ class TransactionController extends Controller
                 });
             })
             ->when($request->filled('type'), fn ($query) => $query->where('type', $request->string('type')->value()))
-            ->when($request->filled('from_date'), fn ($query) => $query->whereDate('created_at', '>=', $request->date('from_date')))
-            ->when($request->filled('to_date'), fn ($query) => $query->whereDate('created_at', '<=', $request->date('to_date')))
+            ->whereDate('created_at', '>=', $startDate)
+            ->when($endDate, fn ($query) => $query->whereDate('created_at', '<=', $endDate))
             ->latest('id')
             ->paginate(25)
             ->withQueryString();

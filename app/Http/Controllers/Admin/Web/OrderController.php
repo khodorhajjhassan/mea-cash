@@ -20,6 +20,9 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
+        $startDate = $request->filled('from_date') ? $request->date('from_date') : now()->subMonths(2);
+        $endDate = $request->filled('to_date') ? $request->date('to_date') : null;
+
         $orders = Order::query()
             ->with('user:id,name', 'product:id,name_en')
             ->when($request->filled('q'), function ($query) use ($request): void {
@@ -31,20 +34,24 @@ class OrderController extends Controller
                 });
             })
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')->value))
+            ->whereDate('created_at', '>=', $startDate)
+            ->when($endDate, fn ($query) => $query->whereDate('created_at', '<=', $endDate))
             ->latest('id')
             ->paginate(20)
             ->withQueryString();
 
-        $filters = $request->only(['q', 'status']);
+        $filters = $request->only(['q', 'status', 'from_date', 'to_date']);
 
         return view('admin.orders.index', compact('orders', 'filters'));
     }
 
     public function pending(Request $request)
     {
+        $startDate = $request->filled('from_date') ? $request->date('from_date') : now()->subMonths(2);
+        
         $orders = Order::query()
-            ->with(['user:id,name', 'product:id,name_ar,name_en,image,subcategory_id', 'product.subcategory:id,name_en', 'package:id,name_en'])
-            ->whereIn('status', [OrderStatus::Pending, OrderStatus::Processing])
+            ->pending()
+            ->with(['user', 'product', 'package'])
             ->when($request->filled('q'), function ($query) use ($request): void {
                 $q = trim((string) $request->string('q'));
                 $query->where(function ($nested) use ($q): void {
@@ -53,11 +60,13 @@ class OrderController extends Controller
                         ->orWhereHas('product', fn ($productQuery) => $productQuery->where('name_en', 'like', "%{$q}%"));
                 });
             })
+            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')->value))
+            ->whereDate('created_at', '>=', $startDate)
             ->latest('id')
             ->paginate(20)
             ->withQueryString();
 
-        $filters = $request->only(['q']);
+        $filters = $request->only(['q', 'status', 'from_date']);
 
         return view('admin.orders.pending', compact('orders', 'filters'));
     }
@@ -129,16 +138,35 @@ class OrderController extends Controller
         }
     }
 
-    public function refund(Order $order)
+    public function refund(Request $request, Order $order)
     {
-        try {
-            $this->fulfillmentService->processRefund($order);
+        $data = $request->validate([
+            'notes' => ['nullable', 'string', 'max:500'],
+            'notify_email' => ['sometimes', 'boolean'],
+            'notify_whatsapp' => ['sometimes', 'boolean'],
+        ]);
 
-            return back()->with('success', 'Order marked as refunded.');
+        try {
+            $this->fulfillmentService->processRefund(
+                $order, 
+                $data['notes'] ?? null, 
+                !empty($data['notify_email'])
+            );
+
+            $response = back()->with('success', 'Order marked as refunded and money returned to wallet.');
+
+            if (!empty($data['notify_whatsapp']) && $order->user?->phone) {
+                $message = "Hello {$order->user->name}, your order #{$order->order_number} has been refunded. The amount of \${$order->total_price} has been returned to your wallet. " . ($data['notes'] ? "Note: {$data['notes']}" : "");
+                $whatsappUrl = "https://wa.me/" . preg_replace('/[^0-9]/', '', $order->user->phone) . "?text=" . urlencode($message);
+                
+                $response->with('whatsapp_url', $whatsappUrl);
+            }
+
+            return $response;
         } catch (Exception $exception) {
             report($exception);
 
-            return back()->with('error', 'Failed to process refund.');
+            return back()->with('error', 'Failed to process refund: ' . $exception->getMessage());
         }
     }
 }

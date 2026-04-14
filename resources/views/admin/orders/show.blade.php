@@ -10,7 +10,7 @@
             <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.659 1.432 5.623 1.432h.005c6.551 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
         </div>
         <div>
-            <p class="text-sm font-bold text-green-900 leading-tight">Order Fulfilled!</p>
+            <p class="text-sm font-bold text-green-900 leading-tight">{{ $order->status === App\Enums\OrderStatus::Refunded ? 'Order Refunded!' : 'Order Fulfilled!' }}</p>
             <p class="text-xs text-green-700">Would you like to notify the customer via WhatsApp now?</p>
         </div>
     </div>
@@ -34,11 +34,18 @@
                 </div>
             </div>
             <div class="flex gap-2">
-                <span class="px-3 py-1 text-xs font-semibold rounded-full 
-                    @if($order->status == 'completed') bg-green-100 text-green-700 
-                    @elseif($order->status == 'failed') bg-red-100 text-red-700 
-                    @else bg-blue-100 text-blue-700 @endif">
-                    {{ ucfirst($order->status) }}
+                @php
+                $statusColors = [
+                    'pending' => 'bg-amber-100 text-amber-700',
+                    'processing' => 'bg-blue-100 text-blue-700',
+                    'completed' => 'bg-emerald-100 text-emerald-700',
+                    'failed' => 'bg-rose-100 text-rose-700',
+                    'refunded' => 'bg-rose-100 text-rose-700',
+                ];
+                $colorClass = $statusColors[$order->status->value] ?? 'bg-slate-100 text-slate-500';
+                @endphp
+                <span class="px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider {{ $colorClass }}">
+                    {{ $order->status->value }}
                 </span>
             </div>
         </div>
@@ -80,12 +87,12 @@
 
         <!-- Fulfillment Flow -->
         <div class="lg:col-span-2 space-y-6">
-            @if($order->status !== 'completed')
+            @if($order->status !== App\Enums\OrderStatus::Completed && $order->status !== App\Enums\OrderStatus::Refunded)
             <section class="panel border-2 border-indigo-50 leading-relaxed shadow-sm">
                 <div class="panel-head border-b border-slate-100 pb-3">
                     <h3 class="text-base font-semibold text-indigo-900">Order Fulfillment</h3>
                     <span class="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded uppercase font-bold tracking-tight">
-                        {{ str_replace('_', ' ', $order->product?->product_type ?? 'Manual') }}
+                        {{ str_replace('_', ' ', $order->product?->product_type?->value ?? 'Manual') }}
                     </span>
                 </div>
                 
@@ -110,15 +117,27 @@
                             </div>
                         @else
                             <input type="hidden" name="fulfillment_type" value="topup">
-                            <div class="field">
-                                <label class="text-indigo-900 font-semibold">Transaction Reference / ID</label>
-                                <input type="text" name="transaction_id" required placeholder="e.g. TXN12345678">
+                            <div class="space-y-4">
+                                <div class="field">
+                                    <label class="text-indigo-900 font-semibold">Transaction Reference / ID</label>
+                                    <input type="text" name="transaction_id" placeholder="e.g. TXN12345678">
+                                    <p class="text-[10px] text-slate-500 mt-1 uppercase">For game IDs or external payment proofs.</p>
+                                </div>
+                                <div class="grid gap-4 md:grid-cols-2">
+                                    <div class="field"><label class="text-indigo-900 font-semibold text-xs">Account Email/User (Optional)</label><input type="text" name="account_user" class="text-xs"></div>
+                                    <div class="field"><label class="text-indigo-900 font-semibold text-xs">Account Password (Optional)</label><input type="text" name="account_pass" class="text-xs"></div>
+                                </div>
+                                <div class="field">
+                                    <label class="text-indigo-900 font-semibold text-xs">Additional Digital Keys / Codes (Optional)</label>
+                                    <textarea name="keys" rows="2" placeholder="Paste keys here if any..." class="text-xs"></textarea>
+                                </div>
                             </div>
                         @endif
 
                         <div class="field mt-4 border-t border-indigo-100 pt-4">
-                            <label class="text-indigo-900 font-semibold">Admin Note (Sent to user)</label>
-                            <textarea name="admin_note" rows="2" placeholder="Any additional info or greeting..."></textarea>
+                            <label class="text-indigo-900 font-semibold">Fulfillment Message / Admin Note</label>
+                            <textarea name="admin_note" rows="3" placeholder="This message will be sent to the user..."></textarea>
+                            <p class="text-[10px] text-slate-500 mt-1 uppercase">Include detailed instructions or a thank you message here.</p>
                         </div>
                     </div>
 
@@ -154,6 +173,7 @@
                     
                     <div class="grid gap-4 md:grid-cols-2">
                         @foreach($details as $d_key => $d_val)
+                            @continue(empty($d_val))
                             <div class="p-3 bg-white rounded-lg border border-green-100">
                                 <p class="text-[10px] uppercase font-bold text-slate-400 mb-1">{{ str_replace('_', ' ', $d_key) }}</p>
                                 <p class="text-sm font-medium text-slate-900 break-all">{{ $d_val }}</p>
@@ -167,11 +187,34 @@
                         <p class="text-sm text-slate-800 italic">"{{ $delivery['admin_note'] }}"</p>
                     </div>
                     @endif
+
+                    @if($order->status === App\Enums\OrderStatus::Refunded)
+                    <div class="mt-6 p-6 bg-rose-50 border border-rose-100 rounded-3xl">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1-4h1m4 4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-900">Refund Information</h4>
+                                <p class="text-[10px] text-rose-500 font-bold uppercase tracking-wider">Order Cancelled & Refunded</p>
+                            </div>
+                        </div>
+                        @if($order->refund_notes)
+                            <div class="bg-white/50 border border-rose-100/50 p-4 rounded-xl">
+                                <p class="text-xs text-slate-400 font-bold uppercase mb-1">Reason / Note</p>
+                                <p class="text-sm text-slate-800 italic">"{{ $order->refund_notes }}"</p>
+                            </div>
+                        @endif
+                    </div>
+                    @endif
                 </div>
             </section>
             @endif
 
             <div class="grid gap-6 md:grid-cols-2">
+                @if($order->status !== App\Enums\OrderStatus::Completed && $order->status !== App\Enums\OrderStatus::Refunded)
                 <section class="panel">
                     <div class="panel-head border-b border-slate-100 pb-3">
                         <h3 class="text-base font-semibold text-slate-900">Manage Status</h3>
@@ -183,23 +226,23 @@
                             <label>Status</label>
                             <select name="status" class="w-full">
                                 @foreach(['pending', 'processing', 'completed', 'failed', 'refunded'] as $status)
-                                    <option value="{{ $status }}" @selected($order->status === $status)>{{ ucfirst($status) }}</option>
+                                    <option value="{{ $status }}" @selected($order->status->value === $status)>{{ ucfirst($status) }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <button class="btn-primary">Save</button>
                     </form>
                 </section>
+                @endif
 
                 <section class="panel">
                     <div class="panel-head border-b border-slate-100 pb-3">
                         <h3 class="text-base font-semibold text-slate-900">Other Actions</h3>
                     </div>
                     <div class="mt-4 flex flex-wrap gap-2">
-                        <form method="POST" action="{{ route('admin.orders.refund', $order) }}" onsubmit="return confirm('Refund this order?')">
-                            @csrf
-                            <button class="btn-danger-outline">Refund Order</button>
-                        </form>
+                        @if($order->status !== App\Enums\OrderStatus::Refunded)
+                        <button type="button" onclick="document.getElementById('refundModal').classList.remove('hidden')" class="btn-danger-outline">Refund Order</button>
+                        @endif
                         @if($order->user?->phone)
                             <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $order->user->phone) }}" target="_blank" class="btn-ghost flex items-center gap-2">
                                 <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.937 3.659 1.432 5.623 1.432h.005c6.551 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
@@ -215,6 +258,45 @@
                 </section>
             </div>
         </div>
+    </div>
+</div>
+
+{{-- Refund Modal --}}
+<div id="refundModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-100 animate-in fade-in zoom-in duration-200">
+        <div class="p-8 border-b border-slate-50 text-center">
+            <div class="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900">Refund Order</h3>
+            <p class="text-slate-500 text-sm mt-1">This will return <span class="font-bold text-rose-500">${{ number_format($order->total_price, 2) }}</span> to the user's wallet.</p>
+        </div>
+
+        <form action="{{ route('admin.orders.refund', $order) }}" method="POST" class="p-8 space-y-6">
+            @csrf
+            <div class="field">
+                <label class="text-slate-900 font-bold text-sm">Reason for Refund (Optional)</label>
+                <textarea name="notes" rows="3" class="p-4 w-full bg-slate-50 border-slate-100 rounded-xl focus:ring-rose-500/20 focus:border-rose-500/50" placeholder="Why are you refunding this order?"></textarea>
+            </div>
+
+            <div class="grid gap-4 p-4 bg-slate-50 rounded-xl">
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" name="notify_email" value="1" checked class="h-4 w-4 rounded text-rose-600">
+                    <span class="text-sm font-medium text-slate-700">Notify User by Email</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" name="notify_whatsapp" value="1" class="h-4 w-4 rounded text-green-600">
+                    <span class="text-sm font-medium text-slate-700">Notify User by WhatsApp</span>
+                </label>
+            </div>
+            
+            <div class="flex gap-4 pt-2">
+                <button type="button" onclick="document.getElementById('refundModal').classList.add('hidden')" class="btn-ghost flex-1 py-4 text-slate-400 font-bold uppercase tracking-wider text-xs">Cancel</button>
+                <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white flex-[2] py-4 rounded-xl shadow-lg shadow-rose-100 font-bold uppercase tracking-widest text-xs transition-all active:scale-[0.98]">Confirm Refund</button>
+            </div>
+        </form>
     </div>
 </div>
 

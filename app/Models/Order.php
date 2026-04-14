@@ -41,6 +41,7 @@ class Order extends Model
         'delivery_type',
         'fulfillment_data',
         'delivery_notes',
+        'refund_notes',
         'fulfilled_at',
         'confirmed_at',
     ];
@@ -69,17 +70,17 @@ class Order extends Model
 
     public function isTypeKey(): bool
     {
-        return ($this->product?->product_type === ProductType::FixedPackage->value);
+        return ($this->product?->product_type === ProductType::FixedPackage);
     }
 
     public function isTypeAccount(): bool
     {
-        return ($this->product?->product_type === ProductType::AccountTopup->value);
+        return ($this->product?->product_type === ProductType::AccountTopup);
     }
 
     public function isTypeTopup(): bool
     {
-        return ($this->product?->product_type === ProductType::CustomQuantity->value);
+        return ($this->product?->product_type === ProductType::CustomQuantity);
     }
 
     public function getUserInput(): array

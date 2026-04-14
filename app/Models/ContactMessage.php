@@ -26,12 +26,14 @@ class ContactMessage extends Model
         'email',
         'subject',
         'message',
+        'is_read',
         'responded_at',
     ];
 
     protected function casts(): array
     {
         return [
+            'is_read' => 'boolean',
             'responded_at' => 'datetime',
         ];
     }

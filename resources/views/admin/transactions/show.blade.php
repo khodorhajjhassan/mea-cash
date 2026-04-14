@@ -7,12 +7,17 @@
     <section class="panel">
         <div class="panel-head border-b border-slate-100 pb-3">
             <h2 class="text-lg font-semibold text-slate-900">Information</h2>
-            <span class="px-3 py-1 text-[10px] font-bold uppercase rounded-full 
-                @if($transaction->type == 'topup') bg-green-100 text-green-700 
-                @elseif($transaction->type == 'purchase') bg-blue-100 text-blue-700 
-                @elseif($transaction->type == 'refund') bg-indigo-100 text-indigo-700
-                @else bg-slate-100 text-slate-600 @endif">
-                {{ str_replace('_', ' ', $transaction->type) }}
+            @php
+                $typeColors = [
+                    'topup' => 'bg-emerald-100 text-emerald-700',
+                    'purchase' => 'bg-blue-100 text-blue-700',
+                    'refund' => 'bg-rose-100 text-rose-700',
+                    'admin_adjustment' => 'bg-amber-100 text-amber-700',
+                ];
+                $colorClass = $typeColors[$transaction->type->value] ?? 'bg-slate-100 text-slate-500';
+            @endphp
+            <span class="px-3 py-1 text-[10px] font-bold uppercase rounded-full {{ $colorClass }}">
+                {{ str_replace('_', ' ', $transaction->type->value) }}
             </span>
         </div>
 

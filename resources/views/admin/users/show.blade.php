@@ -105,12 +105,18 @@
                                 <td class="text-sm font-medium">{{ $order->product?->name_en ?? 'N/A' }}</td>
                                 <td class="font-bold text-slate-900">${{ number_format($order->total_price, 2) }}</td>
                                 <td>
-                                    <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md 
-                                        @if($order->status == 'completed') bg-green-100 text-green-700 
-                                        @elseif($order->status == 'pending') bg-blue-100 text-blue-700 
-                                        @elseif($order->status == 'failed') bg-red-100 text-red-700
-                                        @else bg-slate-100 text-slate-600 @endif">
-                                        {{ $order->status }}
+                                    @php
+                                        $statusColors = [
+                                            'pending' => 'bg-amber-100 text-amber-700',
+                                            'processing' => 'bg-blue-100 text-blue-700',
+                                            'completed' => 'bg-emerald-100 text-emerald-700',
+                                            'failed' => 'bg-rose-100 text-rose-700',
+                                            'refunded' => 'bg-rose-100 text-rose-700',
+                                        ];
+                                        $colorClass = $statusColors[$order->status->value] ?? 'bg-slate-100 text-slate-600';
+                                    @endphp
+                                    <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md {{ $colorClass }}">
+                                        {{ $order->status->value }}
                                     </span>
                                 </td>
                                 <td class="text-xs text-slate-500">{{ $order->created_at->format('Y-m-d') }}</td>
@@ -144,7 +150,7 @@
                             @forelse($user->wallet?->transactions ?? [] as $tx)
                             <tr>
                                 <td><a href="{{ route('admin.transactions.show', $tx) }}" class="text-slate-400 font-mono text-[10px] hover:text-indigo-600">#{{ $tx->id }}</a></td>
-                                <td><span class="text-[10px] font-bold uppercase text-slate-600">{{ str_replace('_',' ',$tx->type) }}</span></td>
+                                <td><span class="text-[10px] font-bold uppercase text-slate-600">{{ str_replace('_',' ',$tx->type->value) }}</span></td>
                                 <td class="font-bold {{ $tx->amount > 0 ? 'text-green-600' : 'text-red-600' }}">
                                     {{ $tx->amount > 0 ? '+' : '' }}{{ number_format($tx->amount, 2) }}
                                 </td>

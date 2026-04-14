@@ -30,6 +30,19 @@
         </div>
     </a>
 
+    <!-- Legal Pages Hub -->
+    <a href="{{ route('admin.pages.edit') }}" class="panel hover:border-rose-200 transition-all group">
+        <div class="flex items-center gap-4">
+            <div class="h-12 w-12 rounded-xl bg-rose-100 flex items-center justify-center text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l5 5v11a2 2 0 01-2 2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 4v5h5"/></svg>
+            </div>
+            <div>
+                <h3 class="font-bold text-slate-800">Legal & Info Pages</h3>
+                <p class="text-xs text-slate-500">Dynamic content for About, Terms, and Privacy.</p>
+            </div>
+        </div>
+    </a>
+
     <!-- Raw Settings (EAV) -->
     <section class="panel lg:col-span-3">
         <div class="panel-head border-b border-slate-100 pb-3 mb-4">

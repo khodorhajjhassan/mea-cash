@@ -53,11 +53,16 @@
                         <div class="text-[10px] text-slate-400">ID: {{ $tx->wallet?->user?->id ?? '-' }}</div>
                     </td>
                     <td>
-                        <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md 
-                            @if($tx->type->value == 'topup') bg-green-100 text-green-700 
-                            @elseif($tx->type->value == 'purchase') bg-blue-100 text-blue-700 
-                            @elseif($tx->type->value == 'refund') bg-indigo-100 text-indigo-700
-                            @else bg-slate-100 text-slate-600 @endif">
+                        @php
+                            $typeColors = [
+                                'topup' => 'bg-emerald-100 text-emerald-700',
+                                'purchase' => 'bg-blue-100 text-blue-700',
+                                'refund' => 'bg-rose-100 text-rose-700',
+                                'admin_adjustment' => 'bg-amber-100 text-amber-700',
+                            ];
+                            $colorClass = $typeColors[$tx->type->value] ?? 'bg-slate-100 text-slate-500';
+                        @endphp
+                        <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md {{ $colorClass }}">
                             {{ str_replace('_',' ',$tx->type->value) }}
                         </span>
                     </td>

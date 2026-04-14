@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\DB;
 
 class WalletService
 {
-    public function credit(User $user, string $amount, string $description, ?Model $reference = null, ?int $processedBy = null): WalletTransaction
+    public function credit(User $user, string $amount, string $description, ?Model $reference = null, ?int $processedBy = null, \App\Enums\WalletTransactionType $type = \App\Enums\WalletTransactionType::Topup): WalletTransaction
     {
-        return DB::transaction(function () use ($user, $amount, $description, $reference, $processedBy): WalletTransaction {
+        return DB::transaction(function () use ($user, $amount, $description, $reference, $processedBy, $type): WalletTransaction {
             $wallet = Wallet::query()->firstOrCreate(
                 ['user_id' => $user->id],
                 ['balance' => '0.00', 'currency' => 'USD']
@@ -26,7 +26,7 @@ class WalletService
 
             return WalletTransaction::query()->create([
                 'wallet_id' => $wallet->id,
-                'type' => \App\Enums\WalletTransactionType::Topup,
+                'type' => $type,
                 'amount' => $amount,
                 'balance_before' => $balanceBefore,
                 'balance_after' => $wallet->fresh()->balance,

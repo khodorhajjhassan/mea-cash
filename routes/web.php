@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\Web\TransactionController;
 use App\Http\Controllers\Admin\Web\UserController;
 use App\Http\Controllers\Admin\Web\AnalyticsController;
 use App\Http\Controllers\Admin\Web\NotificationController;
+use App\Http\Controllers\Admin\Web\PageController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\UserAuthController;
 use Illuminate\Support\Facades\Route;
@@ -111,6 +112,9 @@ Route::prefix('admin')
         Route::get('settings/general', [SettingController::class, 'general'])->name('settings.general');
         Route::get('settings/seo', [SettingController::class, 'seo'])->name('settings.seo');
         Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
+
+        Route::get('pages', [PageController::class, 'edit'])->name('pages.edit');
+        Route::post('pages', [PageController::class, 'update'])->name('pages.update');
 
         Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
         Route::get('notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
