@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+use App\Enums\OrderStatus;
+use App\Enums\ProductType;
+use Illuminate\Database\Eloquent\Casts\AsEncryptedArrayObject;
 use App\Traits\NotifyAdmins;
 
 class Order extends Model
@@ -45,7 +48,12 @@ class Order extends Model
     protected function casts(): array
     {
         return [
-            'fulfillment_data' => 'array',
+            'unit_price' => 'decimal:2',
+            'total_price' => 'decimal:2',
+            'cost_price' => 'decimal:2',
+            'profit' => 'decimal:2',
+            'status' => OrderStatus::class,
+            'fulfillment_data' => AsEncryptedArrayObject::class,
             'fulfilled_at' => 'datetime',
             'confirmed_at' => 'datetime',
         ];
@@ -61,17 +69,17 @@ class Order extends Model
 
     public function isTypeKey(): bool
     {
-        return ($this->product?->product_type === 'fixed_package');
+        return ($this->product?->product_type === ProductType::FixedPackage->value);
     }
 
     public function isTypeAccount(): bool
     {
-        return ($this->product?->product_type === 'account_topup');
+        return ($this->product?->product_type === ProductType::AccountTopup->value);
     }
 
     public function isTypeTopup(): bool
     {
-        return ($this->product?->product_type === 'custom_quantity');
+        return ($this->product?->product_type === ProductType::CustomQuantity->value);
     }
 
     public function getUserInput(): array

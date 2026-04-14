@@ -6,8 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminSetting;
 use Illuminate\Http\Request;
 
+use App\Http\Requests\StoreSettingRequest;
+use App\Services\SettingsService;
+use Exception;
+
 class SettingController extends Controller
 {
+    public function __construct(private readonly SettingsService $settingsService)
+    {
+    }
+
     public function index()
     {
         $request = request();
@@ -34,6 +42,20 @@ class SettingController extends Controller
 
     public function update(Request $request)
     {
+        // Handle both single update and bulk update from StoreSettingRequest logic
+        if ($request->has('settings')) {
+            $data = $request->validate([
+                'settings' => ['required', 'array'],
+                'settings.*' => ['nullable', 'string'],
+            ]);
+
+            foreach ($data['settings'] as $key => $value) {
+                AdminSetting::query()->where('key', $key)->update(['value' => $value]);
+            }
+            
+            return back()->with('success', 'Settings bulk updated.');
+        }
+
         $data = $request->validate([
             'group' => ['required', 'string', 'max:100'],
             'key' => ['required', 'string', 'max:150'],
@@ -50,16 +72,21 @@ class SettingController extends Controller
 
     public function general()
     {
-        $settings = AdminSetting::query()->where('group', 'general')->get()->pluck('value', 'key');
-        $social = AdminSetting::query()->where('group', 'social')->get()->pluck('value', 'key');
+        $all = $this->settingsService->getAllCached();
+        
+        // Filter keys in PHP for speed since we have the cached list
+        $settings = array_intersect_key($all, array_flip(['site_name', 'site_email', 'site_phone']));
+        $social = array_filter($all, fn($k) => str_starts_with($k, 'social_'), ARRAY_FILTER_USE_KEY);
 
         return view('admin.settings.general', compact('settings', 'social'));
     }
 
     public function seo()
     {
-        $settings = AdminSetting::query()->where('group', 'seo')->get()->pluck('value', 'key');
+        $all = $this->settingsService->getAllCached();
+        $settings = array_filter($all, fn($k) => str_starts_with($k, 'seo_'), ARRAY_FILTER_USE_KEY);
 
         return view('admin.settings.seo', compact('settings'));
     }
 }
+

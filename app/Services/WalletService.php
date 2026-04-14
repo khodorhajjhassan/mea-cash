@@ -11,25 +11,25 @@ use Illuminate\Support\Facades\DB;
 
 class WalletService
 {
-    public function credit(User $user, float $amount, string $description, ?Model $reference = null, ?int $processedBy = null): WalletTransaction
+    public function credit(User $user, string $amount, string $description, ?Model $reference = null, ?int $processedBy = null): WalletTransaction
     {
         return DB::transaction(function () use ($user, $amount, $description, $reference, $processedBy): WalletTransaction {
             $wallet = Wallet::query()->firstOrCreate(
                 ['user_id' => $user->id],
-                ['balance' => 0, 'currency' => 'USD']
+                ['balance' => '0.00', 'currency' => 'USD']
             );
 
             $wallet = Wallet::query()->whereKey($wallet->id)->lockForUpdate()->firstOrFail();
 
-            $balanceBefore = (float) $wallet->balance;
+            $balanceBefore = $wallet->balance;
             $wallet->increment('balance', $amount);
 
             return WalletTransaction::query()->create([
                 'wallet_id' => $wallet->id,
-                'type' => 'topup',
+                'type' => \App\Enums\WalletTransactionType::Topup,
                 'amount' => $amount,
                 'balance_before' => $balanceBefore,
-                'balance_after' => (float) $wallet->fresh()->balance,
+                'balance_after' => $wallet->fresh()->balance,
                 'reference_type' => $reference?->getMorphClass(),
                 'reference_id' => $reference?->getKey(),
                 'description_en' => $description,
@@ -39,7 +39,7 @@ class WalletService
         });
     }
 
-    public function debit(User $user, float $amount, string $description, ?Model $reference = null, ?int $processedBy = null): WalletTransaction
+    public function debit(User $user, string $amount, string $description, ?Model $reference = null, ?int $processedBy = null): WalletTransaction
     {
         return DB::transaction(function () use ($user, $amount, $description, $reference, $processedBy): WalletTransaction {
             $wallet = Wallet::query()
@@ -47,19 +47,19 @@ class WalletService
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ((float) $wallet->balance < $amount) {
+            if (bccomp((string)$wallet->balance, (string)$amount, 2) === -1) {
                 throw new InsufficientBalanceException("Balance {$wallet->balance} is less than required {$amount}.");
             }
 
-            $balanceBefore = (float) $wallet->balance;
+            $balanceBefore = $wallet->balance;
             $wallet->decrement('balance', $amount);
 
             return WalletTransaction::query()->create([
                 'wallet_id' => $wallet->id,
-                'type' => 'purchase',
-                'amount' => -$amount,
+                'type' => \App\Enums\WalletTransactionType::Purchase,
+                'amount' => "-{$amount}",
                 'balance_before' => $balanceBefore,
-                'balance_after' => (float) $wallet->fresh()->balance,
+                'balance_after' => $wallet->fresh()->balance,
                 'reference_type' => $reference?->getMorphClass(),
                 'reference_id' => $reference?->getKey(),
                 'description_en' => $description,
@@ -69,8 +69,8 @@ class WalletService
         });
     }
 
-    public function getBalance(User $user): float
+    public function getBalance(User $user): string
     {
-        return (float) $user->wallet?->balance;
+        return (string) ($user->wallet?->balance ?? '0.00');
     }
 }

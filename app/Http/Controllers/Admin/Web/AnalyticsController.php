@@ -18,7 +18,7 @@ class AnalyticsController extends Controller
         [$startAt, $endAt, $hasDateFilter] = $this->resolveDateRange($request);
 
         $ordersQuery = Order::query();
-        $completedOrdersQuery = Order::query()->where('status', 'completed');
+        $completedOrdersQuery = Order::query()->where('status', \App\Enums\OrderStatus::Completed);
         $this->applyDateRange($ordersQuery, $startAt, $endAt, $hasDateFilter);
         $this->applyDateRange($completedOrdersQuery, $startAt, $endAt, $hasDateFilter);
 
@@ -45,7 +45,7 @@ class AnalyticsController extends Controller
 
         $points = collect(CarbonPeriod::create($start, $end))->map(function ($date) use ($startAt, $endAt) {
             $amount = Order::query()
-                ->where('status', 'completed')
+                ->where('status', \App\Enums\OrderStatus::Completed)
                 ->whereBetween('created_at', [$startAt, $endAt])
                 ->whereDate('created_at', $date)
                 ->sum('total_price');
@@ -81,8 +81,8 @@ class AnalyticsController extends Controller
     {
         [$startAt, $endAt, $hasDateFilter] = $this->resolveDateRange($request);
 
-        $profitQuery = Order::query()->where('status', 'completed');
-        $costQuery = Order::query()->where('status', 'completed');
+        $profitQuery = Order::query()->where('status', \App\Enums\OrderStatus::Completed);
+        $costQuery = Order::query()->where('status', \App\Enums\OrderStatus::Completed);
         $this->applyDateRange($profitQuery, $startAt, $endAt, $hasDateFilter);
         $this->applyDateRange($costQuery, $startAt, $endAt, $hasDateFilter);
 
@@ -100,7 +100,7 @@ class AnalyticsController extends Controller
         [$startAt, $endAt, $hasDateFilter] = $this->resolveDateRange($request);
 
         $completedOrdersFilter = function ($query) use ($startAt, $endAt, $hasDateFilter): void {
-            $query->where('status', 'completed');
+            $query->where('status', \App\Enums\OrderStatus::Completed);
             if ($hasDateFilter) {
                 $query->whereBetween('created_at', [$startAt, $endAt]);
             }

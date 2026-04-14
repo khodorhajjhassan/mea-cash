@@ -54,11 +54,11 @@
                     </td>
                     <td>
                         <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md 
-                            @if($tx->type == 'topup') bg-green-100 text-green-700 
-                            @elseif($tx->type == 'purchase') bg-blue-100 text-blue-700 
-                            @elseif($tx->type == 'refund') bg-indigo-100 text-indigo-700
+                            @if($tx->type->value == 'topup') bg-green-100 text-green-700 
+                            @elseif($tx->type->value == 'purchase') bg-blue-100 text-blue-700 
+                            @elseif($tx->type->value == 'refund') bg-indigo-100 text-indigo-700
                             @else bg-slate-100 text-slate-600 @endif">
-                            {{ str_replace('_',' ',$tx->type) }}
+                            {{ str_replace('_',' ',$tx->type->value) }}
                         </span>
                     </td>
                     <td>

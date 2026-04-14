@@ -30,6 +30,10 @@ class WalletTransaction extends Model
     protected function casts(): array
     {
         return [
+            'type' => \App\Enums\WalletTransactionType::class,
+            'amount' => 'decimal:2',
+            'balance_before' => 'decimal:2',
+            'balance_after' => 'decimal:2',
             'created_at' => 'datetime',
         ];
     }

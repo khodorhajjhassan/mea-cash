@@ -82,7 +82,7 @@
     }
 
     .admin-table th {
-        @apply bg-slate-50 px-4 py-3 text-left font-semibold text-slate-600;
+        @apply bg-slate-50 px-4 py-3 text-start font-semibold text-slate-600;
     }
 
     .admin-table td {

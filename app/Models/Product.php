@@ -41,6 +41,10 @@ class Product extends Model
     protected function casts(): array
     {
         return [
+            'product_type' => \App\Enums\ProductType::class,
+            'cost_price' => 'decimal:2',
+            'selling_price' => 'decimal:2',
+            'price_per_unit' => 'decimal:2',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
         ];

@@ -34,9 +34,10 @@
                 </div>
                 <div class="mt-4">
                     @if($topup->receipt_image_path)
-                        <a href="{{ \Illuminate\Support\Facades\Storage::url($topup->receipt_image_path) }}" target="_blank" class="block group">
-                            <img src="{{ \Illuminate\Support\Facades\Storage::url($topup->receipt_image_path) }}" class="w-full rounded-lg shadow-sm border border-slate-200 group-hover:opacity-90 transition-opacity">
-                            <p class="mt-2 text-center text-xs text-slate-400 font-medium group-hover:text-indigo-500 underline">View Full Image</p>
+                        @php($imageUrl = \Illuminate\Support\Facades\Storage::disk('private')->temporaryUrl($topup->receipt_image_path, now()->addMinutes(10)))
+                        <a href="{{ $imageUrl }}" target="_blank" class="block group">
+                            <img src="{{ $imageUrl }}" class="w-full rounded-lg shadow-sm border border-slate-200 group-hover:opacity-90 transition-opacity">
+                            <p class="mt-2 text-center text-xs text-slate-400 font-medium group-hover:text-indigo-500 underline">View Full Image (Secure Link)</p>
                         </a>
                     @else
                         <div class="py-20 text-center bg-slate-50 rounded-lg border-2 border-dashed border-slate-200 text-slate-400 italic">No receipt image uploaded.</div>

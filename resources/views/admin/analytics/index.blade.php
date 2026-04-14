@@ -1,31 +1,31 @@
 @extends('admin.layouts.app')
-@section('title','Analytics')
-@section('header','Analytics')
+@section('title', __('admin.analytics.title'))
+@section('header', __('admin.analytics.title'))
 @section('content')
 <section class="panel">
     <form method="GET" action="{{ route('admin.analytics.index') }}" class="grid gap-3 md:grid-cols-4">
         <div class="field">
-            <label>Start Date</label>
+            <label>{{ __('admin.common.start_date') }}</label>
             <input type="date" name="start_date" value="{{ $filters['start_date'] ?? '' }}">
         </div>
         <div class="field">
-            <label>End Date</label>
+            <label>{{ __('admin.common.end_date') }}</label>
             <input type="date" name="end_date" value="{{ $filters['end_date'] ?? '' }}">
         </div>
         <div class="flex items-end gap-2 md:col-span-2">
-            <button class="btn-primary" type="submit">Apply Filter</button>
-            <a class="btn-ghost" href="{{ route('admin.analytics.index') }}">Reset</a>
+            <button class="btn-primary" type="submit">{{ __('admin.common.apply') }}</button>
+            <a class="btn-ghost" href="{{ route('admin.analytics.index') }}">{{ __('admin.common.reset') }}</a>
         </div>
     </form>
 </section>
 
 <section class="grid gap-4 mt-6 md:grid-cols-2">
     <div class="stat-card">
-        <p>Total Revenue</p>
+        <p>{{ __('admin.analytics.total_revenue') }}</p>
         <h3>${{ number_format((float) $totalRevenue, 2) }}</h3>
     </div>
     <div class="stat-card">
-        <p>Total Orders</p>
+        <p>{{ __('admin.analytics.total_orders') }}</p>
         <h3>{{ $totalOrders }}</h3>
     </div>
 </section>
@@ -33,7 +33,7 @@
 <section class="grid gap-4 mt-6 lg:grid-cols-2">
     <article class="panel">
         <div class="panel-head">
-            <h2 class="text-base font-semibold text-slate-900">Revenue Trend</h2>
+            <h2 class="text-base font-semibold text-slate-900">{{ __('admin.analytics.revenue_trend') }}</h2>
         </div>
         <div style="height:340px;">
             <canvas id="revenueChart"></canvas>
@@ -42,7 +42,7 @@
 
     <article class="panel">
         <div class="panel-head">
-            <h2 class="text-base font-semibold text-slate-900">Profit vs Cost</h2>
+            <h2 class="text-base font-semibold text-slate-900">{{ __('admin.analytics.profit_vs_cost') }}</h2>
         </div>
         <div class="mx-auto w-full max-w-[340px]" style="height:260px;">
             <canvas id="profitChart"></canvas>
@@ -53,7 +53,7 @@
 <section class="grid gap-4 mt-6 lg:grid-cols-2">
     <article class="panel">
         <div class="panel-head">
-            <h2 class="text-base font-semibold text-slate-900">Top Products</h2>
+            <h2 class="text-base font-semibold text-slate-900">{{ __('admin.analytics.top_products') }}</h2>
         </div>
         <div style="height:360px;">
             <canvas id="productsChart"></canvas>
@@ -62,7 +62,7 @@
 
     <article class="panel">
         <div class="panel-head">
-            <h2 class="text-base font-semibold text-slate-900">Top Users</h2>
+            <h2 class="text-base font-semibold text-slate-900">{{ __('admin.analytics.top_users') }}</h2>
         </div>
         <div style="height:360px;">
             <canvas id="usersChart"></canvas>
@@ -96,7 +96,7 @@
             data: {
                 labels,
                 datasets: [{
-                    label: 'Revenue (USD)',
+                    label: '{{ __('admin.analytics.revenue') }}',
                     data: values,
                     borderColor: '#2563eb',
                     backgroundColor: 'rgba(37, 99, 235, 0.2)',
@@ -130,7 +130,7 @@
             data: {
                 labels,
                 datasets: [{
-                    label: 'Orders',
+                    label: '{{ __('admin.analytics.orders') }}',
                     data: values,
                     backgroundColor: '#0f766e',
                     borderRadius: 8,
@@ -162,7 +162,7 @@
             data: {
                 labels,
                 datasets: [{
-                    label: 'Total Spent (USD)',
+                    label: '{{ __('admin.analytics.spent') }}',
                     data: values,
                     backgroundColor: '#ea580c',
                     borderRadius: 8,
@@ -190,7 +190,7 @@
         new Chart(document.getElementById('profitChart'), {
             type: 'doughnut',
             data: {
-                labels: ['Profit', 'Cost'],
+                labels: ['{{ __('admin.analytics.profit') }}', '{{ __('admin.analytics.cost') }}'],
                 datasets: [{
                     data: [Number(data.profit || 0), Number(data.cost || 0)],
                     backgroundColor: ['#16a34a', '#f59e0b']

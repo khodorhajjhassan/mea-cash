@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,8 +16,8 @@
     <div class="admin-main">
         <header class="admin-topbar">
             <div>
-                <p class="text-xs uppercase tracking-[0.18em] text-slate-500">MeaCash Control Center</p>
-                <h1 class="text-lg font-semibold text-slate-900">@yield('header', 'Dashboard')</h1>
+                <p class="text-xs uppercase tracking-[0.18em] text-slate-500">{{ __('admin.header.welcome') }}</p>
+                <h1 class="text-lg font-semibold text-slate-900">@yield('header', __('admin.sidebar.dashboard'))</h1>
             </div>
             <div class="flex items-center gap-4">
                 <!-- Notifications -->
@@ -36,12 +36,12 @@
                         @endif
                     </button>
 
-                    <div id="notification-dropdown" class="absolute right-0 mt-3 w-80 rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200 z-[100] overflow-hidden hidden">
+                    <div id="notification-dropdown" class="absolute {{ app()->getLocale() == 'ar' ? 'left-0' : 'right-0' }} mt-3 w-80 rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200 z-[100] overflow-hidden hidden">
                         <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                            <h3 class="text-sm font-bold text-slate-800">Recent Alerts</h3>
+                            <h3 class="text-sm font-bold text-slate-800">{{ __('admin.notifications.title') }}</h3>
                             <form method="POST" action="{{ route('admin.notifications.read-all') }}">
                                 @csrf
-                                <button type="submit" class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider hover:text-indigo-800">Mark all as read</button>
+                                <button type="submit" class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider hover:text-indigo-800">{{ __('admin.notifications.mark_all_read') }}</button>
                             </form>
                         </div>
                         <div class="max-h-96 overflow-y-auto">
@@ -70,7 +70,7 @@
                             @endforelse
                         </div>
                         <a href="{{ route('admin.notifications.index') }}" class="block p-3 text-center text-[10px] font-bold text-indigo-600 uppercase tracking-widest bg-slate-50 border-t border-slate-100 hover:bg-slate-100 transition-colors">
-                            View All System Alerts
+                            {{ __('admin.common.view_all') }}
                         </a>
                     </div>
                 </div>
@@ -88,10 +88,10 @@
                     });
                 </script>
 
-                <a href="{{ route('admin.dashboard') }}" class="chip">Admin Home</a>
+                <a href="{{ route('admin.dashboard') }}" class="chip">{{ __('admin.header.home') }}</a>
                 <form method="POST" action="{{ route('admin.logout') }}">
                     @csrf
-                    <button type="submit" class="btn-danger-outline">Logout</button>
+                    <button type="submit" class="btn-danger-outline">{{ __('admin.header.logout') }}</button>
                 </form>
             </div>
         </header>

@@ -27,15 +27,13 @@ class TopupRequest extends Model
         'payment_method',
         'amount_requested',
         'receipt_image_path',
-        'status',
         'admin_note',
-        'processed_by',
-        'processed_at',
     ];
 
     protected function casts(): array
     {
         return [
+            'amount_requested' => 'decimal:2',
             'processed_at' => 'datetime',
         ];
     }

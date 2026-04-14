@@ -8,8 +8,16 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+use App\Http\Requests\FulfillOrderRequest;
+use App\Services\OrderFulfillmentService;
+use App\Enums\OrderStatus;
+
 class OrderController extends Controller
 {
+    public function __construct(private readonly OrderFulfillmentService $fulfillmentService)
+    {
+    }
+
     public function index(Request $request)
     {
         $orders = Order::query()
@@ -22,7 +30,7 @@ class OrderController extends Controller
                         ->orWhereHas('product', fn ($productQuery) => $productQuery->where('name_en', 'like', "%{$q}%"));
                 });
             })
-            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')->value()))
+            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')->value))
             ->latest('id')
             ->paginate(20)
             ->withQueryString();
@@ -36,7 +44,7 @@ class OrderController extends Controller
     {
         $orders = Order::query()
             ->with(['user:id,name', 'product:id,name_ar,name_en,image,subcategory_id', 'product.subcategory:id,name_en', 'package:id,name_en'])
-            ->whereIn('status', ['pending', 'processing'])
+            ->whereIn('status', [OrderStatus::Pending, OrderStatus::Processing])
             ->when($request->filled('q'), function ($query) use ($request): void {
                 $q = trim((string) $request->string('q'));
                 $query->where(function ($nested) use ($q): void {
@@ -72,7 +80,7 @@ class OrderController extends Controller
     public function status(Request $request, Order $order)
     {
         $data = $request->validate([
-            'status' => ['required', 'in:pending,processing,completed,failed,refunded'],
+            'status' => ['required', new \Illuminate\Validation\Rules\Enum(OrderStatus::class)],
         ]);
 
         try {
@@ -86,55 +94,18 @@ class OrderController extends Controller
         }
     }
 
-    public function fulfill(Request $request, Order $order)
+    public function fulfill(FulfillOrderRequest $request, Order $order)
     {
-        $data = $request->validate([
-            'fulfillment_type' => ['required', 'in:key,account,topup,note'],
-            'keys' => ['required_if:fulfillment_type,key', 'nullable', 'string'],
-            'account_user' => ['required_if:fulfillment_type,account', 'nullable', 'string'],
-            'account_pass' => ['required_if:fulfillment_type,account', 'nullable', 'string'],
-            'account_link' => ['nullable', 'url'],
-            'transaction_id' => ['required_if:fulfillment_type,topup', 'nullable', 'string'],
-            'admin_note' => ['nullable', 'string'],
-            'notify_email' => ['sometimes', 'boolean'],
-            'notify_whatsapp' => ['sometimes', 'boolean'],
-        ]);
-
         try {
-            DB::transaction(function () use ($order, $data): void {
-                $fulfillment = [
-                    'type' => $data['fulfillment_type'],
-                    'admin_note' => $data['admin_note'] ?? '',
-                    'data' => match ($data['fulfillment_type']) {
-                        'key' => ['keys' => $data['keys']],
-                        'account' => [
-                            'user' => $data['account_user'],
-                            'pass' => $data['account_pass'],
-                            'link' => $data['account_link'],
-                        ],
-                        'topup' => ['transaction_id' => $data['transaction_id']],
-                        default => [],
-                    },
-                ];
-
-                $order->update([
-                    'status' => 'completed',
-                    'fulfilled_at' => now(),
-                    'fulfillment_data' => array_merge($order->fulfillment_data ?? [], ['fulfillment' => $fulfillment]),
-                ]);
-
-                if (!empty($data['notify_email'])) {
-                    \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderFulfilledMail($order));
-                }
-            });
+            $this->fulfillmentService->fulfill($order, $request->validated());
 
             $response = back()->with('success', 'Order fulfilled successfully.');
 
-            if (!empty($data['notify_whatsapp']) && $order->user?->phone) {
+            if (!empty($request->notify_whatsapp) && $order->user?->phone) {
                 $message = "Hello {$order->user->name}, your order #{$order->order_number} for {$order->product->name_en} has been fulfilled! check your dashboard for details.";
                 $whatsappUrl = "https://wa.me/" . preg_replace('/[^0-9]/', '', $order->user->phone) . "?text=" . urlencode($message);
                 
-                return redirect()->away($whatsappUrl);
+                $response->with('whatsapp_url', $whatsappUrl);
             }
 
             return $response;
@@ -148,7 +119,7 @@ class OrderController extends Controller
     public function fail(Order $order)
     {
         try {
-            $order->update(['status' => 'failed']);
+            $this->fulfillmentService->markAsFailed($order);
 
             return back()->with('success', 'Order marked as failed.');
         } catch (Exception $exception) {
@@ -161,7 +132,7 @@ class OrderController extends Controller
     public function refund(Order $order)
     {
         try {
-            $order->update(['status' => 'refunded']);
+            $this->fulfillmentService->processRefund($order);
 
             return back()->with('success', 'Order marked as refunded.');
         } catch (Exception $exception) {
@@ -171,3 +142,4 @@ class OrderController extends Controller
         }
     }
 }
+

@@ -19,6 +19,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        \App\Models\AdminSetting::observe(\App\Observers\AdminSettingObserver::class);
     }
 }

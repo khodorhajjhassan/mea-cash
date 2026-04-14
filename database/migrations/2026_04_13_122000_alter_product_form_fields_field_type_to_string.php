@@ -7,12 +7,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement('ALTER TABLE product_form_fields ALTER COLUMN field_type TYPE VARCHAR(50) USING field_type::text');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE product_form_fields ALTER COLUMN field_type TYPE VARCHAR(50) USING field_type::text');
+        }
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE product_form_fields ALTER COLUMN field_type TYPE VARCHAR(50)");
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE product_form_fields ALTER COLUMN field_type TYPE VARCHAR(50)");
+        }
     }
 };
 

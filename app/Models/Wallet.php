@@ -17,6 +17,13 @@ class Wallet extends Model
         'currency',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'balance' => 'decimal:2',
+        ];
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
