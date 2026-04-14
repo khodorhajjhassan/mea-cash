@@ -3,16 +3,32 @@
 @section('header', 'Subcategory Details')
 @section('content')
 @php($disk = config('media.disk', config('filesystems.default')))
-<section class="panel prose prose-slate max-w-none">
-    <h2>{{ $subcategory->name_en }}</h2>
-    @if($subcategory->image)
-        <img src="{{ \Illuminate\Support\Facades\Storage::disk($disk)->url($subcategory->image) }}" alt="{{ $subcategory->name_en }}" class="my-4 h-48 w-48 rounded-xl object-cover not-prose">
-    @endif
-    <p><strong>Arabic:</strong> {{ $subcategory->name_ar }}</p>
-    <p><strong>Category:</strong> {{ $subcategory->category?->name_en ?? '-' }}</p>
-    <p><strong>Product Type Template:</strong> {{ $subcategory->productTypeDefinition?->name ?? '-' }}</p>
-    <p><strong>Slug:</strong> {{ $subcategory->slug }}</p>
-    <p><strong>Featured:</strong> {{ $subcategory->is_featured ? 'Yes' : 'No' }}</p>
-    <a href="{{ route('admin.subcategories.edit', $subcategory) }}" class="btn-primary no-underline">Edit</a>
+
+<section class="panel">
+    <div class="panel-head">
+        <h2 class="text-lg font-semibold text-slate-900">{{ $subcategory->name_en }}</h2>
+        <div class="flex gap-2">
+            <a href="{{ route('admin.subcategories.edit', $subcategory) }}" class="btn-primary">Edit</a>
+        </div>
+    </div>
+
+    <div class="mt-4 grid gap-4 md:grid-cols-3">
+        <div class="md:col-span-1">
+            @if($subcategory->image)
+                <img src="{{ \Illuminate\Support\Facades\Storage::disk($disk)->url($subcategory->image) }}" alt="{{ $subcategory->name_en }}" class="h-56 w-full rounded-xl object-cover">
+            @else
+                <div class="flex h-56 items-center justify-center rounded-xl border border-dashed border-slate-300 text-sm text-slate-500">No image</div>
+            @endif
+        </div>
+        <div class="md:col-span-2 grid gap-3 md:grid-cols-2">
+            <div><p class="text-xs text-slate-500">Name EN</p><p class="font-medium text-slate-900">{{ $subcategory->name_en }}</p></div>
+            <div><p class="text-xs text-slate-500">Name AR</p><p class="font-medium text-slate-900">{{ $subcategory->name_ar }}</p></div>
+            <div><p class="text-xs text-slate-500">Category</p><p class="font-medium text-slate-900">{{ $subcategory->category?->name_en ?? '-' }}</p></div>
+            <div><p class="text-xs text-slate-500">Template</p><p class="font-medium text-slate-900">{{ $subcategory->productTypeDefinition?->name ?? '-' }}</p></div>
+            <div><p class="text-xs text-slate-500">Slug</p><p class="font-medium text-slate-900">{{ $subcategory->slug }}</p></div>
+            <div><p class="text-xs text-slate-500">Featured</p><p class="font-medium text-slate-900">{{ $subcategory->is_featured ? 'Yes' : 'No' }}</p></div>
+        </div>
+    </div>
 </section>
 @endsection
+
