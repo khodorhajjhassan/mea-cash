@@ -10,14 +10,22 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="admin-body">
-<div class="admin-shell">
+<div class="admin-shell" id="admin-shell">
+    <div class="admin-overlay" id="sidebar-overlay"></div>
     @include('admin.partials.sidebar')
 
     <div class="admin-main">
         <header class="admin-topbar">
-            <div>
-                <p class="text-xs uppercase tracking-[0.18em] text-slate-500">{{ __('admin.header.welcome') }}</p>
-                <h1 class="text-lg font-semibold text-slate-900">@yield('header', __('admin.sidebar.dashboard'))</h1>
+            <div class="flex items-center gap-3">
+                <button id="sidebar-toggle" class="p-2 -ms-2 text-slate-500 hover:text-slate-900 lg:hidden" aria-label="Toggle Menu">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                <div>
+                    <p class="text-xs uppercase tracking-[0.18em] text-slate-500">{{ __('admin.header.welcome') }}</p>
+                    <h1 class="text-lg font-semibold text-slate-900">@yield('header', __('admin.sidebar.dashboard'))</h1>
+                </div>
             </div>
             <div class="flex items-center gap-4">
                 <!-- Notifications -->
@@ -76,6 +84,7 @@
                 </div>
 
                 <script>
+                    // Notification Dropdown
                     document.getElementById('notification-bell').addEventListener('click', function() {
                         document.getElementById('notification-dropdown').classList.toggle('hidden');
                     });
@@ -84,6 +93,25 @@
                         const dropdown = document.getElementById('notification-dropdown');
                         if (!bell.contains(event.target) && !dropdown.contains(event.target)) {
                             dropdown.classList.add('hidden');
+                        }
+                    });
+
+                    // Sidebar Toggle
+                    const shell = document.getElementById('admin-shell');
+                    const toggle = document.getElementById('sidebar-toggle');
+                    const close = document.getElementById('sidebar-close');
+                    const overlay = document.getElementById('sidebar-overlay');
+
+                    const toggleSidebar = () => shell.classList.toggle('sidebar-open');
+
+                    toggle.addEventListener('click', toggleSidebar);
+                    overlay.addEventListener('click', toggleSidebar);
+                    if (close) close.addEventListener('click', toggleSidebar);
+
+                    // Close on Esc
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape' && shell.classList.contains('sidebar-open')) {
+                            toggleSidebar();
                         }
                     });
                 </script>
