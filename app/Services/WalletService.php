@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\DB;
 
 class WalletService
 {
-    public function credit(User $user, float $amount, string $description, ?Model $reference = null): WalletTransaction
+    public function credit(User $user, float $amount, string $description, ?Model $reference = null, ?int $processedBy = null): WalletTransaction
     {
-        return DB::transaction(function () use ($user, $amount, $description, $reference): WalletTransaction {
+        return DB::transaction(function () use ($user, $amount, $description, $reference, $processedBy): WalletTransaction {
             $wallet = Wallet::query()->firstOrCreate(
                 ['user_id' => $user->id],
                 ['balance' => 0, 'currency' => 'USD']
@@ -33,14 +33,15 @@ class WalletService
                 'reference_type' => $reference?->getMorphClass(),
                 'reference_id' => $reference?->getKey(),
                 'description_en' => $description,
+                'processed_by' => $processedBy,
                 'created_at' => now(),
             ]);
         });
     }
 
-    public function debit(User $user, float $amount, string $description, ?Model $reference = null): WalletTransaction
+    public function debit(User $user, float $amount, string $description, ?Model $reference = null, ?int $processedBy = null): WalletTransaction
     {
-        return DB::transaction(function () use ($user, $amount, $description, $reference): WalletTransaction {
+        return DB::transaction(function () use ($user, $amount, $description, $reference, $processedBy): WalletTransaction {
             $wallet = Wallet::query()
                 ->where('user_id', $user->id)
                 ->lockForUpdate()
@@ -62,6 +63,7 @@ class WalletService
                 'reference_type' => $reference?->getMorphClass(),
                 'reference_id' => $reference?->getKey(),
                 'description_en' => $description,
+                'processed_by' => $processedBy,
                 'created_at' => now(),
             ]);
         });

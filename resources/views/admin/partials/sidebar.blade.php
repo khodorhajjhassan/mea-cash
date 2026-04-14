@@ -24,8 +24,8 @@
             <a href="{{ route('admin.transactions.index') }}" class="nav-link {{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">Transactions</a>
 
             <p class="section-label">Users</p>
-            <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.index') || request()->routeIs('admin.users.show') || request()->routeIs('admin.users.update') || request()->routeIs('admin.users.toggle') || request()->routeIs('admin.users.credit') ? 'active' : '' }}">All users</a>
-            <a href="{{ route('admin.users.vip') }}" class="nav-link {{ request()->routeIs('admin.users.vip') ? 'active' : '' }}">VIP customers</a>
+            <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.index') || request()->routeIs('admin.users.show') || request()->routeIs('admin.users.update') || request()->routeIs('admin.users.edit') || request()->routeIs('admin.users.credit') ? 'active' : '' }}">All users</a>
+            {{-- <a href="{{ route('admin.users.vip') }}" class="nav-link {{ request()->routeIs('admin.users.vip') ? 'active' : '' }}">VIP customers</a> --}}
 
             <p class="section-label">Finance</p>
             <a href="{{ route('admin.payment-methods.index') }}" class="nav-link {{ request()->routeIs('admin.payment-methods.*') ? 'active' : '' }}">Payment methods</a>
@@ -39,6 +39,7 @@
             <a href="{{ route('admin.feedback.index') }}" class="nav-link {{ request()->routeIs('admin.feedback.*') ? 'active' : '' }}">Feedback</a>
 
             <p class="section-label">System</p>
+            <a href="{{ route('admin.notifications.index') }}" class="nav-link {{ request()->routeIs('admin.notifications.*') ? 'active' : '' }}">System alerts</a>
             <a href="{{ route('admin.settings.index') }}" class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">Settings</a>
         </nav>
     </div>

@@ -8,9 +8,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+use App\Traits\NotifyAdmins;
+
 class Order extends Model
 {
-    use HasFactory;
+    use HasFactory, NotifyAdmins;
+
+    public function toAdminNotification(): array
+    {
+        return [
+            'type' => 'New Order',
+            'message' => "Order #{$this->order_number} for {$this->product?->name_en} (${$this->total_price})",
+            'link' => route('admin.orders.show', $this),
+            'icon' => 'order',
+        ];
+    }
 
     protected $fillable = [
         'order_number',
@@ -37,6 +49,39 @@ class Order extends Model
             'fulfilled_at' => 'datetime',
             'confirmed_at' => 'datetime',
         ];
+    }
+
+    public function getWaitTimeAttribute(): string
+    {
+        $diff = $this->created_at->diff(now());
+        if ($diff->d > 0) return $diff->d . 'd ' . $diff->h . 'h';
+        if ($diff->h > 0) return $diff->h . 'h ' . $diff->i . 'm';
+        return $diff->i . 'm';
+    }
+
+    public function isTypeKey(): bool
+    {
+        return ($this->product?->product_type === 'fixed_package');
+    }
+
+    public function isTypeAccount(): bool
+    {
+        return ($this->product?->product_type === 'account_topup');
+    }
+
+    public function isTypeTopup(): bool
+    {
+        return ($this->product?->product_type === 'custom_quantity');
+    }
+
+    public function getUserInput(): array
+    {
+        return (array) ($this->fulfillment_data['user_input'] ?? []);
+    }
+
+    public function getFulfillmentDetails(): array
+    {
+        return (array) ($this->fulfillment_data['fulfillment'] ?? []);
     }
 
     public function user(): BelongsTo

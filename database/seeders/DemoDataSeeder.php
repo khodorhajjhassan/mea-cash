@@ -403,6 +403,50 @@ class DemoDataSeeder extends Seeder
                 $quantity = rand(1, 3);
                 $total = round($unitPrice * $quantity, 2);
 
+                // Detect the user input fields based on template
+                $userInput = [];
+                $templateKey = $product->productTypeDefinition?->key;
+                
+                if ($templateKey === 'account-id-required') {
+                    $userInput['account_id'] = 'PLAYER-'.rand(10000, 99999);
+                } elseif ($templateKey === 'account-login-credentials') {
+                    $userInput['account_id'] = 'USER-'.rand(1000, 9999);
+                    $userInput['email'] = $user->email;
+                    $userInput['password'] = 'secret123';
+                } elseif ($templateKey === 'quantity-or-price') {
+                    $userInput['account_id'] = 'ID-'.rand(10000, 99999);
+                    $userInput['quantity'] = $quantity;
+                }
+
+                $status = collect(['pending', 'processing', 'completed', 'failed', 'refunded'])->random();
+                $fulfillmentObj = [];
+
+                if ($status === 'completed') {
+                    if ($product->product_type === 'fixed_package') {
+                        $fulfillmentObj = [
+                            'type' => 'key',
+                            'admin_note' => 'Thank you for your purchase!',
+                            'data' => ['keys' => strtoupper(Str::random(12))],
+                        ];
+                    } elseif ($product->product_type === 'account_topup') {
+                        $fulfillmentObj = [
+                            'type' => 'account',
+                            'admin_note' => 'Your account has been upgraded.',
+                            'data' => [
+                                'user' => $user->name,
+                                'pass' => 'NEW-PASS-'.rand(100, 999),
+                                'link' => 'https://login.example.com',
+                            ],
+                        ];
+                    } else {
+                        $fulfillmentObj = [
+                            'type' => 'topup',
+                            'admin_note' => 'Recharge successful.',
+                            'data' => ['transaction_id' => 'TXN-'.Str::random(8)],
+                        ];
+                    }
+                }
+
                 $orderNumber = 'MC-2026-'.str_pad((string) $orderCounter++, 6, '0', STR_PAD_LEFT);
                 $order = Order::query()->updateOrCreate(
                     ['order_number' => $orderNumber],
@@ -415,13 +459,14 @@ class DemoDataSeeder extends Seeder
                         'total_price' => $total,
                         'cost_price' => round($costPrice * $quantity, 2),
                         'profit' => round(($unitPrice - $costPrice) * $quantity, 2),
-                        'status' => collect(['pending', 'processing', 'completed', 'failed', 'refunded'])->random(),
+                        'status' => $status,
                         'delivery_type' => $product->delivery_type,
                         'fulfillment_data' => [
-                            'account_id' => 'ACC'.rand(100000, 999999),
+                            'user_input' => $userInput,
+                            'fulfillment' => $fulfillmentObj,
                         ],
                         'delivery_notes' => null,
-                        'fulfilled_at' => now()->subDays(rand(0, 40)),
+                        'fulfilled_at' => $status === 'completed' ? now()->subDays(rand(0, 40)) : null,
                         'confirmed_at' => rand(0, 1) ? now()->subDays(rand(0, 35)) : null,
                         'created_at' => now()->subDays(rand(0, 60)),
                         'updated_at' => now()->subDays(rand(0, 30)),

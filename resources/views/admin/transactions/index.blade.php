@@ -2,23 +2,90 @@
 @section('title','Transactions')
 @section('header','Wallet Transactions')
 @section('content')
-<section class="panel space-y-4">
-<form method="GET" action="{{ route('admin.transactions.index') }}" class="grid gap-3 md:grid-cols-4">
-  <div class="field md:col-span-2"><label>Search</label><input type="text" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="User or description"></div>
-  <div class="field"><label>Type</label><select name="type"><option value="">All</option>@foreach(['topup','purchase','refund','admin_adjustment'] as $type)<option value="{{ $type }}" @selected(($filters['type'] ?? '')===$type)>{{ ucfirst(str_replace('_',' ',$type)) }}</option>@endforeach</select></div>
-  <div class="flex items-end gap-2"><button class="btn-primary" type="submit">Filter</button><a class="btn-ghost" href="{{ route('admin.transactions.index') }}">Reset</a></div>
-</form>
+<section class="panel space-y-6">
+    <form method="GET" action="{{ route('admin.transactions.index') }}" class="grid gap-3 md:grid-cols-5 bg-slate-50 p-4 rounded-xl border border-slate-100">
+        <div class="field md:col-span-1">
+            <label>User / Description</label>
+            <input type="text" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="Search...">
+        </div>
+        <div class="field">
+            <label>Type</label>
+            <select name="type">
+                <option value="">All Types</option>
+                @foreach(['topup','purchase','refund','admin_adjustment'] as $type)
+                    <option value="{{ $type }}" @selected(($filters['type'] ?? '')===$type)>{{ ucfirst(str_replace('_',' ',$type)) }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="field">
+            <label>From Date</label>
+            <input type="date" name="from_date" value="{{ $filters['from_date'] ?? '' }}">
+        </div>
+        <div class="field">
+            <label>To Date</label>
+            <input type="date" name="to_date" value="{{ $filters['to_date'] ?? '' }}">
+        </div>
+        <div class="flex items-end gap-2">
+            <button class="btn-primary flex-1" type="submit">Filter</button>
+            <a class="btn-ghost" href="{{ route('admin.transactions.index') }}">Reset</a>
+        </div>
+    </form>
 
-<form method="POST" action="{{ route('admin.transactions.adjust') }}" class="grid gap-3 md:grid-cols-4">@csrf
-  <input type="number" name="user_id" class="field" placeholder="User ID" required>
-  <input type="number" step="0.01" name="amount" class="field" placeholder="+/- Amount" required>
-  <input type="text" name="description" class="field" placeholder="Reason" required>
-  <button class="btn-primary">Adjust Wallet</button>
-</form>
-<div class="table-wrap"><table class="admin-table"><thead><tr><th>ID</th><th>User</th><th>Type</th><th>Amount</th><th>When</th></tr></thead><tbody>
-@forelse($transactions as $tx)
-<tr><td>#{{ $tx->id }}</td><td>{{ $tx->wallet?->user?->name ?? '-' }}</td><td>{{ $tx->type }}</td><td>{{ $tx->amount }}</td><td>{{ $tx->created_at }}</td></tr>
-@empty <tr><td colspan="5">No transactions.</td></tr> @endforelse
-</tbody></table></div><div class="mt-4">{{ $transactions->links() }}</div>
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Processed By</th>
+                    <th>When</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($transactions as $tx)
+                <tr>
+                    <td><span class="text-xs font-mono text-slate-400">#{{ $tx->id }}</span></td>
+                    <td>
+                        <div class="font-medium text-slate-900">{{ $tx->wallet?->user?->name ?? 'Unknown' }}</div>
+                        <div class="text-[10px] text-slate-400">ID: {{ $tx->wallet?->user?->id ?? '-' }}</div>
+                    </td>
+                    <td>
+                        <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md 
+                            @if($tx->type == 'topup') bg-green-100 text-green-700 
+                            @elseif($tx->type == 'purchase') bg-blue-100 text-blue-700 
+                            @elseif($tx->type == 'refund') bg-indigo-100 text-indigo-700
+                            @else bg-slate-100 text-slate-600 @endif">
+                            {{ str_replace('_',' ',$tx->type) }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="font-bold @if($tx->amount > 0) text-green-600 @else text-red-600 @endif">
+                            {{ $tx->amount > 0 ? '+' : '' }}{{ number_format($tx->amount, 2) }}
+                        </span>
+                    </td>
+                    <td>
+                        @if($tx->processor)
+                            <span class="text-xs text-slate-600 font-medium">Admin: {{ $tx->processor->name }}</span>
+                        @else
+                            <span class="text-[10px] text-slate-400 italic">System Auto</span>
+                        @endif
+                    </td>
+                    <td class="text-xs text-slate-500">{{ $tx->created_at->format('Y-m-d H:i') }}</td>
+                    <td>
+                        <a href="{{ route('admin.transactions.show', $tx) }}" class="text-indigo-600 hover:text-indigo-900 font-bold text-xs uppercase tracking-wider">Details</a>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="7" class="text-center py-12 text-slate-400 italic">No transactions found matching your criteria.</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-4">{{ $transactions->links() }}</div>
 </section>
 @endsection

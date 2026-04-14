@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\Web\TopupController;
 use App\Http\Controllers\Admin\Web\TransactionController;
 use App\Http\Controllers\Admin\Web\UserController;
 use App\Http\Controllers\Admin\Web\AnalyticsController;
+use App\Http\Controllers\Admin\Web\NotificationController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\UserAuthController;
 use Illuminate\Support\Facades\Route;
@@ -74,14 +75,16 @@ Route::prefix('admin')
         Route::post('topups/{topup}/reject', [TopupController::class, 'reject'])->name('topups.reject');
 
         Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
-        Route::get('transactions/{user}', [TransactionController::class, 'user'])->name('transactions.user');
+        Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
         Route::post('transactions/adjust', [TransactionController::class, 'adjust'])->name('transactions.adjust');
 
         Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::get('users/vip', [UserController::class, 'vip'])->name('users.vip');
+        Route::get('users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('users', [UserController::class, 'store'])->name('users.store');
         Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
+        Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
-        Route::post('users/{user}/toggle', [UserController::class, 'toggle'])->name('users.toggle');
         Route::post('users/{user}/credit', [UserController::class, 'credit'])->name('users.credit');
 
         Route::get('payment-methods', [PaymentMethodController::class, 'index'])->name('payment-methods.index');
@@ -105,9 +108,13 @@ Route::prefix('admin')
         Route::delete('feedback/{feedback}', [FeedbackController::class, 'destroy'])->name('feedback.destroy');
 
         Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
-        Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
-        Route::get('settings/payment', [SettingController::class, 'payment'])->name('settings.payment');
+        Route::get('settings/general', [SettingController::class, 'general'])->name('settings.general');
         Route::get('settings/seo', [SettingController::class, 'seo'])->name('settings.seo');
+        Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
+
+        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
+        Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 
         Route::post('products/{product}/packages', [ProductController::class, 'storePackage'])->name('products.packages.store');
         Route::put('products/packages/{package}', [ProductController::class, 'updatePackage'])->name('products.packages.update');

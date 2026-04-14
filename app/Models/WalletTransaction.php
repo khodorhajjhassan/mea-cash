@@ -23,6 +23,7 @@ class WalletTransaction extends Model
         'reference_id',
         'description_ar',
         'description_en',
+        'processed_by',
         'created_at',
     ];
 
@@ -36,6 +37,11 @@ class WalletTransaction extends Model
     public function wallet(): BelongsTo
     {
         return $this->belongsTo(Wallet::class);
+    }
+
+    public function processor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'processed_by');
     }
 
     public function reference(): MorphTo

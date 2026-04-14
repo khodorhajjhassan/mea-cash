@@ -45,7 +45,10 @@ class TopupController extends Controller
     public function approve(Request $request, TopupRequest $topup)
     {
         $data = $request->validate([
+            'amount_credited' => ['required', 'numeric', 'min:0'],
             'admin_note' => ['nullable', 'string'],
+            'notify_email' => ['sometimes', 'boolean'],
+            'notify_whatsapp' => ['sometimes', 'boolean'],
         ]);
 
         try {
@@ -53,20 +56,35 @@ class TopupController extends Controller
                 return back()->with('error', 'Only pending requests can be approved.');
             }
 
+            $amount = (float) $data['amount_credited'];
+
             $topup->update([
                 'status' => 'approved',
                 'admin_note' => $data['admin_note'] ?? null,
-                'processed_by' => null,
+                'processed_by' => auth()->id(),
                 'processed_at' => now(),
             ]);
 
-            $this->walletService->credit($topup->user, (float) $topup->amount_requested, 'Topup approved', $topup);
+            $this->walletService->credit($topup->user, $amount, 'Top-up request approved: #'.$topup->id, $topup, auth()->id());
 
-            return back()->with('success', 'Top-up approved and wallet credited.');
+            if (!empty($data['notify_email'])) {
+                \Illuminate\Support\Facades\Mail::to($topup->user->email)->send(new \App\Mail\TopupApprovedMail($topup, $amount));
+            }
+
+            $response = back()->with('success', 'Top-up approved and wallet credited.');
+
+            if (!empty($data['notify_whatsapp']) && $topup->user?->phone) {
+                $message = "Hello {$topup->user->name}, your top-up request for \${$topup->amount_requested} has been approved! \${$amount} has been added to your wallet. Thanks for using MeaCash!";
+                $whatsappUrl = "https://wa.me/" . preg_replace('/[^0-9]/', '', $topup->user->phone) . "?text=" . urlencode($message);
+                
+                return redirect()->away($whatsappUrl);
+            }
+
+            return $response;
         } catch (Exception $exception) {
             report($exception);
 
-            return back()->with('error', 'Failed to approve top-up request.');
+            return back()->with('error', 'Failed to approve top-up request: ' . $exception->getMessage());
         }
     }
 

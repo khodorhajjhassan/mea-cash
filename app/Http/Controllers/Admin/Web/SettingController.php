@@ -48,16 +48,17 @@ class SettingController extends Controller
         return back()->with('success', 'Setting saved.');
     }
 
-    public function payment()
+    public function general()
     {
-        $settings = AdminSetting::query()->where('group', 'payment')->orderBy('key')->get();
+        $settings = AdminSetting::query()->where('group', 'general')->get()->pluck('value', 'key');
+        $social = AdminSetting::query()->where('group', 'social')->get()->pluck('value', 'key');
 
-        return view('admin.settings.payment', compact('settings'));
+        return view('admin.settings.general', compact('settings', 'social'));
     }
 
     public function seo()
     {
-        $settings = AdminSetting::query()->where('group', 'seo')->orderBy('key')->get();
+        $settings = AdminSetting::query()->where('group', 'seo')->get()->pluck('value', 'key');
 
         return view('admin.settings.seo', compact('settings'));
     }

@@ -18,7 +18,7 @@ class TransactionController extends Controller
     public function index(Request $request)
     {
         $transactions = WalletTransaction::query()
-            ->with('wallet.user:id,name')
+            ->with('wallet.user:id,name', 'processor:id,name')
             ->when($request->filled('q'), function ($query) use ($request): void {
                 $q = trim((string) $request->string('q'));
                 $query->where(function ($nested) use ($q): void {
@@ -28,19 +28,29 @@ class TransactionController extends Controller
                 });
             })
             ->when($request->filled('type'), fn ($query) => $query->where('type', $request->string('type')->value()))
+            ->when($request->filled('from_date'), fn ($query) => $query->whereDate('created_at', '>=', $request->date('from_date')))
+            ->when($request->filled('to_date'), fn ($query) => $query->whereDate('created_at', '<=', $request->date('to_date')))
             ->latest('id')
             ->paginate(25)
             ->withQueryString();
 
-        $filters = $request->only(['q', 'type']);
+        $filters = $request->only(['q', 'type', 'from_date', 'to_date']);
 
         return view('admin.transactions.index', compact('transactions', 'filters'));
+    }
+
+    public function show(WalletTransaction $transaction)
+    {
+        $transaction->load(['wallet.user', 'processor', 'reference']);
+
+        return view('admin.transactions.show', compact('transaction'));
     }
 
     public function user(Request $request, User $user)
     {
         $transactions = WalletTransaction::query()
             ->whereHas('wallet', fn ($query) => $query->where('user_id', $user->id))
+            ->with('processor:id,name')
             ->when($request->filled('q'), function ($query) use ($request): void {
                 $q = trim((string) $request->string('q'));
                 $query->where(function ($nested) use ($q): void {
@@ -71,16 +81,16 @@ class TransactionController extends Controller
             $amount = (float) $data['amount'];
 
             if ($amount > 0) {
-                $this->walletService->credit($user, $amount, $data['description']);
+                $this->walletService->credit($user, $amount, $data['description'], null, auth()->id());
             } else {
-                $this->walletService->debit($user, abs($amount), $data['description']);
+                $this->walletService->debit($user, abs($amount), $data['description'], null, auth()->id());
             }
 
             return back()->with('success', 'Wallet adjustment processed.');
         } catch (Exception $exception) {
             report($exception);
 
-            return back()->with('error', 'Failed to process adjustment.');
+            return back()->with('error', 'Failed to process adjustment: ' . $exception->getMessage());
         }
     }
 }
