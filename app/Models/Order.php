@@ -117,4 +117,12 @@ class Order extends Model
     {
         return $this->hasOne(Feedback::class);
     }
+
+    /**
+     * Scope a query to only include pending orders.
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', OrderStatus::Pending);
+    }
 }
