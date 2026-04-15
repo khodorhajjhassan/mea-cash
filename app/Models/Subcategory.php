@@ -23,6 +23,8 @@ class Subcategory extends Model
         'sort_order',
         'seo_title',
         'seo_description',
+        'seo_keywords',
+        'seo_image',
     ];
 
     protected function casts(): array

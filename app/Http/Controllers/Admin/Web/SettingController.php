@@ -7,8 +7,10 @@ use App\Models\AdminSetting;
 use Illuminate\Http\Request;
 
 use App\Http\Requests\StoreSettingRequest;
+use App\Services\Media\ImageStorageService;
 use App\Services\SettingsService;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class SettingController extends Controller
 {
@@ -84,9 +86,39 @@ class SettingController extends Controller
     public function seo()
     {
         $all = $this->settingsService->getAllCached();
-        $settings = array_filter($all, fn($k) => str_starts_with($k, 'seo_'), ARRAY_FILTER_USE_KEY);
+        $settings = array_filter($all, fn($k) => str_starts_with($k, 'seo_') || str_starts_with($k, 'og_') || str_starts_with($k, 'twitter_') || str_starts_with($k, 'google_') || str_starts_with($k, 'facebook_') || str_starts_with($k, 'tiktok_') || str_starts_with($k, 'snapchat_') || str_starts_with($k, 'schema_') || str_contains($k, '_enabled'), ARRAY_FILTER_USE_KEY);
 
         return view('admin.settings.seo', compact('settings'));
+    }
+
+    public function updateSeo(Request $request, ImageStorageService $imageService)
+    {
+        $data = $request->validate([
+            'settings' => ['required', 'array'],
+            'files' => ['nullable', 'array'],
+            'files.*' => ['nullable', 'image', 'max:5120'],
+        ]);
+
+        DB::transaction(function () use ($data, $imageService, $request) {
+            foreach ($data['settings'] as $key => $value) {
+                AdminSetting::query()->where('key', $key)->update(['value' => $value]);
+            }
+
+            if ($request->hasFile('files')) {
+                foreach ($request->file('files') as $key => $file) {
+                    $oldPath = AdminSetting::query()->where('key', $key)->value('value');
+                    $path = $imageService->storeAsWebp($file, 'settings/seo', $oldPath);
+                    AdminSetting::query()->updateOrCreate(
+                        ['key' => $key],
+                        ['group' => 'seo', 'value' => $path]
+                    );
+                }
+            }
+        });
+
+        $this->settingsService->clearAll();
+
+        return back()->with('success', 'SEO settings updated successfully.');
     }
 }
 

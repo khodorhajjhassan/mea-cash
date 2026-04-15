@@ -111,6 +111,7 @@ Route::prefix('admin')
         Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
         Route::get('settings/general', [SettingController::class, 'general'])->name('settings.general');
         Route::get('settings/seo', [SettingController::class, 'seo'])->name('settings.seo');
+        Route::post('settings/seo', [SettingController::class, 'updateSeo'])->name('settings.seo.update');
         Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
 
         Route::get('pages', [PageController::class, 'edit'])->name('pages.edit');
