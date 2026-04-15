@@ -119,10 +119,10 @@ class Order extends Model
     }
 
     /**
-     * Scope a query to only include pending orders.
+     * Scope a query to only include pending or processing orders.
      */
     public function scopePending($query)
     {
-        return $query->where('status', OrderStatus::Pending);
+        return $query->whereIn('status', [OrderStatus::Pending, OrderStatus::Processing]);
     }
 }
