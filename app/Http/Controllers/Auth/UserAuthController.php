@@ -11,7 +11,7 @@ class UserAuthController extends Controller
 {
     public function create()
     {
-        return view('auth.user-login');
+        return view('storefront.auth.login');
     }
 
     public function store(Request $request): RedirectResponse
@@ -44,8 +44,7 @@ class UserAuthController extends Controller
                 return redirect()->route('admin.dashboard');
             }
 
-            // User dashboard will be implemented in frontend later.
-            return redirect('/')->with('success', 'Logged in successfully. User frontend dashboard is coming next.');
+            return redirect()->route('store.dashboard')->with('success', 'Logged in successfully.');
         } catch (\Exception $exception) {
             report($exception);
 

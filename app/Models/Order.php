@@ -21,7 +21,7 @@ class Order extends Model
     {
         return [
             'type' => 'New Order',
-            'message' => "Order #{$this->order_number} for {$this->product?->name_en} (${$this->total_price})",
+            'message' => "Order #{$this->order_number} for {$this->product?->name_en} (\${$this->total_price})",
             'link' => route('admin.orders.show', $this),
             'icon' => 'order',
         ];

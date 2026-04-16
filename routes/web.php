@@ -25,11 +25,56 @@ use App\Http\Controllers\Admin\Web\NotificationController;
 use App\Http\Controllers\Admin\Web\PageController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\UserAuthController;
+use App\Http\Controllers\Storefront\StorefrontController;
+use App\Http\Controllers\Storefront\CartController;
+use App\Http\Controllers\Storefront\CheckoutController;
+use App\Http\Controllers\Storefront\CustomerDashboardController;
+use App\Http\Controllers\Storefront\CustomerAuthController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
+/*
+|--------------------------------------------------------------------------
+| Storefront (Public) Routes
+|--------------------------------------------------------------------------
+*/
+Route::get('/', [StorefrontController::class, 'index'])->name('store.home');
+Route::get('/category/{slug}', [StorefrontController::class, 'category'])->name('store.category');
+Route::get('/search', [StorefrontController::class, 'search'])->name('store.search');
+Route::get('/api/product/{slug}', [StorefrontController::class, 'productJson'])->name('store.product.json');
+
+// Cart (no auth required)
+Route::post('/cart/add', [CartController::class, 'add'])->name('store.cart.add');
+Route::get('/cart', [CartController::class, 'show'])->name('store.cart');
+Route::delete('/cart/{itemId}', [CartController::class, 'remove'])->name('store.cart.remove');
+Route::delete('/cart', [CartController::class, 'clear'])->name('store.cart.clear');
+
+// Customer Auth
+Route::middleware('guest')->group(function (): void {
+    Route::get('/register', [CustomerAuthController::class, 'showRegister'])->name('store.register');
+    Route::post('/register', [CustomerAuthController::class, 'register'])->name('store.register.store');
 });
+Route::post('/customer/logout', [CustomerAuthController::class, 'logout'])->name('store.logout')->middleware('auth');
+
+// Checkout (auth required)
+Route::middleware(['auth', 'customer'])->group(function (): void {
+    Route::get('/checkout', [CheckoutController::class, 'show'])->name('store.checkout');
+    Route::post('/checkout', [CheckoutController::class, 'process'])->name('store.checkout.process');
+    Route::get('/order/{orderNumber}/confirmation', [CheckoutController::class, 'confirmation'])->name('store.confirmation');
+});
+
+// Customer Dashboard (auth required)
+Route::prefix('dashboard')
+    ->name('store.')
+    ->middleware(['auth', 'customer'])
+    ->group(function (): void {
+        Route::get('/', [CustomerDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/orders', [CustomerDashboardController::class, 'orders'])->name('orders');
+        Route::get('/orders/{orderNumber}', [CustomerDashboardController::class, 'orderDetail'])->name('orders.detail');
+        Route::get('/wallet', [CustomerDashboardController::class, 'wallet'])->name('wallet');
+        Route::post('/wallet/topup', [CustomerDashboardController::class, 'submitTopup'])->name('wallet.topup');
+        Route::get('/profile', [CustomerDashboardController::class, 'profile'])->name('profile');
+        Route::put('/profile', [CustomerDashboardController::class, 'updateProfile'])->name('profile.update');
+    });
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [UserAuthController::class, 'create'])->name('login');

@@ -38,10 +38,9 @@
                     <h3 class="text-base font-semibold text-slate-900">Payment Receipt</h3>
                 </div>
                 <div class="mt-4">
-                    @if($topup->receipt_image_path)
-                        @php($imageUrl = \Illuminate\Support\Facades\Storage::disk('private')->temporaryUrl($topup->receipt_image_path, now()->addMinutes(10)))
-                        <a href="{{ $imageUrl }}" target="_blank" class="block group">
-                            <img src="{{ $imageUrl }}" class="w-full rounded-lg shadow-sm border border-slate-200 group-hover:opacity-90 transition-opacity">
+                    @if($receiptUrl)
+                        <a href="{{ $receiptUrl }}" target="_blank" class="block group">
+                            <img src="{{ $receiptUrl }}" class="w-full rounded-lg shadow-sm border border-slate-200 group-hover:opacity-90 transition-opacity">
                             <p class="mt-2 text-center text-xs text-slate-400 font-medium group-hover:text-indigo-500 underline">View Full Image (Secure Link)</p>
                         </a>
                     @else
@@ -173,4 +172,3 @@
     .flex-2 { flex: 2; }
 </style>
 @endsection
-

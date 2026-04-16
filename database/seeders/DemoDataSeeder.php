@@ -32,7 +32,7 @@ class DemoDataSeeder extends Seeder
         $faker = Factory::create();
 
         $admin = User::query()->updateOrCreate(
-            ['email' => 'admin@meacash.com'],
+            ['email' => 'admin@mouradvalley.com'],
             [
                 'name' => 'MeaCash Admin',
                 'phone' => '70000000',

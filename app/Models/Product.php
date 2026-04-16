@@ -85,4 +85,63 @@ class Product extends Model
     {
         return $this->hasMany(Order::class);
     }
+
+    /**
+     * Group form fields by their ui_meta.form_key for modal rendering.
+     *
+     * Returns a structured object with two layers:
+     *  - 'fields': Global fields (form_key is null) — always visible above tabs
+     *  - 'forms': Tab-toggled form variants, each with their own fields
+     */
+    public function getGroupedForms(string $locale = 'en'): array
+    {
+        $fields = $this->formFields()->orderBy('sort_order')->get();
+
+        if ($fields->isEmpty()) {
+            return ['fields' => [], 'forms' => []];
+        }
+
+        $globalFields = [];
+        $formGroups = [];
+
+        foreach ($fields as $field) {
+            $formKey = $field->ui_meta['form_key'] ?? null;
+
+            $fieldData = [
+                'key' => $field->field_key,
+                'label' => $field->{"label_{$locale}"},
+                'type' => $field->field_type,
+                'required' => $field->is_required,
+                'placeholder' => $field->{"placeholder_{$locale}"} ?? '',
+                'options' => $field->ui_meta['options'] ?? [],
+                'rules' => $field->validation_rules ?? [],
+            ];
+
+            if ($formKey === null) {
+                $globalFields[] = $fieldData;
+            } else {
+                if (!isset($formGroups[$formKey])) {
+                    $formGroups[$formKey] = [
+                        'key' => $formKey,
+                        'label' => $field->ui_meta["form_label_{$locale}"] ?? $field->ui_meta['form_label_en'] ?? ucfirst(str_replace('-', ' ', $formKey)),
+                        'is_default' => $field->ui_meta['is_default_form'] ?? false,
+                        'fields' => [],
+                    ];
+                }
+                $formGroups[$formKey]['fields'][] = $fieldData;
+            }
+        }
+
+        $result = array_values($formGroups);
+
+        // Ensure at least one form is marked as default
+        if (!empty($result) && !collect($result)->contains(fn ($f) => $f['is_default'])) {
+            $result[0]['is_default'] = true;
+        }
+
+        return [
+            'fields' => $globalFields,
+            'forms' => $result,
+        ];
+    }
 }

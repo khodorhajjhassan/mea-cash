@@ -7,6 +7,8 @@ use App\Models\TopupRequest;
 use App\Services\WalletService;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class TopupController extends Controller
 {
@@ -52,7 +54,33 @@ class TopupController extends Controller
     {
         $topup->load('user:id,name,email', 'processor:id,name');
 
-        return view('admin.topups.show', compact('topup'));
+        $receiptUrl = null;
+
+        if ($topup->receipt_image_path) {
+            try {
+                if (Storage::disk('private')->exists($topup->receipt_image_path)) {
+                    $receiptUrl = Storage::disk('private')->temporaryUrl(
+                        $topup->receipt_image_path,
+                        now()->addMinutes(10)
+                    );
+                }
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+
+            // Backward compatibility for old receipts stored on the public/local disk.
+            if ($receiptUrl === null) {
+                try {
+                    if (Storage::disk('public')->exists($topup->receipt_image_path)) {
+                        $receiptUrl = Storage::disk('public')->url($topup->receipt_image_path);
+                    }
+                } catch (Throwable $exception) {
+                    report($exception);
+                }
+            }
+        }
+
+        return view('admin.topups.show', compact('topup', 'receiptUrl'));
     }
 
     public function approve(Request $request, TopupRequest $topup)

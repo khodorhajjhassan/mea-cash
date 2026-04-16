@@ -16,7 +16,7 @@ class TopupRequest extends Model
     {
         return [
             'type' => 'Topup Request',
-            'message' => "{$this->user?->name} requested a top-up of ${$this->amount_requested} via " . strtoupper($this->payment_method),
+            'message' => "{$this->user?->name} requested a top-up of \${$this->amount_requested} via " . strtoupper($this->payment_method),
             'link' => route('admin.topups.show', $this),
             'icon' => 'wallet',
         ];
