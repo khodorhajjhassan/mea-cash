@@ -27,6 +27,7 @@
                 <span>{{ __('admin.sidebar.dashboard') }}</span>
             </a>
 
+            @can('categories.index')
             <p class="section-label">{{ __('admin.sidebar.catalog') }}</p>
             <a href="{{ route('admin.categories.index') }}"
                 class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
@@ -49,6 +50,9 @@
                 </svg>
                 <span>{{ __('admin.sidebar.product_types') }}</span>
             </a>
+            @endcan
+
+            @can('products.index')
             <a href="{{ route('admin.products.index') }}"
                 class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -56,8 +60,11 @@
                 </svg>
                 <span>{{ __('admin.sidebar.products') }}</span>
             </a>
+            @endcan
 
+            @canany(['orders.index', 'orders.pending'])
             <p class="section-label">{{ __('admin.sidebar.orders_group') }}</p>
+            @can('orders.index')
             <a href="{{ route('admin.orders.index') }}"
                 class="nav-link {{ request()->routeIs('admin.orders.index') || request()->routeIs('admin.orders.show') || request()->routeIs('admin.orders.status') || request()->routeIs('admin.orders.refund') ? 'active' : '' }}">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -65,6 +72,8 @@
                 </svg>
                 <span>{{ __('admin.sidebar.all_orders') }}</span>
             </a>
+            @endcan
+            @can('orders.pending')
             <a href="{{ route('admin.orders.pending') }}"
                 class="nav-link {{ request()->routeIs('admin.orders.pending') || request()->routeIs('admin.orders.fulfill') || request()->routeIs('admin.orders.fail') ? 'active' : '' }}">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -75,8 +84,12 @@
                     <span class="absolute end-3 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-rose-500 shadow-sm"></span>
                 @endif
             </a>
+            @endcan
+            @endcanany
 
+            @canany(['topups.index', 'transactions.index'])
             <p class="section-label">{{ __('admin.sidebar.wallet_group') }}</p>
+            @can('topups.index')
             <a href="{{ route('admin.topups.index') }}"
                 class="nav-link {{ request()->routeIs('admin.topups.*') ? 'active' : '' }}">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -87,6 +100,8 @@
                     <span class="absolute end-3 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-rose-500 shadow-sm"></span>
                 @endif
             </a>
+            @endcan
+            @can('transactions.index')
             <a href="{{ route('admin.transactions.index') }}"
                 class="nav-link {{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -94,7 +109,10 @@
                 </svg>
                 <span>{{ __('admin.sidebar.transactions') }}</span>
             </a>
+            @endcan
+            @endcanany
 
+            @can('users.index')
             <p class="section-label">{{ __('admin.sidebar.users_group') }}</p>
             <a href="{{ route('admin.users.index') }}"
                 class="nav-link {{ request()->routeIs('admin.users.index') || request()->routeIs('admin.users.show') || request()->routeIs('admin.users.update') || request()->routeIs('admin.users.edit') || request()->routeIs('admin.users.credit') ? 'active' : '' }}">
@@ -103,8 +121,11 @@
                 </svg>
                 <span>{{ __('admin.sidebar.all_users') }}</span>
             </a>
+            @endcan
 
+            @canany(['payment-methods.index', 'suppliers.index'])
             <p class="section-label">{{ __('admin.sidebar.finance_group') }}</p>
+            @can('payment-methods.index')
             <a href="{{ route('admin.payment-methods.index') }}"
                 class="nav-link {{ request()->routeIs('admin.payment-methods.*') ? 'active' : '' }}">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -112,6 +133,8 @@
                 </svg>
                 <span>{{ __('admin.sidebar.payment_methods') }}</span>
             </a>
+            @endcan
+            @can('suppliers.index')
             <a href="{{ route('admin.suppliers.index') }}"
                 class="nav-link {{ request()->routeIs('admin.suppliers.*') ? 'active' : '' }}">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,7 +142,10 @@
                 </svg>
                 <span>{{ __('admin.sidebar.suppliers') }}</span>
             </a>
+            @endcan
+            @endcanany
 
+            @can('analytics.index')
             <p class="section-label">{{ __('admin.sidebar.analytics') }}</p>
             <a href="{{ route('admin.analytics.index') }}"
                 class="nav-link {{ request()->routeIs('admin.analytics.*') ? 'active' : '' }}">
@@ -128,8 +154,11 @@
                 </svg>
                 <span>{{ __('admin.sidebar.analytics') }}</span>
             </a>
+            @endcan
 
+            @canany(['contact.index', 'feedback.index'])
             <p class="section-label">{{ __('admin.sidebar.support_group') }}</p>
+            @can('contact.index')
             <a href="{{ route('admin.contact.index') }}"
                 class="nav-link {{ request()->routeIs('admin.contact.*') ? 'active' : '' }}">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -140,6 +169,8 @@
                     <span class="absolute end-3 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-rose-500 shadow-sm"></span>
                 @endif
             </a>
+            @endcan
+            @can('feedback.index')
             <a href="{{ route('admin.feedback.index') }}"
                 class="nav-link {{ request()->routeIs('admin.feedback.*') ? 'active' : '' }}">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -147,7 +178,10 @@
                 </svg>
                 <span>{{ __('admin.sidebar.feedback') }}</span>
             </a>
+            @endcan
+            @endcanany
 
+            @canany(['settings.general', 'roles.index'])
             <p class="section-label">{{ __('admin.sidebar.system_group') }}</p>
             <a href="{{ route('admin.notifications.index') }}"
                 class="nav-link {{ request()->routeIs('admin.notifications.*') ? 'active' : '' }}">
@@ -156,6 +190,16 @@
                 </svg>
                 <span>{{ __('admin.sidebar.alerts') }}</span>
             </a>
+            @can('roles.index')
+            <a href="{{ route('admin.roles.index') }}"
+                class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                <svg class="h-4 w-4" fill="none" viewBox="1 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span>{{ __('admin.sidebar.roles') }}</span>
+            </a>
+            @endcan
+            @can('settings.general')
             <a href="{{ route('admin.settings.index') }}"
                 class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -164,6 +208,8 @@
                 </svg>
                 <span>{{ __('admin.sidebar.settings') }}</span>
             </a>
+            @endcan
+            @endcanany
         </nav>
     </div>
 

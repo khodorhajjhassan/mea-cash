@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\Web\UserController;
 use App\Http\Controllers\Admin\Web\AnalyticsController;
 use App\Http\Controllers\Admin\Web\NotificationController;
 use App\Http\Controllers\Admin\Web\PageController;
+use App\Http\Controllers\Admin\Web\RoleController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\Storefront\StorefrontController;
@@ -76,100 +77,73 @@ Route::prefix('dashboard')
         Route::put('/profile', [CustomerDashboardController::class, 'updateProfile'])->name('profile.update');
     });
 
-Route::middleware('guest')->group(function (): void {
-    Route::get('/login', [UserAuthController::class, 'create'])->name('login');
-    Route::post('/login', [UserAuthController::class, 'store'])->name('login.store');
-
-    Route::get('/admin/login', [AdminAuthController::class, 'create'])->name('admin.login');
-    Route::post('/admin/login', [AdminAuthController::class, 'store'])->name('admin.login.store');
-});
-
-Route::middleware('auth')->group(function (): void {
-    Route::post('/logout', [UserAuthController::class, 'destroy'])->name('logout');
-    Route::post('/admin/logout', [AdminAuthController::class, 'destroy'])->name('admin.logout');
-});
+Route::prefix('auth')
+    ->group(function (): void {
+        Route::get('login', [UserAuthController::class, 'create'])->name('login');
+        Route::post('login', [UserAuthController::class, 'store']);
+        Route::post('logout', [UserAuthController::class, 'destroy'])->name('logout');
+    });
 
 Route::prefix('admin')
     ->name('admin.')
-    ->middleware(['auth', 'admin'])
     ->group(function (): void {
-        Route::get('/dashboard', DashboardController::class)->name('dashboard');
+        Route::get('login', [AdminAuthController::class, 'create'])->name('login');
+        Route::post('login', [AdminAuthController::class, 'store']);
+        Route::post('logout', [AdminAuthController::class, 'destroy'])->name('logout');
 
-        Route::resource('categories', CategoryController::class);
-        Route::resource('subcategories', SubcategoryController::class);
-        Route::resource('product-types', ProductTypeController::class);
-        Route::resource('products', ProductController::class);
-        Route::resource('product-packages', ProductPackageController::class);
+        Route::middleware(['auth', 'admin'])->group(function (): void {
+            Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        Route::get('codes', [CodeController::class, 'index'])->name('codes.index');
-        Route::get('codes/import', [CodeController::class, 'import'])->name('codes.import');
-        Route::post('codes/import', [CodeController::class, 'importStore'])->name('codes.import.store');
-        Route::post('codes', [CodeController::class, 'store'])->name('codes.store');
-        Route::delete('codes/{code}', [CodeController::class, 'destroy'])->name('codes.destroy');
+            Route::resource('categories', CategoryController::class)->middleware('permission:categories.index');
+            Route::resource('subcategories', SubcategoryController::class)->middleware('permission:categories.index');
+            Route::resource('product-types', ProductTypeController::class)->middleware('permission:categories.index');
+            Route::resource('products', ProductController::class)->middleware('permission:products.index');
+            
+            Route::get('orders/pending', [OrderController::class, 'pending'])->middleware('permission:orders.pending')->name('orders.pending');
+            Route::resource('orders', OrderController::class)->middleware('permission:orders.index');
+            Route::post('orders/{order}/status', [OrderController::class, 'updateStatus'])->middleware('permission:orders.edit')->name('orders.status');
+            Route::post('orders/{order}/refund', [OrderController::class, 'refund'])->middleware('permission:orders.edit')->name('orders.refund');
+            Route::post('orders/{order}/fulfill', [OrderController::class, 'fulfill'])->middleware('permission:orders.edit')->name('orders.fulfill');
+            Route::post('orders/{order}/fail', [OrderController::class, 'fail'])->middleware('permission:orders.edit')->name('orders.fail');
 
-        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
-        Route::get('orders/pending', [OrderController::class, 'pending'])->name('orders.pending');
-        Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-        Route::put('orders/{order}/status', [OrderController::class, 'status'])->name('orders.status');
-        Route::post('orders/{order}/refund', [OrderController::class, 'refund'])->name('orders.refund');
-        Route::post('orders/{order}/fulfill', [OrderController::class, 'fulfill'])->name('orders.fulfill');
-        Route::post('orders/{order}/fail', [OrderController::class, 'fail'])->name('orders.fail');
+            Route::resource('topups', TopupController::class)->middleware('permission:topups.index');
+            Route::post('topups/{topup}/approve', [TopupController::class, 'approve'])->middleware('permission:topups.approve')->name('topups.approve');
+            Route::post('topups/{topup}/reject', [TopupController::class, 'reject'])->middleware('permission:topups.reject')->name('topups.reject');
 
-        Route::get('topups', [TopupController::class, 'index'])->name('topups.index');
-        Route::get('topups/{topup}', [TopupController::class, 'show'])->name('topups.show');
-        Route::post('topups/{topup}/approve', [TopupController::class, 'approve'])->name('topups.approve');
-        Route::post('topups/{topup}/reject', [TopupController::class, 'reject'])->name('topups.reject');
+            Route::resource('transactions', TransactionController::class)->middleware('permission:transactions.index');
+            Route::post('users/{user}/credit', [UserController::class, 'credit'])->middleware('permission:users.credit-wallet')->name('users.credit');
+            Route::resource('users', UserController::class)->middleware('permission:users.index');
 
-        Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
-        Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
-        Route::post('transactions/adjust', [TransactionController::class, 'adjust'])->name('transactions.adjust');
+            Route::resource('payment-methods', PaymentMethodController::class)->middleware('permission:payment-methods.index');
+            Route::resource('suppliers', SupplierController::class)->middleware('permission:suppliers.index');
+            Route::resource('analytics', AnalyticsController::class)->middleware('permission:analytics.index');
+            Route::resource('contact', ContactController::class)->middleware('permission:contact.index');
+            Route::resource('feedback', FeedbackController::class)->middleware('permission:feedback.index');
+            Route::resource('pages', PageController::class)->middleware('permission:settings.general');
+            
+            Route::get('settings', [SettingController::class, 'index'])->middleware('permission:settings.general')->name('settings.index');
+            Route::post('settings', [SettingController::class, 'update'])->middleware('permission:settings.general')->name('settings.update');
+            Route::post('settings/seo', [SettingController::class, 'updateSeo'])->middleware('permission:settings.general')->name('settings.seo');
 
-        Route::get('users', [UserController::class, 'index'])->name('users.index');
-        Route::get('users/vip', [UserController::class, 'vip'])->name('users.vip');
-        Route::get('users/create', [UserController::class, 'create'])->name('users.create');
-        Route::post('users', [UserController::class, 'store'])->name('users.store');
-        Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
-        Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-        Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
-        Route::post('users/{user}/credit', [UserController::class, 'credit'])->name('users.credit');
+            Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+            Route::get('notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
+            Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 
-        Route::get('payment-methods', [PaymentMethodController::class, 'index'])->name('payment-methods.index');
-        Route::put('payment-methods/{paymentMethod}', [PaymentMethodController::class, 'update'])->name('payment-methods.update');
-        Route::post('payment-methods/{paymentMethod}/toggle', [PaymentMethodController::class, 'toggle'])->name('payment-methods.toggle');
+            Route::get('roles', [RoleController::class, 'index'])->middleware('permission:roles.index')->name('roles.index');
+            Route::get('roles/create', [RoleController::class, 'create'])->middleware('permission:roles.create')->name('roles.create');
+            Route::post('roles', [RoleController::class, 'store'])->middleware('permission:roles.create')->name('roles.store');
+            Route::get('roles/{role}/edit', [RoleController::class, 'edit'])->middleware('permission:roles.edit')->name('roles.edit');
+            Route::put('roles/{role}', [RoleController::class, 'update'])->middleware('permission:roles.edit')->name('roles.update');
+            Route::delete('roles/{role}', [RoleController::class, 'destroy'])->middleware('permission:roles.delete')->name('roles.destroy');
 
-        Route::resource('suppliers', SupplierController::class)->except(['show']);
+            Route::get('roles/assignments', [RoleController::class, 'assignments'])->middleware('permission:roles.assign')->name('roles.assignments');
+            Route::put('roles/assignments/{user}', [RoleController::class, 'updateAssignments'])->middleware('permission:roles.assign')->name('roles.assignments.update');
 
-        Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
-        Route::get('analytics/revenue', [AnalyticsController::class, 'revenue'])->name('analytics.revenue');
-        Route::get('analytics/products', [AnalyticsController::class, 'products'])->name('analytics.products');
-        Route::get('analytics/profit', [AnalyticsController::class, 'profit'])->name('analytics.profit');
-        Route::get('analytics/users', [AnalyticsController::class, 'users'])->name('analytics.users');
-
-        Route::get('contact', [ContactController::class, 'index'])->name('contact.index');
-        Route::get('contact/{contact}', [ContactController::class, 'show'])->name('contact.show');
-        Route::delete('contact/{contact}', [ContactController::class, 'destroy'])->name('contact.destroy');
-
-        Route::get('feedback', [FeedbackController::class, 'index'])->name('feedback.index');
-        Route::get('feedback/{feedback}', [FeedbackController::class, 'show'])->name('feedback.show');
-        Route::delete('feedback/{feedback}', [FeedbackController::class, 'destroy'])->name('feedback.destroy');
-
-        Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
-        Route::get('settings/general', [SettingController::class, 'general'])->name('settings.general');
-        Route::get('settings/seo', [SettingController::class, 'seo'])->name('settings.seo');
-        Route::post('settings/seo', [SettingController::class, 'updateSeo'])->name('settings.seo.update');
-        Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
-
-        Route::get('pages', [PageController::class, 'edit'])->name('pages.edit');
-        Route::post('pages', [PageController::class, 'update'])->name('pages.update');
-
-        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
-        Route::get('notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
-        Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
-
-        Route::post('products/{product}/packages', [ProductController::class, 'storePackage'])->name('products.packages.store');
-        Route::put('products/packages/{package}', [ProductController::class, 'updatePackage'])->name('products.packages.update');
-        Route::post('products/{product}/fields', [ProductController::class, 'storeField'])->name('products.fields.store');
-        Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
+            Route::post('products/{product}/packages', [ProductController::class, 'storePackage'])->middleware('permission:products.edit')->name('products.packages.store');
+            Route::put('products/packages/{package}', [ProductController::class, 'updatePackage'])->middleware('permission:products.edit')->name('products.packages.update');
+            Route::post('products/{product}/fields', [ProductController::class, 'storeField'])->middleware('permission:products.edit')->name('products.fields.store');
+            Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->middleware('permission:products.create')->name('products.duplicate');
+        });
     });
 
 Route::prefix('admin/api')
@@ -180,4 +154,4 @@ Route::prefix('admin/api')
         Route::apiResource('subcategories', ApiSubcategoryController::class);
         Route::apiResource('products', ApiProductController::class);
         Route::apiResource('product-packages', ApiProductPackageController::class);
-});
+    });

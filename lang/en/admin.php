@@ -26,6 +26,7 @@ return [
         'system_group' => 'System',
         'alerts' => 'System Alerts',
         'settings' => 'Settings',
+        'roles' => 'Roles & Permissions',
     ],
     'header' => [
         'home' => 'Admin Home',
