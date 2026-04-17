@@ -12,7 +12,7 @@ use App\Models\User;
 
 class DashboardController extends Controller
 {
-    public function __invoke()
+    public function index()
     {
         $stats = [
             'categories' => Category::query()->count(),
@@ -30,5 +30,10 @@ class DashboardController extends Controller
             ->get();
 
         return view('admin.dashboard.index', compact('stats', 'latestProducts'));
+    }
+
+    public function __invoke()
+    {
+        return $this->index();
     }
 }

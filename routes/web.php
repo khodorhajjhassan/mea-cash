@@ -43,8 +43,8 @@ Route::get('/category/{slug}', [StorefrontController::class, 'category'])->name(
 Route::get('/search', [StorefrontController::class, 'search'])->name('store.search');
 Route::get('/api/product/{slug}', [StorefrontController::class, 'productJson'])->name('store.product.json');
 
-// Cart (no auth required)
-Route::post('/cart/add', [CartController::class, 'add'])->name('store.cart.add');
+// Cart
+Route::post('/cart/add', [CartController::class, 'add'])->middleware(['auth', 'customer'])->name('store.cart.add');
 Route::get('/cart', [CartController::class, 'show'])->name('store.cart');
 Route::delete('/cart/{itemId}', [CartController::class, 'remove'])->name('store.cart.remove');
 Route::delete('/cart', [CartController::class, 'clear'])->name('store.cart.clear');
@@ -80,7 +80,7 @@ Route::prefix('dashboard')
 Route::prefix('auth')
     ->group(function (): void {
         Route::get('login', [UserAuthController::class, 'create'])->name('login');
-        Route::post('login', [UserAuthController::class, 'store']);
+        Route::post('login', [UserAuthController::class, 'store'])->name('login.store');
         Route::post('logout', [UserAuthController::class, 'destroy'])->name('logout');
     });
 
@@ -88,7 +88,7 @@ Route::prefix('admin')
     ->name('admin.')
     ->group(function (): void {
         Route::get('login', [AdminAuthController::class, 'create'])->name('login');
-        Route::post('login', [AdminAuthController::class, 'store']);
+        Route::post('login', [AdminAuthController::class, 'store'])->name('login.store');
         Route::post('logout', [AdminAuthController::class, 'destroy'])->name('logout');
 
         Route::middleware(['auth', 'admin'])->group(function (): void {

@@ -158,18 +158,22 @@ function renderProduct() {
         html += `</div>`;
     }
 
-    // ── Quantity Slider (custom_quantity) ──
+    // ── Quantity Selector (custom_quantity) ──
     if (type === 'custom_quantity') {
         const min = p.min_quantity || 1;
         const max = p.max_quantity || 10000;
         const price = p.price_per_unit || p.selling_price;
         const total = (currentQuantity * price).toFixed(2);
+
         html += `<div class="sf-modal-section-label">${isRtl() ? 'اختر الكمية' : 'Select Quantity'}</div>`;
         html += `<div class="sf-modal-quantity">`;
-        html += `<div class="sf-qty-slider-row">`;
-        html += `<input type="range" id="sf-qty-slider" class="sf-qty-range" min="${min}" max="${max}" value="${currentQuantity}" step="1">`;
-        html += `<input type="number" id="sf-qty-input" class="sf-qty-number" min="${min}" max="${max}" value="${currentQuantity}">`;
+
+        html += `<button type="button" id="sf-open-qty-input" class="sf-form-tab active">${isRtl() ? 'حسب الكمية' : 'By Quantity'}</button>`;
+        html += `<div id="sf-qty-input-wrap" style="display:none;margin-top:0.75rem;">`;
+        html += `<input type="number" id="sf-qty-input" class="sf-qty-number" min="${min}" max="${max}" value="${currentQuantity}" step="1" placeholder="${isRtl() ? 'ادخل الكمية' : 'Enter quantity'}">`;
+        html += `<p class="hint" style="margin-top:0.4rem;">${isRtl() ? `الحد الأدنى ${min} - الحد الأقصى ${max}` : `Min ${min} - Max ${max}`}</p>`;
         html += `</div>`;
+
         html += `<div class="sf-qty-info">`;
         html += `<span>${isRtl() ? 'السعر لكل وحدة' : 'Price per unit'}: ${formatPrice(price)}</span>`;
         html += `<span id="sf-qty-total" class="sf-qty-total">${isRtl() ? 'المجموع' : 'Total'}: ${formatPrice(total)}</span>`;
@@ -273,6 +277,18 @@ function getCurrentPrice() {
     return p.selling_price;
 }
 
+function getClampedQuantity(value) {
+    const p = currentProduct;
+    if (!p) return 1;
+
+    const min = p.min_quantity || 1;
+    const max = p.max_quantity || 10000;
+    const parsed = parseInt(value, 10);
+    const normalized = Number.isFinite(parsed) ? parsed : min;
+
+    return Math.max(min, Math.min(max, normalized));
+}
+
 function updatePriceDisplay() {
     const totalEl = document.getElementById('sf-modal-total');
     if (totalEl) {
@@ -325,22 +341,25 @@ function bindModalEvents() {
         });
     });
 
-    // Quantity slider sync
-    const slider = document.getElementById('sf-qty-slider');
+    // Quantity direct input (opened by button)
+    const openQtyBtn = document.getElementById('sf-open-qty-input');
+    const qtyWrap = document.getElementById('sf-qty-input-wrap');
     const qtyInput = document.getElementById('sf-qty-input');
-    if (slider && qtyInput) {
-        slider.addEventListener('input', () => {
-            currentQuantity = parseInt(slider.value);
-            qtyInput.value = currentQuantity;
-            updatePriceDisplay();
+    if (openQtyBtn && qtyWrap && qtyInput) {
+        openQtyBtn.addEventListener('click', () => {
+            qtyWrap.style.display = 'block';
+            qtyInput.focus();
+            qtyInput.select();
         });
-        qtyInput.addEventListener('input', () => {
-            let val = parseInt(qtyInput.value) || currentProduct.min_quantity || 1;
-            val = Math.max(currentProduct.min_quantity || 1, Math.min(currentProduct.max_quantity || 10000, val));
-            currentQuantity = val;
-            slider.value = val;
+
+        const syncQuantity = () => {
+            currentQuantity = getClampedQuantity(qtyInput.value);
+            qtyInput.value = String(currentQuantity);
             updatePriceDisplay();
-        });
+        };
+
+        qtyInput.addEventListener('input', syncQuantity);
+        qtyInput.addEventListener('blur', syncQuantity);
     }
 
     // Add to cart
@@ -438,6 +457,17 @@ async function handleAddToCart() {
             },
             body: JSON.stringify(payload),
         });
+
+        if (res.status === 401 || res.redirected) {
+            window.location.href = '/auth/login';
+            return;
+        }
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            showToast(false);
+            return;
+        }
 
         const data = await res.json();
 

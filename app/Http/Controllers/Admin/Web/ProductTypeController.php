@@ -4,12 +4,17 @@ namespace App\Http\Controllers\Admin\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\ProductType;
+use App\Services\ProductTemplateSyncService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class ProductTypeController extends Controller
 {
+    public function __construct(private readonly ProductTemplateSyncService $templateSync)
+    {
+    }
+
     public function index(Request $request)
     {
         $types = ProductType::query()
@@ -68,7 +73,14 @@ class ProductTypeController extends Controller
         $data = $this->validatedData($request, $productType);
 
         try {
+            $productType->fill($data);
+            $schemaChanged = $productType->isDirty('schema');
+
             $productType->update($data);
+
+            if ($schemaChanged) {
+                $this->templateSync->syncProductsForProductType($productType->fresh());
+            }
 
             return redirect()->route('admin.product-types.index')->with('success', 'Product type updated successfully.');
         } catch (Exception $exception) {

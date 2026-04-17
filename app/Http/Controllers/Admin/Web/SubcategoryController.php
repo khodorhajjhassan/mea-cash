@@ -9,13 +9,17 @@ use App\Models\Category;
 use App\Models\ProductType;
 use App\Models\Subcategory;
 use App\Services\Media\ImageStorageService;
+use App\Services\ProductTemplateSyncService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class SubcategoryController extends Controller
 {
-    public function __construct(private readonly ImageStorageService $imageStorage)
+    public function __construct(
+        private readonly ImageStorageService $imageStorage,
+        private readonly ProductTemplateSyncService $templateSync,
+    )
     {
     }
 
@@ -94,6 +98,7 @@ class SubcategoryController extends Controller
     public function update(UpdateSubcategoryRequest $request, Subcategory $subcategory)
     {
         try {
+            $oldProductTypeId = $subcategory->product_type_id;
             $data = $request->validated();
 
             if (isset($data['slug']) || isset($data['name_en'])) {
@@ -105,6 +110,13 @@ class SubcategoryController extends Controller
             }
 
             $subcategory->update($data);
+
+            $productTypeChanged = array_key_exists('product_type_id', $data)
+                && (int) ($oldProductTypeId ?? 0) !== (int) ($subcategory->product_type_id ?? 0);
+
+            if ($productTypeChanged) {
+                $this->templateSync->syncSubcategoryProducts($subcategory->fresh(), $subcategory->product_type_id);
+            }
 
             return redirect()->route('admin.subcategories.index')->with('success', 'Subcategory updated successfully.');
         } catch (Exception $exception) {

@@ -318,13 +318,17 @@ class StorefrontDemoSeeder extends Seeder
         ]);
 
         // --- Admin User ---
-        User::create([
-            'name' => 'Admin',
-            'email' => 'admin@mouradvalley.com',
-            'password' => Hash::make('password'),
-            'is_admin' => true,
-            'is_active' => true,
-        ]);
+        $adminEmail = strtolower((string) env('SUPER_ADMIN_EMAIL', 'admin@meacash.com'));
+        $adminPassword = (string) env('SUPER_ADMIN_PASSWORD', 'password');
+        User::query()->updateOrCreate(
+            ['email' => $adminEmail],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make($adminPassword),
+                'is_admin' => true,
+                'is_active' => true,
+            ]
+        );
 
         // --- Demo Customer ---
         User::create([

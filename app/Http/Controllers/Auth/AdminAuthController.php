@@ -20,6 +20,7 @@ class AdminAuthController extends Controller
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
+        $credentials['email'] = strtolower(trim((string) $credentials['email']));
 
         try {
             if (! Auth::attempt($credentials, $request->boolean('remember'))) {

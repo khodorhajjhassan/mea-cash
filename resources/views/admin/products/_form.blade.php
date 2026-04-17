@@ -1,16 +1,19 @@
 @php($editing = isset($product))
-@php($uiType = old('product_type', match($product->product_type ?? 'fixed_package') {
-    'custom_quantity' => 'top_up',
-    'account_topup' => 'account',
-    default => 'key',
-}))
+@php($selectedType = old('product_type', $product->product_type?->value ?? \App\Enums\ProductType::FixedPackage->value))
 <div class="grid gap-4 md:grid-cols-2">
     <div class="field"><label>Subcategory</label><select name="subcategory_id" required>@foreach($subcategories as $sub)<option value="{{ $sub->id }}" @selected(old('subcategory_id', $product->subcategory_id ?? null)==$sub->id)>{{ $sub->name_en }}</option>@endforeach</select></div>
     <div class="field"><label>Supplier</label><select name="supplier_id"><option value="">None</option>@foreach($suppliers as $supplier)<option value="{{ $supplier->id }}" @selected(old('supplier_id', $product->supplier_id ?? null)==$supplier->id)>{{ $supplier->name }}</option>@endforeach</select></div>
     <div class="field"><label>Name (EN)</label><input id="product-name-en" type="text" name="name_en" value="{{ old('name_en', $product->name_en ?? '') }}" required></div>
     <div class="field"><label>Name (AR)</label><input type="text" name="name_ar" value="{{ old('name_ar', $product->name_ar ?? '') }}" required></div>
     <div class="field"><label>Slug</label><input id="product-slug" type="text" name="slug" value="{{ old('slug', $product->slug ?? '') }}"></div>
-    <div class="field"><label>Product Type</label><select name="product_type" required><option value="top_up" @selected($uiType==='top_up')>Top Up</option><option value="key" @selected($uiType==='key')>Key</option><option value="account" @selected($uiType==='account')>Account</option></select></div>
+    <div class="field">
+        <label>Product Type</label>
+        <select name="product_type" required>
+            @foreach(($typeOptions ?? \App\Enums\ProductType::options()) as $value => $label)
+                <option value="{{ $value }}" @selected($selectedType === $value)>{{ $label }}</option>
+            @endforeach
+        </select>
+    </div>
     <div class="field"><label>Delivery Type</label><select name="delivery_type" required>@foreach(['instant','timed','manual'] as $type)<option value="{{ $type }}" @selected(old('delivery_type', $product->delivery_type ?? 'instant')===$type)>{{ ucfirst($type) }}</option>@endforeach</select></div>
     <div class="field"><label>Delivery Time Minutes</label><input type="number" min="1" name="delivery_time_minutes" value="{{ old('delivery_time_minutes', $product->delivery_time_minutes ?? '') }}"></div>
     <div class="field"><label>Cost Price</label><input type="number" step="0.0001" min="0" name="cost_price" value="{{ old('cost_price', $product->cost_price ?? 0) }}"></div>

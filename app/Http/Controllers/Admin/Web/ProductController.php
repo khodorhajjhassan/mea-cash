@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\Web;
 
+use App\Enums\ProductType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
@@ -11,6 +12,7 @@ use App\Models\ProductPackage;
 use App\Models\Subcategory;
 use App\Models\Supplier;
 use App\Services\Media\ImageStorageService;
+use App\Services\ProductTemplateSyncService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,12 +20,17 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    public function __construct(private readonly ImageStorageService $imageStorage)
+    public function __construct(
+        private readonly ImageStorageService $imageStorage,
+        private readonly ProductTemplateSyncService $templateSync,
+    )
     {
     }
 
     public function index(Request $request)
     {
+        $typeOptions = ProductType::options();
+
         $products = Product::query()
             ->with(['subcategory:id,name_en,product_type_id', 'subcategory.productTypeDefinition:id,name,key', 'supplier:id,name'])
             ->when($request->filled('q'), function ($query) use ($request): void {
@@ -38,7 +45,10 @@ class ProductController extends Controller
                 $query->where('is_active', $request->string('status')->value() === 'active');
             })
             ->when($request->filled('type'), function ($query) use ($request): void {
-                $query->where('product_type', $this->mapUiProductTypeToDb($request->string('type')->value()));
+                $type = ProductType::tryFrom((string) $request->string('type'));
+                if ($type !== null) {
+                    $query->where('product_type', $type->value);
+                }
             })
             ->latest('id')
             ->paginate(15)
@@ -46,22 +56,22 @@ class ProductController extends Controller
 
         $filters = $request->only(['q', 'status', 'type']);
 
-        return view('admin.products.index', compact('products', 'filters'));
+        return view('admin.products.index', compact('products', 'filters', 'typeOptions'));
     }
 
     public function create()
     {
         $subcategories = Subcategory::query()->where('is_active', true)->orderBy('name_en')->get(['id', 'name_en']);
         $suppliers = Supplier::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $typeOptions = ProductType::options();
 
-        return view('admin.products.create', compact('subcategories', 'suppliers'));
+        return view('admin.products.create', compact('subcategories', 'suppliers', 'typeOptions'));
     }
 
     public function store(StoreProductRequest $request)
     {
         try {
             $data = $request->validated();
-            $data['product_type'] = $this->mapUiProductTypeToDb($data['product_type']);
             $data['slug'] = $this->generateUniqueSlug($data['slug'] ?? $data['name_en']);
             $subcategory = Subcategory::query()->findOrFail($data['subcategory_id']);
             $data['product_type_id'] = $subcategory->product_type_id;
@@ -96,17 +106,15 @@ class ProductController extends Controller
     {
         $subcategories = Subcategory::query()->where('is_active', true)->orderBy('name_en')->get(['id', 'name_en']);
         $suppliers = Supplier::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $typeOptions = ProductType::options();
 
-        return view('admin.products.edit', compact('product', 'subcategories', 'suppliers'));
+        return view('admin.products.edit', compact('product', 'subcategories', 'suppliers', 'typeOptions'));
     }
 
     public function update(UpdateProductRequest $request, Product $product)
     {
         try {
             $data = $request->validated();
-            if (isset($data['product_type'])) {
-                $data['product_type'] = $this->mapUiProductTypeToDb($data['product_type']);
-            }
 
             if (isset($data['slug']) || isset($data['name_en'])) {
                 $data['slug'] = $this->generateUniqueSlug(
@@ -259,131 +267,7 @@ class ProductController extends Controller
 
     private function syncFormFieldsFromTemplate(Product $product): void
     {
-        $template = $product->productTypeDefinition;
-        if (!$template) {
-            $product->loadMissing('subcategory.productTypeDefinition');
-            $template = $product->subcategory?->productTypeDefinition;
-        }
-
-        if (!$template) {
-            return;
-        }
-
-        $schema = $template->schema;
-        $globalFields = is_array($schema['fields'] ?? null) ? $schema['fields'] : [];
-        $forms = is_array($schema['forms'] ?? null) ? $schema['forms'] : [];
-
-        if (!is_array($globalFields) || !is_array($forms)) {
-            return;
-        }
-
-        $product->formFields()->delete();
-
-        $globalSort = 1;
-        foreach ($globalFields as $index => $field) {
-            if (!is_array($field)) {
-                continue;
-            }
-
-            $fieldType = (string) ($field['type'] ?? 'text');
-            if (!in_array($fieldType, ['text', 'email', 'password', 'number', 'select'], true)) {
-                $fieldType = 'text';
-            }
-
-            $isRequired = (bool) ($field['required'] ?? false);
-            $rules = $field['rules'] ?? [];
-            if (!is_array($rules)) {
-                $rules = [];
-            }
-            if ($isRequired && !in_array('required', $rules, true)) {
-                $rules[] = 'required';
-            }
-
-            $rawFieldKey = (string) ($field['key'] ?? 'field_'.$index);
-            $rawFieldKey = Str::slug($rawFieldKey);
-            if ($rawFieldKey === '') {
-                $rawFieldKey = 'field_'.$index;
-            }
-
-            $product->formFields()->create([
-                'field_key' => $rawFieldKey,
-                'label_en' => (string) ($field['label_en'] ?? $field['label'] ?? Str::headline($rawFieldKey)),
-                'label_ar' => (string) ($field['label_ar'] ?? $field['label'] ?? Str::headline($rawFieldKey)),
-                'field_type' => $fieldType,
-                'placeholder_en' => (string) ($field['placeholder_en'] ?? $field['placeholder'] ?? ''),
-                'placeholder_ar' => (string) ($field['placeholder_ar'] ?? $field['placeholder'] ?? ''),
-                'is_required' => $isRequired,
-                'sort_order' => (int) ($field['sort_order'] ?? $globalSort++),
-                'validation_rules' => $rules,
-                'ui_meta' => [
-                    'form_key' => null,
-                    'form_label_en' => null,
-                    'form_label_ar' => null,
-                    'is_default_form' => false,
-                    'raw_field_key' => $rawFieldKey,
-                ],
-            ]);
-        }
-
-        foreach ($forms as $formIndex => $form) {
-            if (!is_array($form)) {
-                continue;
-            }
-
-            $formKey = Str::slug((string) ($form['key'] ?? 'form_'.($formIndex + 1)));
-            if ($formKey === '') {
-                $formKey = 'form_'.($formIndex + 1);
-            }
-            $formLabelEn = (string) ($form['label_en'] ?? 'Form '.($formIndex + 1));
-            $formLabelAr = (string) ($form['label_ar'] ?? $formLabelEn);
-            $isDefaultForm = (bool) ($form['is_default'] ?? false);
-
-            $fields = is_array($form['fields'] ?? null) ? $form['fields'] : [];
-            foreach ($fields as $index => $field) {
-                if (!is_array($field)) {
-                    continue;
-                }
-
-                $fieldType = (string) ($field['type'] ?? 'text');
-                if (!in_array($fieldType, ['text', 'email', 'password', 'number', 'select'], true)) {
-                    $fieldType = 'text';
-                }
-
-                $isRequired = (bool) ($field['required'] ?? false);
-                $rules = $field['rules'] ?? [];
-                if (!is_array($rules)) {
-                    $rules = [];
-                }
-                if ($isRequired && !in_array('required', $rules, true)) {
-                    $rules[] = 'required';
-                }
-
-                $rawFieldKey = (string) ($field['key'] ?? 'field_'.$index);
-                $rawFieldKey = Str::slug($rawFieldKey);
-                if ($rawFieldKey === '') {
-                    $rawFieldKey = 'field_'.$index;
-                }
-
-                $product->formFields()->create([
-                    'field_key' => $formKey.'__'.$rawFieldKey,
-                    'label_en' => (string) ($field['label_en'] ?? $field['label'] ?? Str::headline($rawFieldKey)),
-                    'label_ar' => (string) ($field['label_ar'] ?? $field['label'] ?? Str::headline($rawFieldKey)),
-                    'field_type' => $fieldType,
-                    'placeholder_en' => (string) ($field['placeholder_en'] ?? $field['placeholder'] ?? ''),
-                    'placeholder_ar' => (string) ($field['placeholder_ar'] ?? $field['placeholder'] ?? ''),
-                    'is_required' => $isRequired,
-                    'sort_order' => (int) ($field['sort_order'] ?? $globalSort++),
-                    'validation_rules' => $rules,
-                    'ui_meta' => [
-                        'form_key' => $formKey,
-                        'form_label_en' => $formLabelEn,
-                        'form_label_ar' => $formLabelAr,
-                        'is_default_form' => $isDefaultForm,
-                        'raw_field_key' => $rawFieldKey,
-                    ],
-                ]);
-            }
-        }
+        $this->templateSync->syncProduct($product);
     }
 
     private function generateUniqueSlug(string $source, ?int $ignoreId = null): string
@@ -405,15 +289,5 @@ class ProductController extends Controller
         }
 
         return $candidate;
-    }
-
-    private function mapUiProductTypeToDb(string $uiValue): string
-    {
-        return match ($uiValue) {
-            'top_up' => 'custom_quantity',
-            'key' => 'fixed_package',
-            'account' => 'account_topup',
-            default => 'fixed_package',
-        };
     }
 }

@@ -30,13 +30,15 @@ class DemoDataSeeder extends Seeder
     public function run(): void
     {
         $faker = Factory::create();
+        $adminEmail = strtolower((string) env('SUPER_ADMIN_EMAIL', 'admin@meacash.com'));
+        $adminPassword = (string) env('SUPER_ADMIN_PASSWORD', 'password');
 
         $admin = User::query()->updateOrCreate(
-            ['email' => 'admin@mouradvalley.com'],
+            ['email' => $adminEmail],
             [
                 'name' => 'MeaCash Admin',
                 'phone' => '70000000',
-                'password' => Hash::make('password'),
+                'password' => Hash::make($adminPassword),
                 'preferred_language' => 'en',
                 'is_active' => true,
                 'is_admin' => true,

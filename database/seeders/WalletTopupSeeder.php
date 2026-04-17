@@ -12,6 +12,8 @@ class WalletTopupSeeder extends Seeder
 
     public function run(): void
     {
+        $adminEmail = strtolower((string) env('SUPER_ADMIN_EMAIL', 'admin@meacash.com'));
+
         $user = User::where('email', 'test@meacash.com')->first();
         if ($user) {
             $this->walletService->credit(
@@ -21,7 +23,7 @@ class WalletTopupSeeder extends Seeder
             );
         }
 
-        $admin = User::where('email', 'admin@mouradvalley.com')->first();
+        $admin = User::where('email', $adminEmail)->first();
         if ($admin) {
             $this->walletService->credit(
                 user: $admin,

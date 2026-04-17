@@ -86,10 +86,10 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // 3. Create Initial Super Admin User (Idempotent)
-        $email = env('SUPER_ADMIN_EMAIL', 'admin@meacash.com');
-        $password = env('SUPER_ADMIN_PASSWORD');
+        $email = strtolower((string) env('SUPER_ADMIN_EMAIL', 'admin@meacash.com'));
+        $password = (string) env('SUPER_ADMIN_PASSWORD', 'password');
 
-        if (! User::where('email', $email)->exists() && $password) {
+        if (! User::where('email', $email)->exists()) {
             $user = User::create([
                 'name' => 'System Admin',
                 'email' => $email,
@@ -98,13 +98,23 @@ class RolePermissionSeeder extends Seeder
                 'email_verified_at' => now(),
                 'preferred_language' => 'en',
                 'is_active' => true,
+                'is_admin' => true,
             ]);
 
             $user->assignRole('super-admin');
         } else {
             $user = User::where('email', $email)->first();
-            if ($user && !$user->hasRole('super-admin')) {
-                $user->assignRole('super-admin');
+            if ($user) {
+                if (! $user->is_admin || ! $user->is_active) {
+                    $user->forceFill([
+                        'is_admin' => true,
+                        'is_active' => true,
+                    ])->save();
+                }
+
+                if (! $user->hasRole('super-admin')) {
+                    $user->assignRole('super-admin');
+                }
             }
         }
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\ProductType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,7 +23,7 @@ class StoreProductRequest extends FormRequest
             'description_ar' => ['nullable', 'string'],
             'description_en' => ['nullable', 'string'],
             'slug' => ['nullable', 'string', 'max:255'],
-            'product_type' => ['required', Rule::in(['top_up', 'key', 'account'])],
+            'product_type' => ['required', Rule::in(ProductType::values())],
             'delivery_type' => ['required', Rule::in(['instant', 'timed', 'manual'])],
             'delivery_time_minutes' => ['nullable', 'integer', 'min:1'],
             'cost_price' => ['nullable', 'numeric', 'min:0'],
