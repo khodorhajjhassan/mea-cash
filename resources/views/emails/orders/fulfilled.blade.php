@@ -17,7 +17,7 @@ Great news! Your order **#{{ $order->order_number ?: $order->id }}** for **{{ $o
 {{ $fulfillment['admin_note'] }}
 @endif
 
-<x-mail::button :url="config('app.url') . '/dashboard/orders/' . $order->id">
+<x-mail::button :url="$order->order_number ? route('store.orders.detail', $order->order_number) : route('store.orders')">
 View Order in Dashboard
 </x-mail::button>
 

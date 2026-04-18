@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\FulfillmentType;
 use App\Enums\OrderStatus;
 use App\Exceptions\OutOfStockException;
+use App\Mail\OrderFulfilledMail;
 use App\Models\Order;
 use App\Models\ProductCode;
 use Illuminate\Support\Facades\DB;
@@ -56,11 +57,15 @@ class OrderFulfillmentService
             //     $this->claimInventoryCodes($order);
             // }
 
+            $existingFulfillmentData = is_object($order->fulfillment_data) && method_exists($order->fulfillment_data, 'getArrayCopy')
+                ? $order->fulfillment_data->getArrayCopy()
+                : (array) ($order->fulfillment_data ?? []);
+
             // 3. Update Order status and data
             $order->update([
                 'status' => OrderStatus::Completed,
                 'fulfilled_at' => now(),
-                'fulfillment_data' => array_merge($order->fulfillment_data ?? [], ['fulfillment' => $fulfillmentPayload]),
+                'fulfillment_data' => array_merge($existingFulfillmentData, ['fulfillment' => $fulfillmentPayload]),
             ]);
 
             // 4. Notifications

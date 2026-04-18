@@ -221,7 +221,6 @@
                     </div>
                     <form method="POST" action="{{ route('admin.orders.status', $order) }}" class="mt-4 flex gap-2 items-end">
                         @csrf
-                        @method('PUT')
                         <div class="field grow">
                             <label>Status</label>
                             <select name="status" class="w-full">

@@ -120,12 +120,36 @@ class CheckoutController extends Controller
             // Redirect to first order confirmation (or a summary page)
             $firstOrder = $orders[0];
 
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'redirect_url' => route('store.confirmation', $firstOrder->order_number),
+                    'order_number' => $firstOrder->order_number,
+                ]);
+            }
+
             return redirect()->route('store.confirmation', $firstOrder->order_number)
                 ->with('success', __('storefront.checkout.success'));
         } catch (InsufficientBalanceException) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('storefront.checkout.insufficient_balance'),
+                    'redirect_url' => route('store.wallet'),
+                ], 422);
+            }
+
             return back()->with('error', __('storefront.checkout.insufficient_balance'));
         } catch (\Exception $e) {
             report($e);
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('storefront.checkout.failed'),
+                ], 500);
+            }
+
             return back()->with('error', __('storefront.checkout.failed'));
         }
     }

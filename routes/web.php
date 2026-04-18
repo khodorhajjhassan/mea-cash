@@ -84,6 +84,7 @@ Route::prefix('dashboard')
     ->group(function (): void {
         Route::get('/', [CustomerDashboardController::class, 'index'])->name('dashboard');
         Route::get('/orders', [CustomerDashboardController::class, 'orders'])->name('orders');
+        Route::post('/orders/{order}/feedback', [CustomerDashboardController::class, 'submitFeedback'])->name('orders.feedback');
         Route::get('/orders/{orderNumber}', [CustomerDashboardController::class, 'orderDetail'])->name('orders.detail');
         Route::get('/wallet', [CustomerDashboardController::class, 'wallet'])->name('wallet');
         Route::post('/wallet/topup', [CustomerDashboardController::class, 'submitTopup'])->name('wallet.topup');
@@ -114,19 +115,20 @@ Route::prefix('admin')
             Route::resource('products', ProductController::class)->middleware('permission:products.index');
             
             Route::get('orders/pending', [OrderController::class, 'pending'])->middleware('permission:orders.pending')->name('orders.pending');
-            Route::resource('orders', OrderController::class)->middleware('permission:orders.index');
-            Route::post('orders/{order}/status', [OrderController::class, 'updateStatus'])->middleware('permission:orders.edit')->name('orders.status');
+            Route::resource('orders', OrderController::class)->only(['index', 'show'])->middleware('permission:orders.index');
+            Route::match(['post', 'put'], 'orders/{order}/status', [OrderController::class, 'updateStatus'])->middleware('permission:orders.edit')->name('orders.status');
             Route::post('orders/{order}/refund', [OrderController::class, 'refund'])->middleware('permission:orders.edit')->name('orders.refund');
             Route::post('orders/{order}/fulfill', [OrderController::class, 'fulfill'])->middleware('permission:orders.edit')->name('orders.fulfill');
             Route::post('orders/{order}/fail', [OrderController::class, 'fail'])->middleware('permission:orders.edit')->name('orders.fail');
 
-            Route::resource('topups', TopupController::class)->middleware('permission:topups.index');
+            Route::resource('topups', TopupController::class)->only(['index', 'show'])->middleware('permission:topups.index');
             Route::post('topups/{topup}/approve', [TopupController::class, 'approve'])->middleware('permission:topups.approve')->name('topups.approve');
             Route::post('topups/{topup}/reject', [TopupController::class, 'reject'])->middleware('permission:topups.reject')->name('topups.reject');
 
-            Route::resource('transactions', TransactionController::class)->middleware('permission:transactions.index');
+            Route::get('transactions/user/{user}', [TransactionController::class, 'user'])->middleware('permission:transactions.index')->name('transactions.user');
+            Route::resource('transactions', TransactionController::class)->only(['index', 'show'])->middleware('permission:transactions.index');
             Route::post('users/{user}/credit', [UserController::class, 'credit'])->middleware('permission:users.credit-wallet')->name('users.credit');
-            Route::resource('users', UserController::class)->middleware('permission:users.index');
+            Route::resource('users', UserController::class)->except(['destroy'])->middleware('permission:users.index');
 
             Route::post('payment-methods/{paymentMethod}/toggle', [PaymentMethodController::class, 'toggle'])
                 ->middleware('permission:payment-methods.index')
@@ -134,11 +136,16 @@ Route::prefix('admin')
             Route::resource('payment-methods', PaymentMethodController::class)
                 ->only(['index', 'update'])
                 ->middleware('permission:payment-methods.index');
-            Route::resource('suppliers', SupplierController::class)->middleware('permission:suppliers.index');
-            Route::resource('analytics', AnalyticsController::class)->middleware('permission:analytics.index');
-            Route::resource('contact', ContactController::class)->middleware('permission:contact.index');
-            Route::resource('feedback', FeedbackController::class)->middleware('permission:feedback.index');
-            Route::resource('pages', PageController::class)->middleware('permission:settings.general');
+            Route::resource('suppliers', SupplierController::class)->except(['show'])->middleware('permission:suppliers.index');
+            Route::get('analytics', [AnalyticsController::class, 'index'])->middleware('permission:analytics.index')->name('analytics.index');
+            Route::get('analytics/revenue', [AnalyticsController::class, 'revenue'])->middleware('permission:analytics.index')->name('analytics.revenue');
+            Route::get('analytics/products', [AnalyticsController::class, 'products'])->middleware('permission:analytics.index')->name('analytics.products');
+            Route::get('analytics/users', [AnalyticsController::class, 'users'])->middleware('permission:analytics.index')->name('analytics.users');
+            Route::get('analytics/profit', [AnalyticsController::class, 'profit'])->middleware('permission:analytics.index')->name('analytics.profit');
+            Route::resource('contact', ContactController::class)->only(['index', 'show', 'destroy'])->middleware('permission:contact.index');
+            Route::resource('feedback', FeedbackController::class)->only(['index', 'show', 'destroy'])->middleware('permission:feedback.index');
+            Route::get('pages/edit', [PageController::class, 'edit'])->middleware('permission:settings.general')->name('pages.edit');
+            Route::post('pages', [PageController::class, 'update'])->middleware('permission:settings.general')->name('pages.update');
             
             Route::get('settings', [SettingController::class, 'index'])->middleware('permission:settings.general')->name('settings.index');
             Route::post('settings', [SettingController::class, 'update'])->middleware('permission:settings.general')->name('settings.update');
@@ -161,8 +168,8 @@ Route::prefix('admin')
             Route::post('products/{product}/packages', [ProductController::class, 'storePackage'])->middleware('permission:products.edit')->name('products.packages.store');
             Route::put('products/packages/{package}', [ProductController::class, 'updatePackage'])->middleware('permission:products.edit')->name('products.packages.update');
             Route::post('products/{product}/fields', [ProductController::class, 'storeField'])->middleware('permission:products.edit')->name('products.fields.store');
-            Route::resource('banners', BannerController::class)->middleware('permission:categories.index');
-            Route::resource('faqs', FaqController::class)->middleware('permission:categories.index');
+            Route::resource('banners', BannerController::class)->except(['show'])->middleware('permission:categories.index');
+            Route::resource('faqs', FaqController::class)->except(['show'])->middleware('permission:categories.index');
             Route::resource('homepage-sections', HomepageSectionController::class)
                 ->except(['show'])
                 ->middleware('permission:categories.index');

@@ -232,6 +232,28 @@
         @apply fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4;
     }
 
+    .modal-backdrop.hidden {
+        display: none !important;
+    }
+
+    .feedback-modal.hidden {
+        display: none !important;
+    }
+
+    .feedback-modal:not(.hidden) {
+        display: flex;
+    }
+
+    .feedback-stars input:checked + label,
+    .feedback-stars input:checked ~ label {
+        color: #fde047;
+    }
+
+    .feedback-stars label:hover,
+    .feedback-stars label:hover ~ label {
+        color: #facc15;
+    }
+
     .modal-card {
         @apply w-full max-w-[620px] rounded-2xl border border-slate-200 bg-[#0c1015] p-0 shadow-2xl;
         display: flex;
@@ -1822,22 +1844,22 @@
 /* --- Scroll Reveal Motion --- */
 .sf-scroll-reveal {
     opacity: 0;
-    transform: translate3d(0, 34px, 0) scale(0.985);
+    transform: translate3d(0, 12px, 0);
     filter: none;
     transition:
-        opacity 780ms cubic-bezier(0.22, 1, 0.36, 1),
-        transform 780ms cubic-bezier(0.22, 1, 0.36, 1);
+        opacity 520ms ease,
+        transform 520ms ease;
     transition-delay: var(--sf-reveal-delay, 0ms);
     will-change: opacity, transform;
 }
 
 .sf-scroll-reveal.sf-in-view {
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(0, 0, 0);
 }
 
 .sf-reveal-section.sf-scroll-reveal {
-    transform: translate3d(0, 46px, 0);
+    transform: translate3d(0, 14px, 0);
 }
 
 .sf-reveal-section.sf-in-view {
@@ -1855,4 +1877,8 @@
         transition: none;
     }
 }
- 
+
+/* Global Cursor Pointer */
+button, select, [role="button"], label[for] {
+    cursor: pointer;
+}

@@ -6,6 +6,7 @@
 
 const API_BASE = '/api/subcategory/';
 const PURCHASE_URL = '/cart/add';
+const CHECKOUT_URL = '/checkout';
 
 let currentSubcategory = null;
 let selectedProduct = null;
@@ -508,7 +509,32 @@ async function handlePurchaseNow() {
             return;
         }
 
-        window.location.href = data.redirect_url || '/checkout';
+        button.innerHTML = `<span class="animate-pulse">${isRtl() ? 'جاري تأكيد الطلب...' : 'Confirming order...'}</span>`;
+
+        const checkoutRes = await fetch(CHECKOUT_URL, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+        const checkoutData = await checkoutRes.json();
+
+        if (!checkoutRes.ok) {
+            if (checkoutData.redirect_url) {
+                window.location.href = checkoutData.redirect_url;
+                return;
+            }
+
+            currentToast = `<div class="mt-5 rounded-xl border border-secondary-container/30 bg-secondary-container/10 p-3 font-label text-xs uppercase tracking-widest text-secondary-container">${escapeHtml(checkoutData.message || 'Could not complete purchase.')}</div>`;
+            renderSummary();
+            renderFooter();
+            bindEvents();
+            return;
+        }
+
+        window.location.href = checkoutData.redirect_url || data.redirect_url || '/checkout';
     } catch (error) {
         console.error('Purchase Error:', error);
         currentToast = `<div class="mt-5 rounded-xl border border-error/30 bg-error-container/10 p-3 font-label text-xs uppercase tracking-widest text-error">Could not start purchase. Please try again.</div>`;

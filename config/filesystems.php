@@ -56,6 +56,9 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'http' => [
+                'verify' => env('R2_VERIFY_SSL', true),
+            ],
             'throw' => false,
             'report' => false,
         ],
@@ -86,6 +89,9 @@ return [
             'endpoint' => env('R2_ENDPOINT'),
             'use_path_style_endpoint' => env('R2_USE_PATH_STYLE_ENDPOINT', false),
             'visibility' => 'private',
+            'http' => [
+                'verify' => env('R2_VERIFY_SSL', true),
+            ],
             'throw' => true,
         ],
 

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Storefront;
 
 use App\Http\Controllers\Controller;
+use App\Enums\OrderStatus;
+use App\Models\Feedback;
 use App\Models\Order;
 use App\Models\TopupRequest;
 use App\Models\PaymentMethod;
@@ -73,12 +75,22 @@ class CustomerDashboardController extends Controller
      */
     public function orders(Request $request)
     {
+        $filters = $request->validate([
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date', 'after_or_equal:from'],
+            'status' => ['nullable', 'string', Rule::in(array_map(fn (OrderStatus $status) => $status->value, OrderStatus::cases()))],
+        ]);
+
         $orders = Order::where('user_id', auth()->id())
             ->with(['product', 'package'])
+            ->when($filters['from'] ?? null, fn ($query, $from) => $query->whereDate('created_at', '>=', $from))
+            ->when($filters['to'] ?? null, fn ($query, $to) => $query->whereDate('created_at', '<=', $to))
+            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->latest()
-            ->paginate(15);
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('storefront.dashboard.orders', compact('orders'));
+        return view('storefront.dashboard.orders', compact('orders', 'filters'));
     }
 
     /**
@@ -88,10 +100,34 @@ class CustomerDashboardController extends Controller
     {
         $order = Order::where('order_number', $orderNumber)
             ->where('user_id', auth()->id())
-            ->with(['product.subcategory.category', 'package', 'items'])
+            ->with(['product.subcategory.category', 'package', 'items', 'feedback'])
             ->firstOrFail();
 
         return view('storefront.dashboard.order-detail', compact('order'));
+    }
+
+    public function submitFeedback(Request $request, Order $order)
+    {
+        abort_unless((int) $order->user_id === (int) auth()->id(), 404);
+        abort_unless($order->status === OrderStatus::Completed, 403);
+
+        $validated = $request->validate([
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'comment' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if ($order->feedback()->exists()) {
+            return back()->with('error', $request->boolean('is_ar') ? 'تم إرسال تقييم لهذا الطلب مسبقاً.' : 'Feedback was already submitted for this order.');
+        }
+
+        Feedback::create([
+            'user_id' => auth()->id(),
+            'order_id' => $order->id,
+            'rating' => $validated['rating'],
+            'comment' => $validated['comment'] ?? null,
+        ]);
+
+        return back()->with('success', $request->boolean('is_ar') ? 'شكراً لك، تم حفظ تقييمك.' : 'Thank you, your feedback was saved.');
     }
 
     /**

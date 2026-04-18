@@ -55,7 +55,7 @@
                         {{ $locale === 'ar' ? 'لا توجد طرق دفع متاحة حالياً.' : 'No payment methods are available right now.' }}
                     </div>
                 @else
-                    <form action="{{ route('store.wallet.topup') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
+                    <form id="topup-form" action="{{ route('store.wallet.topup') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
                         @csrf
 
                         <div>
@@ -118,9 +118,9 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim px-5 py-4 font-headline text-sm font-black uppercase tracking-[0.2em] text-on-primary-fixed transition hover:scale-[1.01] active:scale-[0.99]">
-                            <span>{{ $locale === 'ar' ? 'إرسال طلب الشحن' : 'Submit Top-Up Request' }}</span>
-                            <span class="material-symbols-outlined text-lg">bolt</span>
+                        <button type="submit" id="topup-submit-btn" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim px-5 py-4 font-headline text-sm font-black uppercase tracking-[0.2em] text-on-primary-fixed transition hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed">
+                            <span id="btn-text">{{ $locale === 'ar' ? 'إرسال طلب الشحن' : 'Submit Top-Up Request' }}</span>
+                            <span id="btn-icon" class="material-symbols-outlined text-lg">bolt</span>
                         </button>
                     </form>
                 @endif
@@ -204,6 +204,21 @@
 
         radios.forEach((radio) => radio.addEventListener('change', syncDetails));
         syncDetails();
+
+        // Handle form loading state
+        const form = document.getElementById('topup-form');
+        const submitBtn = document.getElementById('topup-submit-btn');
+        const btnText = document.getElementById('btn-text');
+        const btnIcon = document.getElementById('btn-icon');
+
+        if (form) {
+            form.addEventListener('submit', () => {
+                submitBtn.disabled = true;
+                btnText.textContent = '{{ $locale === "ar" ? "جاري الإرسال..." : "Processing..." }}';
+                btnIcon.textContent = 'refresh';
+                btnIcon.classList.add('animate-spin');
+            });
+        }
     });
 </script>
 @endpush

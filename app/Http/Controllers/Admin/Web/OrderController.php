@@ -103,6 +103,11 @@ class OrderController extends Controller
         }
     }
 
+    public function updateStatus(Request $request, Order $order)
+    {
+        return $this->status($request, $order);
+    }
+
     public function fulfill(FulfillOrderRequest $request, Order $order)
     {
         try {
