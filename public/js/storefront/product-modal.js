@@ -308,12 +308,18 @@ function renderQuantity() {
 
     return `
         <div class="group mb-5">
-            <label class="mb-2 ms-1 block font-label text-[10px] font-bold uppercase tracking-widest text-outline">Custom Quantity</label>
+            <div class="mb-2 flex items-center justify-between px-1">
+                <label class="font-label text-[10px] font-bold uppercase tracking-widest text-outline">Custom Quantity</label>
+                <div class="font-label text-[9px] uppercase tracking-widest text-primary-container">
+                    Min: ${Number(selectedProduct.min_quantity || 1)} / Max: ${selectedProduct.max_quantity ? Number(selectedProduct.max_quantity) : '∞'}
+                </div>
+            </div>
             <div class="relative">
                 <input id="qty-input" type="number" min="${selectedProduct.min_quantity || 1}" max="${selectedProduct.max_quantity || ''}" value="${currentQuantity}"
-                    class="w-full rounded-xl border-0 bg-surface-container-lowest px-4 py-3 font-headline text-lg font-black text-secondary-container placeholder:text-outline-variant focus:ring-2 focus:ring-secondary-container/40">
+                    class="w-full rounded-xl border-0 bg-surface-container-lowest px-4 py-3 font-headline text-lg font-black text-secondary-container placeholder:text-outline-variant outline-none">
                 <div class="absolute bottom-0 start-0 h-[2px] w-0 bg-gradient-to-r from-primary-container to-secondary-container transition-all duration-500 group-focus-within:w-full"></div>
             </div>
+            <div id="err-quantity" class="mt-2 px-1 font-label text-[10px] uppercase tracking-widest text-secondary-container hidden"></div>
             <p class="mt-2 px-1 font-label text-[10px] uppercase tracking-widest text-outline">Rate: ${money(selectedProduct.price_per_unit || selectedProduct.selling_price)} each</p>
         </div>
     `;
@@ -332,7 +338,7 @@ function renderField(field) {
         return `
             <div class="group">
                 <label class="mb-2 ms-1 block font-label text-[10px] font-bold uppercase tracking-widest text-outline">${label}</label>
-                <select name="form_data[${escapeHtml(field.key)}]" class="w-full rounded-xl border-0 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface focus:ring-2 focus:ring-primary-container/50">
+                <select name="form_data[${escapeHtml(field.key)}]" class="w-full rounded-xl border-0 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface outline-none">
                     <option value="">${escapeHtml(field.placeholder || 'Select option')}</option>
                     ${options}
                 </select>
@@ -346,7 +352,7 @@ function renderField(field) {
             <label class="mb-2 ms-1 block font-label text-[10px] font-bold uppercase tracking-widest text-outline">${label}</label>
             <div class="relative">
                 <input type="${escapeHtml(field.type || 'text')}" name="form_data[${escapeHtml(field.key)}]" placeholder="${escapeHtml(field.placeholder || '')}"
-                    class="w-full rounded-xl border-0 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface placeholder:text-outline-variant focus:ring-2 focus:ring-primary-container/50">
+                    class="w-full rounded-xl border-0 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface placeholder:text-outline-variant outline-none">
                 <div class="absolute bottom-0 start-0 h-[2px] w-0 bg-gradient-to-r from-primary-container to-secondary-container transition-all duration-500 group-focus-within:w-full"></div>
             </div>
             <div id="err-${escapeHtml(field.key)}" class="mt-1 hidden font-label text-[10px] uppercase tracking-widest text-secondary-container"></div>
@@ -358,12 +364,21 @@ function renderFooter() {
     const footer = getFooter();
     if (!footer || !selectedProduct) return;
 
+    const shareBtn = `
+        <button type="button" class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-outline-variant/30 bg-surface-container-lowest/50 text-outline transition-all hover:border-secondary-container hover:bg-secondary-container/10 hover:text-secondary-container">
+            <span class="material-symbols-outlined text-xl">share</span>
+        </button>
+    `;
+
     if (!isAuthenticated()) {
         footer.innerHTML = `
-            <a href="/auth/login" class="flex w-full items-center justify-center gap-3 rounded-2xl border border-primary-container/30 bg-surface-container-high py-4 font-headline text-sm font-black uppercase tracking-[0.22em] text-primary-container shadow-[0_0_28px_rgba(0,240,255,0.12)] transition-all hover:border-primary-container hover:bg-primary-container hover:text-on-primary-container">
-                <span class="material-symbols-outlined text-lg">lock</span>
-                <span>${isRtl() ? 'سجل الدخول أولاً' : 'Login First'}</span>
-            </a>
+            <div class="flex gap-3">
+                <a href="/auth/login" class="flex flex-1 items-center justify-center gap-3 rounded-2xl border border-primary-container/30 bg-surface-container-high py-4 font-headline text-sm font-black uppercase tracking-[0.22em] text-primary-container shadow-[0_0_28px_rgba(0,240,255,0.12)] transition-all hover:border-primary-container hover:bg-primary-container hover:text-on-primary-container">
+                    <span class="material-symbols-outlined text-lg">lock</span>
+                    <span>${isRtl() ? 'سجل الدخول أولاً' : 'Login First'}</span>
+                </a>
+                ${shareBtn}
+            </div>
             <p class="mt-3 text-center font-label text-[10px] uppercase tracking-widest text-outline">
                 ${isRtl() ? 'يجب تسجيل الدخول لإكمال الشراء' : 'Please login to purchase this product'}
             </p>
@@ -372,16 +387,12 @@ function renderFooter() {
     }
 
     footer.innerHTML = `
-        <button id="purchase-now-btn" type="button" class="flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim py-4 font-headline text-sm font-black uppercase tracking-[0.22em] text-on-primary-fixed shadow-[0_0_35px_rgba(0,240,255,0.22)] transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
-            <span>${isRtl() ? 'شراء الآن' : 'Purchase Now'}</span>
-            <span class="material-symbols-outlined">bolt</span>
-        </button>
-        <div class="mt-4 flex items-center justify-between px-2">
-            <button type="button" class="flex items-center gap-2 font-label text-[10px] uppercase tracking-widest text-outline transition-colors hover:text-secondary-container">
-                <span class="material-symbols-outlined text-sm">share</span>
-                <span>${isRtl() ? 'مشاركة' : 'Share Deal'}</span>
+        <div class="flex gap-3">
+            <button id="purchase-now-btn" type="button" class="flex flex-1 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim py-4 font-headline text-sm font-black uppercase tracking-[0.22em] text-on-primary-fixed shadow-[0_0_35px_rgba(0,240,255,0.22)] transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
+                <span>${isRtl() ? 'شراء الآن' : 'Purchase Now'}</span>
+                <span class="material-symbols-outlined">bolt</span>
             </button>
-            <div class="font-label text-[10px] uppercase tracking-widest text-outline">Secure Checkout</div>
+            ${shareBtn}
         </div>
     `;
 }
@@ -435,7 +446,8 @@ function clearErrors() {
 
 function showErrors(errors) {
     Object.entries(errors || {}).forEach(([key, messages]) => {
-        const fieldKey = key.replace('form_data.', '');
+        // Handle "form_data.field_key" and flat "quantity" or other keys
+        const fieldKey = key.startsWith('form_data.') ? key.replace('form_data.', '') : key;
         const el = document.getElementById(`err-${fieldKey}`);
         if (el) {
             el.textContent = messages[0] || 'Invalid value';

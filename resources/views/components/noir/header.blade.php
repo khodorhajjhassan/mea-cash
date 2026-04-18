@@ -33,7 +33,7 @@
                 </form>
 
                 {{-- Live Results Dropdown --}}
-                <div id="search-results" class="absolute top-full left-0 right-0 mt-2 glass-panel rounded-2xl overflow-hidden hidden z-[60] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-primary-container/20">
+                <div id="search-results" class="absolute top-full left-0 right-0 mt-2 bg-surface-container-lowest/95 backdrop-blur-md rounded-2xl overflow-hidden hidden z-[60] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-outline-variant/30">
                     <div id="search-results-list" class="max-h-[400px] overflow-y-auto no-scrollbar">
                         {{-- Results populated via JS --}}
                     </div>
@@ -61,6 +61,15 @@
                         }
 
                         timeout = setTimeout(() => {
+                            // Show results div with a loader inside
+                            results.classList.remove('hidden');
+                            list.innerHTML = `
+                                <div class="p-8 flex flex-col items-center justify-center gap-3">
+                                    <div class="h-8 w-8 animate-spin rounded-full border-2 border-primary-container/20 border-t-primary-container"></div>
+                                    <div class="text-[10px] font-black uppercase tracking-[0.2em] text-outline">Searching Vault...</div>
+                                </div>
+                            `;
+
                             icon.style.display = 'none';
                             loader.style.display = 'inline-block';
 
@@ -74,26 +83,26 @@
                                 
                                 if (data.results && data.results.length > 0) {
                                     list.innerHTML = data.results.map(item => `
-                                        <div onclick="openSubcategoryModalBySearch('${item.slug}')" class="p-3 border-b border-outline-variant/10 hover:bg-primary-container/10 cursor-pointer flex items-center gap-3 transition-colors">
-                                            <div class="w-10 h-10 rounded-lg bg-surface-container-highest overflow-hidden p-1 shrink-0">
+                                        <div onclick="openSubcategoryModalBySearch('${item.slug}')" class="p-4 border-b border-outline-variant/10 hover:bg-primary-container/10 cursor-pointer flex items-center gap-4 transition-colors">
+                                            <div class="w-12 h-12 rounded-xl bg-surface-container-highest overflow-hidden p-1 shrink-0 border border-outline-variant/20">
                                                 <img src="${item.image || '/meacash-logo.png'}" class="w-full h-full object-contain">
                                             </div>
                                             <div class="flex-grow min-w-0">
-                                                <div class="text-[10px] font-black uppercase text-primary-container truncate">${item.category_name}</div>
-                                                <div class="text-xs font-headline font-bold text-on-surface truncate">${item.name}</div>
+                                                <div class="text-[9px] font-black uppercase tracking-widest text-primary-container/70 mb-0.5">${item.category_name}</div>
+                                                <div class="text-sm font-headline font-bold text-on-surface truncate">${item.name}</div>
                                             </div>
-                                            <div class="text-[10px] font-black text-on-surface/50">$${item.price.toFixed(2)}</div>
+                                            <div class="text-xs font-headline font-black text-primary-container">$${item.price.toFixed(2)}</div>
                                         </div>
                                     `).join('');
-                                    results.classList.remove('hidden');
                                 } else {
-                                    list.innerHTML = `<div class="p-6 text-center text-[10px] uppercase tracking-widest text-outline">No matches found</div>`;
-                                    results.classList.remove('hidden');
+                                    list.innerHTML = `<div class="p-10 text-center text-[10px] font-black uppercase tracking-[0.3em] text-outline opacity-60">No access codes found</div>`;
                                 }
+                                results.classList.remove('hidden');
                             })
                             .catch(() => {
                                 icon.style.display = 'inline-block';
                                 loader.style.display = 'none';
+                                list.innerHTML = `<div class="p-10 text-center text-[10px] font-black uppercase tracking-widest text-secondary-container">Error connecting to vault</div>`;
                             });
                         }, 500);
                     });
