@@ -13,18 +13,15 @@ class CartController extends Controller
     ) {}
 
     /**
-     * Show cart page.
+     * Cart is not exposed in the storefront; purchases are product-by-product.
      */
     public function show()
     {
-        return view('storefront.cart', [
-            'items' => $this->cartService->get(),
-            'total' => $this->cartService->total(),
-        ]);
+        return redirect()->route('store.home');
     }
 
     /**
-     * Add item to cart (AJAX or redirect).
+     * Prepare the selected product for checkout.
      */
     public function add(Request $request)
     {
@@ -74,7 +71,11 @@ class CartController extends Controller
         // Perform validation
         $validatedData = $request->validate($rules, [], $attributes);
 
-        // 4. Add to cart
+        if ($request->boolean('buy_now')) {
+            $this->cartService->clear();
+        }
+
+        // 4. Add item to the purchase session.
         $item = $this->cartService->add(
             productId: $product->id,
             packageId: $request->package_id,
@@ -88,10 +89,11 @@ class CartController extends Controller
                 'item' => $item,
                 'count' => $this->cartService->count(),
                 'total' => $this->cartService->total(),
+                'redirect_url' => $request->boolean('buy_now') ? route('store.checkout') : null,
             ]);
         }
 
-        return back()->with('success', __('storefront.cart.added'));
+        return redirect()->route('store.checkout');
     }
 
     /**

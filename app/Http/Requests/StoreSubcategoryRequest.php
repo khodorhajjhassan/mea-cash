@@ -19,6 +19,8 @@ class StoreSubcategoryRequest extends FormRequest
             'product_type_id' => ['nullable', 'integer', 'exists:product_types,id'],
             'name_ar' => ['required', 'string', 'max:255'],
             'name_en' => ['required', 'string', 'max:255'],
+            'description_ar' => ['nullable', 'string'],
+            'description_en' => ['nullable', 'string'],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('subcategories', 'slug')],
             'image' => ['nullable', 'image', 'max:5120'],
             'is_active' => ['sometimes', 'boolean'],

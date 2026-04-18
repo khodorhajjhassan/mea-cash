@@ -1,390 +1,519 @@
 /**
- * MeaCash Storefront Modal — Simplified Product Grid (No Packages)
- * 
- * Flow:
- * 1. Home card (Subcategory/Brand) clicked.
- * 2. Modal opens, fetches all Products for that Subcategory.
- * 3. Shows a grid of Products (Diamonds, UC, etc.).
- * 4. User selects a Product -> Details and Form fields update below.
+ * MeaCash Kinetic Noir product modal.
+ * Renders real subcategory/product/package data and keeps purchase payloads aligned
+ * with the Laravel validation rules.
  */
 
-const CART_ADD_URL = '/cart/add';
 const API_BASE = '/api/subcategory/';
+const PURCHASE_URL = '/cart/add';
 
-/** @type {Object|null} */
 let currentSubcategory = null;
-/** @type {Object|null} */
-let selectedProduct = null; 
+let selectedProduct = null;
+let selectedPackage = null;
 let selectedFormKey = null;
 let currentQuantity = 1;
+let currentToast = '';
+let previousBodyOverflow = '';
+let previousBodyOverflowX = '';
 
-// ─── DOM References ───
-function getBackdrop() { return document.getElementById('sf-modal-backdrop'); }
-function getBody() { return document.getElementById('sf-modal-body'); }
+const getBackdrop = () => document.getElementById('sf-modal-backdrop');
+const getHeaderContent = () => document.getElementById('sf-modal-header-content');
+const getBody = () => document.getElementById('sf-modal-body');
+const getSummary = () => document.getElementById('sf-modal-summary-content');
+const getFooter = () => document.getElementById('sf-modal-footer');
+const isRtl = () => document.documentElement.dir === 'rtl';
+const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+const isAuthenticated = () => Boolean(window.isAuthenticated);
 
-// ─── Utilities ───
-function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str ?? '';
-    return div.innerHTML;
-}
-function formatPrice(price) {
-    return '$' + Number(price).toFixed(2);
-}
-function getCsrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-}
-function isRtl() {
-    return document.documentElement.dir === 'rtl';
+const money = (value) => `$${Number(value || 0).toFixed(2)}`;
+const localized = (item, key = 'name') => item?.[`${key}_${isRtl() ? 'ar' : 'en'}`] || item?.[key] || item?.name || '';
+const imageUrl = (item, fallback = '/meacash-logo.png') => item?.image || fallback;
+const descriptionOf = (item) => localized(item, 'description');
+const selectedImage = () => selectedPackage?.image || selectedProduct?.image || currentSubcategory?.image || '/meacash-logo.png';
+const friendlyType = (product) => {
+    const delivery = product?.delivery_type ? String(product.delivery_type).replace(/_/g, ' ') : '';
+    if (delivery) return delivery;
+
+    const type = product?.product_type ? String(product.product_type).replace(/_/g, ' ') : '';
+    return type === 'fixed package' ? 'Digital asset' : (type || 'Digital asset');
+};
+const compactNumber = (value) => {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number <= 0) return '';
+    return number % 1 === 0 ? String(number) : number.toFixed(2).replace(/\.?0+$/, '');
+};
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;',
+    }[char]));
 }
 
-// ─── Modal State ───
-function openModal() {
+function selectedUnitPrice() {
+    if (!selectedProduct) return 0;
+
+    if (selectedPackage) return Number(selectedPackage.selling_price || 0);
+
+    if (selectedProduct.product_type === 'custom_quantity') {
+        return Number(selectedProduct.price_per_unit || selectedProduct.selling_price || 0) * currentQuantity;
+    }
+
+    return Number(selectedProduct.selling_price || 0);
+}
+
+function selectableItems() {
+    if (!currentSubcategory?.products) return [];
+
+    return currentSubcategory.products.flatMap((product) => {
+        if (product.product_type === 'fixed_package' && product.packages?.length) {
+            return product.packages.map((pack) => ({
+                key: `${product.id}:${pack.id}`,
+                product,
+                package: pack,
+                title: localized(pack),
+                subtitle: friendlyType(product),
+                price: pack.selling_price,
+                image: pack.image || product.image || currentSubcategory.image,
+                badge: pack.badge_text || (product.is_featured ? 'HOT' : ''),
+            }));
+        }
+
+        return [{
+            key: `${product.id}:product`,
+            product,
+            package: null,
+            title: localized(product),
+            subtitle: friendlyType(product),
+            price: product.selling_price,
+            image: product.image || currentSubcategory.image,
+            badge: product.is_featured ? 'HOT' : product.delivery_type?.toUpperCase(),
+        }];
+    });
+}
+
+function syncProductDefaults(product) {
+    selectedProduct = product;
+    selectedPackage = null;
+    selectedFormKey = (product.forms?.find((form) => form.is_default) || product.forms?.[0])?.key || null;
+    currentQuantity = Number(product.min_quantity || 1);
+}
+
+async function openSubcategoryModal(slug, productId = null) {
     const backdrop = getBackdrop();
-    if (backdrop) backdrop.classList.add('sf-modal-active');
+    if (!backdrop) return;
+
+    backdrop.classList.remove('hidden');
+    backdrop.classList.add('flex');
+    previousBodyOverflow = document.body.style.overflow;
+    previousBodyOverflowX = document.body.style.overflowX;
     document.body.style.overflow = 'hidden';
+    document.body.style.overflowX = 'hidden';
+    await loadSubcategory(slug, productId);
 }
-function closeModal() {
+
+function closeProductModal() {
     const backdrop = getBackdrop();
-    if (backdrop) backdrop.classList.remove('sf-modal-active');
-    document.body.style.overflow = '';
+    if (!backdrop) return;
+
+    backdrop.classList.add('hidden');
+    backdrop.classList.remove('flex');
+    document.body.style.overflow = previousBodyOverflow;
+    document.body.style.overflowX = previousBodyOverflowX;
+
     currentSubcategory = null;
     selectedProduct = null;
+    selectedPackage = null;
     selectedFormKey = null;
     currentQuantity = 1;
+    currentToast = '';
 }
 
-// ─── Loading / Error UI ───
-function showLoading() {
+window.openSubcategoryModal = openSubcategoryModal;
+window.closeProductModal = closeProductModal;
+
+async function loadSubcategory(slug, productId = null) {
     const body = getBody();
-    if (!body) return;
-    body.innerHTML = `
-        <div class="sf-modal-loading p-8">
-            <div class="sf-skeleton h-12 w-1/3 mb-6" style="border-radius:12px;"></div>
-            <div class="grid grid-cols-4 gap-4 mb-8">
-                <div class="sf-skeleton aspect-square rounded-2xl"></div>
-                <div class="sf-skeleton aspect-square rounded-2xl"></div>
-                <div class="sf-skeleton aspect-square rounded-2xl"></div>
-                <div class="sf-skeleton aspect-square rounded-2xl"></div>
-            </div>
-            <div class="sf-skeleton h-32 rounded-2xl mb-4"></div>
-            <div class="sf-skeleton h-14 rounded-2xl"></div>
-        </div>
-    `;
-}
+    const summary = getSummary();
+    const footer = getFooter();
 
-// ─── Fetch Data ───
-async function loadSubcategory(slug) {
-    showLoading();
-    openModal();
+    if (body) {
+        body.innerHTML = `<div class="flex flex-col items-center justify-center py-20">
+            <div class="h-16 w-16 animate-spin rounded-full border-4 border-primary-container/20 border-t-primary-container"></div>
+            <p class="mt-4 font-label text-xs uppercase tracking-widest text-outline">Initializing Vault...</p>
+        </div>`;
+    }
+    if (summary) summary.innerHTML = '';
+    if (footer) footer.innerHTML = '';
 
     try {
-        const res = await fetch(API_BASE + slug, {
-            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        const res = await fetch(API_BASE + encodeURIComponent(slug), {
+            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         });
+
         if (!res.ok) throw new Error('Subcategory not found');
+
         currentSubcategory = await res.json();
+        const requestedProductId = Number(productId || 0);
+        const firstProduct = currentSubcategory.products?.find((product) => Number(product.id) === requestedProductId)
+            || currentSubcategory.products?.find((product) => product.is_featured)
+            || currentSubcategory.products?.[0]
+            || null;
 
-        // Default selection: First featured product, or just first product
-        const defaultProduct = currentSubcategory.products.find(p => p.is_featured) || currentSubcategory.products[0];
-        selectProduct(defaultProduct);
+        if (firstProduct) {
+            syncProductDefaults(firstProduct);
+            if (firstProduct.product_type === 'fixed_package') {
+                selectedPackage = firstProduct.packages?.[0] || null;
+            }
+        }
+
         render();
-    } catch (err) {
-        console.error(err);
-        const body = getBody();
-        if (body) body.innerHTML = `<div class="p-8 text-center"><p class="text-white/60 mb-4">Failed to load brand data.</p><button onclick="window.__sfCloseModal()" class="sf-btn-outline">Close</button></div>`;
+    } catch (error) {
+        console.error('Modal Load Error:', error);
+        if (body) {
+            body.innerHTML = `<div class="rounded-3xl border border-error/25 bg-error-container/10 p-10 text-center text-error">
+                Failed to load asset data. Please try again.
+            </div>`;
+        }
     }
 }
 
-function selectProduct(product) {
-    selectedProduct = product;
-    if (!product) return;
-    
-    // Set default form
-    if (product.forms?.length > 0) {
-        const defaultForm = product.forms.find(f => f.is_default) || product.forms[0];
-        selectedFormKey = defaultForm.key;
-    } else {
-        selectedFormKey = null;
-    }
-    
-    currentQuantity = product.min_quantity || 1;
-}
-
-// ─── Main Render ───
 function render() {
-    const s = currentSubcategory;
-    const body = getBody();
-    if (!body || !s) return;
-
-    let html = '';
-
-    // 1. Header
-    html += `
-        <div class="sf-modal-grid-header">
-            <div class="sf-modal-grid-title">${escapeHtml(s.name)}</div>
-            <button type="button" class="sf-modal-close text-slate-400 hover:text-white transition-colors" onclick="window.__sfCloseModal()">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-    `;
-
-    // 2. Body (Scrollable)
-    html += `<div class="sf-modal-grid-body">`;
-    
-    // Grid Section
-    html += `<div class="sf-item-grid">`;
-    s.products.forEach(p => {
-        const isSelected = selectedProduct && selectedProduct.id === p.id;
-        html += renderProductCard(p, isSelected);
-    });
-    html += `</div>`; // End grid
-
-    // Detail Section (Forms)
-    if (selectedProduct) {
-        html += renderDetails(selectedProduct);
-    }
-
-    html += `</div>`; // End total body
-
-    // 3. Footer (Fixed)
-    html += `
-        <div class="sf-modal-grid-footer">
-            <div class="flex gap-4">
-                <button type="button" class="sf-btn-grid-share" id="sf-btn-share">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-                </button>
-                <button type="button" id="sf-modal-add-btn" class="sf-btn-grid-purchase">
-                    <span>${isRtl() ? 'تأكيد الشراء' : 'Purchase Now'}</span>
-                    <span class="text-white/40 font-normal">|</span>
-                    <span id="sf-footer-total">${formatPrice(calcCurrentPrice())}</span>
-                </button>
-            </div>
-        </div>
-    `;
-
-    body.innerHTML = html;
+    renderHeader();
+    renderBody();
+    renderSummary();
+    renderFooter();
     bindEvents();
 }
 
-function renderProductCard(p, isSelected) {
-    const image = p.image || currentSubcategory.image;
-    const isFeatured = p.is_featured;
-    const isInstant = p.delivery_type === 'instant';
-    const isCustom = p.product_type === 'custom_quantity';
+function renderHeader() {
+    const header = getHeaderContent();
+    if (!header || !currentSubcategory) return;
+
+    const name = localized(currentSubcategory);
+    const categoryName = currentSubcategory.category?.name || currentSubcategory.category_name || 'Digital Assets';
+    const subcategoryDescription = descriptionOf(currentSubcategory);
+
+    header.innerHTML = `
+        <div class="h-11 w-1.5 shrink-0 rounded-full bg-primary-container shadow-[0_0_35px_rgba(0,240,255,0.35)]"></div>
+        <div class="min-w-0">
+            <h1 class="truncate font-headline text-2xl font-black uppercase leading-none tracking-tighter md:text-3xl">
+                ${escapeHtml(name)} <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-container to-secondary-container">Vault</span>
+            </h1>
+            <p class="mt-2 font-label text-[10px] uppercase tracking-[0.24em] text-outline">
+                ${escapeHtml(categoryName)} / ${escapeHtml(currentSubcategory.products?.length || 0)} assets
+            </p>
+            ${subcategoryDescription ? `<p class="mt-2 line-clamp-2 max-w-xl text-xs leading-relaxed text-on-surface-variant/70">${escapeHtml(subcategoryDescription)}</p>` : ''}
+        </div>
+    `;
+}
+
+function renderBody() {
+    const body = getBody();
+    if (!body || !currentSubcategory) return;
+
+    const items = selectableItems();
+
+    if (!items.length) {
+        body.innerHTML = `<div class="rounded-3xl border border-outline-variant/15 bg-surface-container-low/60 p-10 text-center text-on-surface-variant">
+            No products are available in this vault yet.
+        </div>`;
+        return;
+    }
+
+    body.innerHTML = `
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            ${items.map(renderSelectionCard).join('')}
+        </div>
+    `;
+}
+
+function renderSelectionCard(item) {
+    const active = selectedProduct?.id === item.product.id && ((selectedPackage?.id || null) === (item.package?.id || null));
+    const badge = item.badge ? `<div class="absolute top-2 ${isRtl() ? 'left-2' : 'right-2'} rounded-full bg-secondary-container px-2 py-0.5 font-label text-[8px] font-black uppercase tracking-tight text-on-secondary-container">${escapeHtml(item.badge)}</div>` : '';
 
     return `
-        <div class="sf-grid-item ${isSelected ? 'selected' : ''}" data-product-id="${p.id}">
-            <div class="sf-grid-check">
-                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <button type="button" data-select-product="${item.product.id}" data-select-package="${item.package?.id || ''}"
+            class="group relative flex min-h-[178px] flex-col rounded-2xl border p-3 text-start transition-all duration-300 ${active ? 'border-primary-container bg-surface-container-high shadow-[0_0_22px_rgba(0,240,255,0.2)] ring-1 ring-primary-container/70' : 'border-transparent bg-surface-container-low hover:-translate-y-1 hover:border-primary-container/30 hover:bg-surface-container-high'}">
+            ${badge}
+            ${active ? `<span class="material-symbols-outlined absolute top-2 ${isRtl() ? 'left-2' : 'right-2'} text-lg text-primary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>` : ''}
+            <div class="mb-3 flex h-16 items-center justify-center rounded-xl bg-surface-container-lowest/60 p-2">
+                <img src="${escapeHtml(imageUrl({ image: item.image }))}" alt="${escapeHtml(item.title)}" class="h-full w-full object-contain" onerror="this.src='/meacash-logo.png'">
             </div>
-            <div class="sf-grid-badge ${isFeatured ? 'badge-hot' : (isInstant ? 'badge-fast' : (isCustom ? 'badge-custom' : ''))}">
-               ${isFeatured ? `
-                   <div class="badge-inner">
-                      <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                      ${isRtl() ? 'مميز' : 'HOT'}
-                   </div>
-               ` : (isInstant ? `
-                   <div class="badge-inner">
-                      <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                      ${isRtl() ? 'سريع' : 'FAST'}
-                   </div>
-               ` : (isCustom ? `
-                   <div class="badge-inner">
-                      <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                      ${isRtl() ? 'مخصص' : 'SELECT'}
-                   </div>
-               ` : ''))}
+            <div class="min-h-[42px] font-headline text-[13px] font-black uppercase leading-tight text-on-surface">${escapeHtml(item.title)}</div>
+            <div class="mt-2 truncate font-label text-[9px] font-bold uppercase tracking-widest text-outline">${escapeHtml(item.subtitle)}</div>
+            <div class="mt-auto pt-3 font-headline text-base font-black text-primary-container">${money(item.price)}</div>
+        </button>
+    `;
+}
+
+function renderSummary() {
+    const summary = getSummary();
+    if (!summary || !selectedProduct) return;
+
+    const title = selectedPackage ? localized(selectedPackage) : localized(selectedProduct);
+    const subtitle = descriptionOf(selectedProduct) || descriptionOf(currentSubcategory) || localized(selectedProduct);
+    const type = friendlyType(selectedProduct);
+    const activeForm = selectedProduct.forms?.find((form) => form.key === selectedFormKey) || selectedProduct.forms?.[0] || null;
+    const fields = [
+        ...(selectedProduct.fields || []),
+        ...(activeForm?.fields || []),
+    ];
+
+    summary.innerHTML = `
+        <div>
+            <h2 class="mb-4 font-label text-xs font-bold uppercase tracking-widest text-outline">Selected Product</h2>
+            <div class="mb-5 flex items-center gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-highest/50 p-3">
+                <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-outline-variant/20 bg-surface">
+                    <img src="${escapeHtml(selectedImage())}" alt="${escapeHtml(title)}" class="h-full w-full object-contain p-2" onerror="this.src='/meacash-logo.png'">
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="font-headline text-sm font-black uppercase leading-tight text-on-surface">${escapeHtml(title)}</div>
+                    <div class="mt-1 font-label text-[9px] uppercase tracking-widest text-primary-container">${escapeHtml(type)}</div>
+                </div>
+                <div class="text-end">
+                    <div id="modal-live-price" class="font-headline text-base font-black text-primary-container">${money(selectedUnitPrice())}</div>
+                    <div class="font-label text-[10px] uppercase tracking-tight text-outline">Total Price</div>
+                </div>
             </div>
-            <div class="sf-grid-img-wrap">
-                <img src="${escapeHtml(image)}" alt="">
-            </div>
-            <div class="sf-grid-item-name">${escapeHtml(p.name)}</div>
-            <div class="sf-grid-item-price">${formatPrice(p.selling_price)}</div>
+            ${subtitle ? `<div class="mb-5 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-4 text-xs leading-relaxed text-on-surface-variant">${escapeHtml(subtitle)}</div>` : ''}
+
+            ${renderFormTabs()}
+            ${renderQuantity()}
+            <div class="space-y-4">${fields.map(renderField).join('')}</div>
+            ${currentToast}
         </div>
     `;
 }
 
-function renderDetails(p) {
-    const type = p.product_type;
-    const hasFormTabs = p.forms?.length > 0;
-    const hasMultiForms = p.forms?.length > 1;
+function renderFormTabs() {
+    if (!selectedProduct?.forms?.length || selectedProduct.forms.length < 2) return '';
 
-    let html = `<div class="sf-grid-form-wrap animate-fade-in">`;
-    
-    // Selection Summary Card (New)
-    html += `
-        <div class="sf-selection-summary">
-            <div class="sf-summary-img-wrap">
-                <img src="${escapeHtml(p.image || currentSubcategory.image)}" alt="">
-            </div>
-            <div class="sf-summary-info">
-                <div class="sf-summary-name">${escapeHtml(p.name)}</div>
-                <div class="sf-summary-price">${formatPrice(calcCurrentPrice())}</div>
-            </div>
+    return `
+        <div class="mb-5 grid gap-2 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/40 p-1" style="grid-template-columns: repeat(${Math.min(selectedProduct.forms.length, 3)}, minmax(0, 1fr));">
+            ${selectedProduct.forms.map((form) => `
+                <button type="button" data-form-key="${escapeHtml(form.key)}" class="rounded-xl px-3 py-2.5 font-label text-[9px] font-black uppercase tracking-widest transition-all ${form.key === selectedFormKey ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'}">
+                    ${escapeHtml(form.label)}
+                </button>
+            `).join('')}
         </div>
     `;
+}
 
-    // Header label
-    html += `<div class="text-[0.65rem] text-blue-400 font-bold uppercase tracking-widest mb-4">${isRtl() ? 'تعبئة البيانات' : 'FILL THE DATA'}</div>`;
+function renderQuantity() {
+    if (selectedProduct?.product_type !== 'custom_quantity') return '';
 
-    // Tabs
-    if (hasMultiForms) {
-        html += `<div class="flex gap-2 mb-4 bg-black/20 p-1 rounded-xl">`;
-        p.forms.forEach(form => {
-            const active = form.key === selectedFormKey;
-            html += `<button type="button" class="sf-form-tab-mini flex-1 py-2 rounded-lg text-xs font-bold transition-all ${active ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}" data-form-key="${escapeHtml(form.key)}">${escapeHtml(form.label)}</button>`;
-        });
-        html += `</div>`;
-    }
+    return `
+        <div class="group mb-5">
+            <label class="mb-2 ms-1 block font-label text-[10px] font-bold uppercase tracking-widest text-outline">Custom Quantity</label>
+            <div class="relative">
+                <input id="qty-input" type="number" min="${selectedProduct.min_quantity || 1}" max="${selectedProduct.max_quantity || ''}" value="${currentQuantity}"
+                    class="w-full rounded-xl border-0 bg-surface-container-lowest px-4 py-3 font-headline text-lg font-black text-secondary-container placeholder:text-outline-variant focus:ring-2 focus:ring-secondary-container/40">
+                <div class="absolute bottom-0 start-0 h-[2px] w-0 bg-gradient-to-r from-primary-container to-secondary-container transition-all duration-500 group-focus-within:w-full"></div>
+            </div>
+            <p class="mt-2 px-1 font-label text-[10px] uppercase tracking-widest text-outline">Rate: ${money(selectedProduct.price_per_unit || selectedProduct.selling_price)} each</p>
+        </div>
+    `;
+}
 
-    // Custom Quantity
-    if (type === 'custom_quantity') {
-        const min = p.min_quantity || 1;
-        html += `
-            <div class="mb-4 bg-black/20 rounded-xl p-4 border border-white/5">
-               <label class="block text-xs text-slate-500 font-bold mb-2 uppercase">${isRtl() ? 'الكمية' : 'Quantity'}</label>
-               <input type="number" id="sf-qty-input" class="w-full bg-transparent text-2xl font-black text-white outline-none border-b-2 border-blue-500 pb-1" value="${currentQuantity}" min="${min}">
+function renderField(field) {
+    const label = `${escapeHtml(field.label)}${field.required ? ' <span class="text-secondary-container">*</span>' : ''}`;
+
+    if (field.type === 'select') {
+        const options = (field.options || []).map((option) => {
+            const value = typeof option === 'object' ? (option.value ?? option.label) : option;
+            const text = typeof option === 'object' ? (option.label ?? option.value) : option;
+            return `<option value="${escapeHtml(value)}">${escapeHtml(text)}</option>`;
+        }).join('');
+
+        return `
+            <div class="group">
+                <label class="mb-2 ms-1 block font-label text-[10px] font-bold uppercase tracking-widest text-outline">${label}</label>
+                <select name="form_data[${escapeHtml(field.key)}]" class="w-full rounded-xl border-0 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface focus:ring-2 focus:ring-primary-container/50">
+                    <option value="">${escapeHtml(field.placeholder || 'Select option')}</option>
+                    ${options}
+                </select>
+                <div id="err-${escapeHtml(field.key)}" class="mt-1 hidden font-label text-[10px] uppercase tracking-widest text-secondary-container"></div>
             </div>
         `;
     }
 
-    // Form Fields
-    html += `<div id="sf-grid-fields-container">`;
-    html += renderFields(p.fields);
-    if (hasFormTabs) {
-        const activeForm = p.forms.find(f => f.key === selectedFormKey) || p.forms[0];
-        html += renderFields(activeForm.fields);
-    }
-    html += `</div>`;
-
-    html += `</div>`;
-    return html;
-}
-
-function renderFields(fields) {
-    if (!fields) return '';
-    let html = '';
-    fields.forEach(f => {
-        html += `
-            <div class="mb-4">
-                <label class="block text-[0.65rem] text-slate-500 font-bold mb-1.5 uppercase tracking-wider">${escapeHtml(f.label)} ${f.required ? '<span class="text-red-500">*</span>' : ''}</label>
-                <input type="${f.type || 'text'}" name="form_data[${escapeHtml(f.key)}]" id="sf-field-${escapeHtml(f.key)}" placeholder="${escapeHtml(f.placeholder)}" class="w-full bg-slate-900/50 border border-white/5 rounded-xl p-3.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all">
-                <div class="text-[0.6rem] text-red-500 mt-1 hidden" id="sf-err-${escapeHtml(f.key)}"></div>
+    return `
+        <div class="group">
+            <label class="mb-2 ms-1 block font-label text-[10px] font-bold uppercase tracking-widest text-outline">${label}</label>
+            <div class="relative">
+                <input type="${escapeHtml(field.type || 'text')}" name="form_data[${escapeHtml(field.key)}]" placeholder="${escapeHtml(field.placeholder || '')}"
+                    class="w-full rounded-xl border-0 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface placeholder:text-outline-variant focus:ring-2 focus:ring-primary-container/50">
+                <div class="absolute bottom-0 start-0 h-[2px] w-0 bg-gradient-to-r from-primary-container to-secondary-container transition-all duration-500 group-focus-within:w-full"></div>
             </div>
-        `;
-    });
-    return html;
+            <div id="err-${escapeHtml(field.key)}" class="mt-1 hidden font-label text-[10px] uppercase tracking-widest text-secondary-container"></div>
+        </div>
+    `;
 }
 
-function calcCurrentPrice() {
-    if (!selectedProduct) return 0;
-    if (selectedProduct.product_type === 'custom_quantity') {
-        return currentQuantity * (selectedProduct.price_per_unit || selectedProduct.selling_price);
+function renderFooter() {
+    const footer = getFooter();
+    if (!footer || !selectedProduct) return;
+
+    if (!isAuthenticated()) {
+        footer.innerHTML = `
+            <a href="/auth/login" class="flex w-full items-center justify-center gap-3 rounded-2xl border border-primary-container/30 bg-surface-container-high py-4 font-headline text-sm font-black uppercase tracking-[0.22em] text-primary-container shadow-[0_0_28px_rgba(0,240,255,0.12)] transition-all hover:border-primary-container hover:bg-primary-container hover:text-on-primary-container">
+                <span class="material-symbols-outlined text-lg">lock</span>
+                <span>${isRtl() ? 'سجل الدخول أولاً' : 'Login First'}</span>
+            </a>
+            <p class="mt-3 text-center font-label text-[10px] uppercase tracking-widest text-outline">
+                ${isRtl() ? 'يجب تسجيل الدخول لإكمال الشراء' : 'Please login to purchase this product'}
+            </p>
+        `;
+        return;
     }
-    return selectedProduct.selling_price || 0;
+
+    footer.innerHTML = `
+        <button id="purchase-now-btn" type="button" class="flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim py-4 font-headline text-sm font-black uppercase tracking-[0.22em] text-on-primary-fixed shadow-[0_0_35px_rgba(0,240,255,0.22)] transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
+            <span>${isRtl() ? 'شراء الآن' : 'Purchase Now'}</span>
+            <span class="material-symbols-outlined">bolt</span>
+        </button>
+        <div class="mt-4 flex items-center justify-between px-2">
+            <button type="button" class="flex items-center gap-2 font-label text-[10px] uppercase tracking-widest text-outline transition-colors hover:text-secondary-container">
+                <span class="material-symbols-outlined text-sm">share</span>
+                <span>${isRtl() ? 'مشاركة' : 'Share Deal'}</span>
+            </button>
+            <div class="font-label text-[10px] uppercase tracking-widest text-outline">Secure Checkout</div>
+        </div>
+    `;
 }
 
 function bindEvents() {
-    // Grid Item selection
-    document.querySelectorAll('.sf-grid-item').forEach(el => {
-        el.addEventListener('click', () => {
-            const productId = parseInt(el.dataset.productId);
-            const found = currentSubcategory.products.find(p => p.id === productId);
-            selectProduct(found);
+    document.querySelectorAll('[data-select-product]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const productId = Number(button.dataset.selectProduct);
+            const packageId = button.dataset.selectPackage ? Number(button.dataset.selectPackage) : null;
+            const product = currentSubcategory.products.find((item) => Number(item.id) === productId);
+            if (!product) return;
+
+            syncProductDefaults(product);
+            selectedPackage = packageId ? product.packages?.find((item) => Number(item.id) === packageId) || null : null;
+            currentToast = '';
             render();
         });
     });
 
-    // Form Tab switching
-    document.querySelectorAll('.sf-form-tab-mini').forEach(tab => {
-        tab.addEventListener('click', () => {
-            selectedFormKey = tab.dataset.formKey;
-            render();
+    document.querySelectorAll('[data-form-key]').forEach((button) => {
+        button.addEventListener('click', () => {
+            selectedFormKey = button.dataset.formKey;
+            currentToast = '';
+            renderSummary();
+            renderFooter();
+            bindEvents();
         });
     });
 
-    // Quantity update
-    const qtyInput = document.getElementById('sf-qty-input');
-    if (qtyInput) {
-        qtyInput.addEventListener('input', () => {
-            currentQuantity = parseInt(qtyInput.value) || 1;
-            document.getElementById('sf-footer-total').textContent = formatPrice(calcCurrentPrice());
+    const quantityInput = document.getElementById('qty-input');
+    if (quantityInput) {
+        quantityInput.addEventListener('input', (event) => {
+            const min = Number(selectedProduct.min_quantity || 1);
+            const max = Number(selectedProduct.max_quantity || Number.MAX_SAFE_INTEGER);
+            const next = Number(event.target.value || min);
+            currentQuantity = Math.max(min, Math.min(max, next));
+            const livePrice = document.getElementById('modal-live-price');
+            if (livePrice) livePrice.textContent = money(selectedUnitPrice());
         });
     }
 
-    // Purchase hook
-    const buyBtn = document.getElementById('sf-modal-add-btn');
-    if (buyBtn) buyBtn.addEventListener('click', handlePurchase);
+    document.getElementById('purchase-now-btn')?.addEventListener('click', handlePurchaseNow);
 }
 
-async function handlePurchase() {
+function clearErrors() {
+    document.querySelectorAll('[id^="err-"]').forEach((el) => {
+        el.textContent = '';
+        el.classList.add('hidden');
+    });
+}
+
+function showErrors(errors) {
+    Object.entries(errors || {}).forEach(([key, messages]) => {
+        const fieldKey = key.replace('form_data.', '');
+        const el = document.getElementById(`err-${fieldKey}`);
+        if (el) {
+            el.textContent = messages[0] || 'Invalid value';
+            el.classList.remove('hidden');
+        }
+    });
+}
+
+async function handlePurchaseNow() {
     if (!selectedProduct) return;
-    const btn = document.getElementById('sf-modal-add-btn');
-    
-    const fields = document.querySelectorAll('[name^="form_data"]');
+
+    const button = document.getElementById('purchase-now-btn');
     const formData = {};
-    fields.forEach(f => {
-        const key = f.name.match(/\[(.*?)\]/)[1];
-        formData[key] = f.value;
+
+    clearErrors();
+    document.querySelectorAll('[name^="form_data"]').forEach((input) => {
+        const match = input.name.match(/\[(.*?)\]/);
+        if (match) formData[match[1]] = input.value;
     });
 
     const payload = {
         product_id: selectedProduct.id,
-        package_id: null,
+        package_id: selectedPackage?.id || null,
         quantity: selectedProduct.product_type === 'custom_quantity' ? currentQuantity : 1,
         form_data: formData,
-        selected_form: selectedFormKey
+        selected_form: selectedFormKey,
+        buy_now: true,
     };
 
-    btn.disabled = true;
-    btn.innerHTML = `<span>Adding...</span>`;
+    button.disabled = true;
+    button.innerHTML = `<span class="animate-pulse">${isRtl() ? 'جار المعالجة...' : 'Processing...'}</span>`;
 
     try {
-        const res = await fetch(CART_ADD_URL, {
+        const res = await fetch(PURCHASE_URL, {
             method: 'POST',
             headers: {
+                Accept: 'application/json',
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': getCsrfToken(),
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-CSRF-TOKEN': csrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
         });
-        if (res.status === 401) return window.location.href = '/login';
-        
-        const data = await res.json();
-        if (res.ok) {
-            document.querySelectorAll('.sf-cart-badge').forEach(el => {
-                el.textContent = data.count;
-                el.style.display = 'flex';
-            });
-            closeModal();
+
+        if (res.status === 401) {
+            window.location.href = '/auth/login';
+            return;
         }
-    } catch (e) {
-        console.error(e);
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            currentToast = `<div class="mt-5 rounded-xl border border-secondary-container/30 bg-secondary-container/10 p-3 font-label text-xs uppercase tracking-widest text-secondary-container">${escapeHtml(data.message || 'Please review the highlighted fields.')}</div>`;
+            renderSummary();
+            renderFooter();
+            bindEvents();
+            showErrors(data.errors || {});
+            return;
+        }
+
+        window.location.href = data.redirect_url || '/checkout';
+    } catch (error) {
+        console.error('Purchase Error:', error);
+        currentToast = `<div class="mt-5 rounded-xl border border-error/30 bg-error-container/10 p-3 font-label text-xs uppercase tracking-widest text-error">Could not start purchase. Please try again.</div>`;
+        renderSummary();
     } finally {
-        btn.disabled = false;
-        render();
+        if (button) {
+            button.disabled = false;
+            renderFooter();
+            bindEvents();
+        }
     }
 }
 
-// ─── Global Initializers ───
-function init() {
-    document.addEventListener('click', e => {
-        const card = e.target.closest('[data-subcategory-slug]');
-        if (card) {
-            e.preventDefault();
-            loadSubcategory(card.dataset.subcategorySlug);
-        }
-    });
+document.addEventListener('click', (event) => {
+    if (event.target.id === 'sf-modal-backdrop') closeProductModal();
+});
 
-    document.addEventListener('click', e => { if (e.target.id === 'sf-modal-backdrop') closeModal(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-}
-
-window.__sfCloseModal = closeModal;
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
-}
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeProductModal();
+});

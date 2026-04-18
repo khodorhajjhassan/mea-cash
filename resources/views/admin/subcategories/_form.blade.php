@@ -19,6 +19,14 @@
     </div>
     <div class="field"><label>Name (EN)</label><input type="text" name="name_en" value="{{ old('name_en', $subcategory->name_en ?? '') }}" required></div>
     <div class="field"><label>Name (AR)</label><input type="text" name="name_ar" value="{{ old('name_ar', $subcategory->name_ar ?? '') }}" required></div>
+    <div class="field md:col-span-2">
+        <label>Description (EN)</label>
+        <textarea name="description_en" rows="3" placeholder="Short description shown under the storefront modal title.">{{ old('description_en', $subcategory->description_en ?? '') }}</textarea>
+    </div>
+    <div class="field md:col-span-2">
+        <label>Description (AR)</label>
+        <textarea name="description_ar" rows="3" dir="rtl" placeholder="الوصف الذي يظهر تحت عنوان النافذة في المتجر.">{{ old('description_ar', $subcategory->description_ar ?? '') }}</textarea>
+    </div>
     <div class="field"><label>Slug</label><input type="text" name="slug" value="{{ old('slug', $subcategory->slug ?? '') }}"></div>
     <div class="field"><label>Sort Order</label><input type="number" min="0" name="sort_order" value="{{ old('sort_order', $subcategory->sort_order ?? 0) }}"></div>
     <div class="field"><label>Status</label><select name="is_active"><option value="1" @selected(old('is_active', $subcategory->is_active ?? true)==1)>Active</option><option value="0" @selected(old('is_active', $subcategory->is_active ?? true)==0)>Disabled</option></select></div>

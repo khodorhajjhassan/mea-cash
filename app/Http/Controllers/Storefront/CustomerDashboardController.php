@@ -8,6 +8,7 @@ use App\Models\TopupRequest;
 use App\Models\PaymentMethod;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class CustomerDashboardController extends Controller
 {
@@ -18,9 +19,16 @@ class CustomerDashboardController extends Controller
     /**
      * Dashboard overview: recent orders, wallet balance.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $filters = $request->validate([
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date', 'after_or_equal:from'],
+        ]);
+
         $user = auth()->user();
+        $from = $filters['from'] ?? null;
+        $to = $filters['to'] ?? null;
 
         $recentOrders = Order::where('user_id', $user->id)
             ->with('product')
@@ -35,11 +43,28 @@ class CustomerDashboardController extends Controller
             ->whereIn('status', ['completed', 'processing', 'pending'])
             ->sum('total_price');
 
+        $marketplaceQuery = Order::query()
+            ->where('user_id', $user->id)
+            ->when($from, fn ($query) => $query->whereDate('created_at', '>=', $from))
+            ->when($to, fn ($query) => $query->whereDate('created_at', '<=', $to));
+
+        $marketplaceStats = [
+            'orders' => (clone $marketplaceQuery)->count(),
+            'spent' => (float) (clone $marketplaceQuery)
+                ->whereIn('status', ['completed', 'processing', 'pending'])
+                ->sum('total_price'),
+            'completed' => (clone $marketplaceQuery)->where('status', 'completed')->count(),
+            'pending' => (clone $marketplaceQuery)->whereIn('status', ['pending', 'processing'])->count(),
+            'products' => (clone $marketplaceQuery)->distinct('product_id')->count('product_id'),
+        ];
+
         return view('storefront.dashboard.index', compact(
             'recentOrders',
             'balance',
             'totalOrders',
             'totalSpent',
+            'marketplaceStats',
+            'filters',
         ));
     }
 
@@ -101,8 +126,13 @@ class CustomerDashboardController extends Controller
      */
     public function submitTopup(Request $request)
     {
+        $activeMethods = PaymentMethod::query()
+            ->where('is_active', true)
+            ->pluck('method')
+            ->all();
+
         $validated = $request->validate([
-            'payment_method' => ['required', 'string', 'in:omt,wish,usdt'],
+            'payment_method' => ['required', 'string', Rule::in($activeMethods)],
             'amount_requested' => ['required', 'numeric', 'min:1', 'max:10000'],
             'receipt_image' => ['required', 'image', 'max:5120'],
         ]);

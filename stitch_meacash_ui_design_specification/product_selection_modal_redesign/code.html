@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KINETIC NOIR | Product Selection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#e2e2eb",
+                        "surface-tint": "#00dbe9",
+                        "outline-variant": "#3b494b",
+                        "on-secondary-fixed-variant": "#810081",
+                        "tertiary-fixed": "#e9ddff",
+                        "on-background": "#e2e2eb",
+                        "outline": "#849495",
+                        "secondary-container": "#fe00fe",
+                        "error": "#ffb4ab",
+                        "tertiary": "#faf3ff",
+                        "on-primary-fixed-variant": "#004f54",
+                        "on-tertiary-fixed-variant": "#5700c9",
+                        "on-primary": "#00363a",
+                        "primary-fixed-dim": "#00dbe9",
+                        "surface-container-lowest": "#0c0e14",
+                        "surface-bright": "#373940",
+                        "inverse-primary": "#006970",
+                        "background": "#111319",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary": "#3c0090",
+                        "on-secondary-container": "#500050",
+                        "inverse-on-surface": "#2e3037",
+                        "surface-container-high": "#282a30",
+                        "surface-container": "#1e1f26",
+                        "primary-container": "#00f0ff",
+                        "tertiary-container": "#e1d2ff",
+                        "error-container": "#93000a",
+                        "on-error": "#690005",
+                        "secondary-fixed": "#ffd7f5",
+                        "on-primary-fixed": "#002022",
+                        "on-tertiary-container": "#7213ff",
+                        "on-tertiary-fixed": "#23005b",
+                        "primary": "#dbfcff",
+                        "surface-variant": "#33343b",
+                        "surface-dim": "#111319",
+                        "on-primary-container": "#006970",
+                        "surface-container-low": "#191b22",
+                        "tertiary-fixed-dim": "#d1bcff",
+                        "secondary": "#ffabf3",
+                        "secondary-fixed-dim": "#ffabf3",
+                        "surface": "#111319",
+                        "on-surface-variant": "#b9cacb",
+                        "inverse-surface": "#e2e2eb",
+                        "primary-fixed": "#7df4ff",
+                        "on-secondary-fixed": "#380038",
+                        "on-secondary": "#5b005b",
+                        "surface-container-highest": "#33343b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(51, 52, 59, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 73, 75, 0.15);
+        }
+        .neon-glow-primary {
+            box-shadow: 0 0 40px -10px rgba(0, 240, 255, 0.3);
+        }
+        .light-leak {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(254, 0, 254, 0.15) 0%, transparent 70%);
+            filter: blur(80px);
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container overflow-hidden">
+<!-- Top Navigation Anchor -->
+<header class="bg-[#111319]/60 backdrop-blur-xl border-b border-[#3b494b]/15 docked full-width top-0 sticky z-50 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+<div class="flex justify-between items-center w-full px-8 h-20">
+<div class="text-2xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#fe00fe] font-headline uppercase">
+                KINETIC NOIR
+            </div>
+<nav class="hidden md:flex items-center space-x-12">
+<a class="font-['Space_Grotesk'] uppercase tracking-widest text-sm text-[#00f0ff] font-bold border-b-2 border-[#00f0ff] pb-1 hover:text-[#fe00fe] hover:scale-105 transition-all duration-300" href="#">Explore</a>
+<a class="font-['Space_Grotesk'] uppercase tracking-widest text-sm text-slate-400 hover:text-[#fe00fe] hover:scale-105 transition-all duration-300" href="#">Trending</a>
+<a class="font-['Space_Grotesk'] uppercase tracking-widest text-sm text-slate-400 hover:text-[#fe00fe] hover:scale-105 transition-all duration-300" href="#">Collections</a>
+</nav>
+<div class="flex items-center space-x-6 text-[#00f0ff]">
+<span class="material-symbols-outlined scale-95 active:opacity-80 transition-transform cursor-pointer">shopping_cart</span>
+<span class="material-symbols-outlined scale-95 active:opacity-80 transition-transform cursor-pointer">account_circle</span>
+</div>
+</div>
+</header>
+<!-- Side Navigation Anchor (Hidden on focused task as per mandate) -->
+<main class="relative min-h-screen flex items-center justify-center p-4 md:p-8 overflow-y-auto">
+<!-- Background Light Leaks -->
+<div class="light-leak top-0 left-0"></div>
+<div class="light-leak bottom-0 right-0" style="background: radial-gradient(circle, rgba(0, 240, 255, 0.1) 0%, transparent 70%);"></div>
+<!-- Product Selection Modal Container -->
+<div class="relative w-full max-w-5xl glass-panel rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[700px]">
+<!-- Close Button -->
+<button class="absolute top-6 right-6 z-10 text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-3xl">close</span>
+</button>
+<!-- LEFT: Item Selection Area -->
+<div class="flex-1 p-8 md:p-12 border-r border-outline-variant/10">
+<div class="flex items-center space-x-4 mb-10">
+<div class="w-1.5 h-12 bg-primary-container neon-glow-primary rounded-full"></div>
+<div>
+<h1 class="font-headline text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">
+                            TIKTOK <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-container to-secondary-container">COINS</span>
+</h1>
+<p class="font-label text-xs tracking-widest text-outline mt-2 uppercase">Global Region Digital Assets</p>
+</div>
+</div>
+<!-- Grid Scrollable -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 max-h-[420px] overflow-y-auto pr-2 custom-scrollbar">
+<!-- Card 1 (Normal) -->
+<div class="group relative bg-surface-container-low p-5 rounded-2xl border border-transparent hover:border-primary-container/30 transition-all cursor-pointer">
+<div class="font-headline text-2xl font-bold mb-1">70</div>
+<div class="text-xs text-outline font-label uppercase tracking-wider mb-3">Coins</div>
+<div class="text-primary-container font-bold">$1.05</div>
+</div>
+<!-- Card 2 (HOT) -->
+<div class="group relative bg-surface-container-high p-5 rounded-2xl border border-secondary-container/50 neon-glow-secondary transition-all cursor-pointer">
+<div class="absolute -top-2 -right-2 bg-secondary-container text-on-secondary-container font-label text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter">HOT</div>
+<div class="font-headline text-2xl font-bold mb-1">350</div>
+<div class="text-xs text-outline font-label uppercase tracking-wider mb-3">Coins</div>
+<div class="text-primary-container font-bold">$4.99</div>
+</div>
+<!-- Card 3 (Selected State) -->
+<div class="group relative bg-surface-container-high p-5 rounded-2xl border-2 border-primary-container shadow-[0_0_20px_rgba(0,240,255,0.2)] transition-all cursor-pointer">
+<div class="absolute top-2 right-2 text-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="font-headline text-2xl font-bold mb-1">700</div>
+<div class="text-xs text-outline font-label uppercase tracking-wider mb-3">Coins</div>
+<div class="text-primary-container font-bold">$9.50</div>
+</div>
+<!-- Card 4 (FAST) -->
+<div class="group relative bg-surface-container-low p-5 rounded-2xl border border-transparent hover:border-primary-container/30 transition-all cursor-pointer">
+<div class="absolute -top-2 -right-2 bg-tertiary-container text-on-tertiary-container font-label text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter">FAST</div>
+<div class="font-headline text-2xl font-bold mb-1">1,400</div>
+<div class="text-xs text-outline font-label uppercase tracking-wider mb-3">Coins</div>
+<div class="text-primary-container font-bold">$18.20</div>
+</div>
+<!-- Repeated Items for Scroll Demo -->
+<div class="group relative bg-surface-container-low p-5 rounded-2xl border border-transparent hover:border-primary-container/30 transition-all cursor-pointer">
+<div class="font-headline text-2xl font-bold mb-1">3,500</div>
+<div class="text-xs text-outline font-label uppercase tracking-wider mb-3">Coins</div>
+<div class="text-primary-container font-bold">$45.00</div>
+</div>
+<div class="group relative bg-surface-container-low p-5 rounded-2xl border border-transparent hover:border-primary-container/30 transition-all cursor-pointer">
+<div class="absolute -top-2 -right-2 bg-outline-variant text-on-surface font-label text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter">SELECT</div>
+<div class="font-headline text-2xl font-bold mb-1">7,000</div>
+<div class="text-xs text-outline font-label uppercase tracking-wider mb-3">Coins</div>
+<div class="text-primary-container font-bold">$89.99</div>
+</div>
+<div class="group relative bg-surface-container-low p-5 rounded-2xl border border-transparent hover:border-primary-container/30 transition-all cursor-pointer">
+<div class="font-headline text-2xl font-bold mb-1">17,500</div>
+<div class="text-xs text-outline font-label uppercase tracking-wider mb-3">Coins</div>
+<div class="text-primary-container font-bold">$215.00</div>
+</div>
+<div class="group relative bg-surface-container-low p-5 rounded-2xl border border-transparent hover:border-primary-container/30 transition-all cursor-pointer">
+<div class="font-headline text-2xl font-bold mb-1">35,000</div>
+<div class="text-xs text-outline font-label uppercase tracking-wider mb-3">Coins</div>
+<div class="text-primary-container font-bold">$420.00</div>
+</div>
+</div>
+</div>
+<!-- RIGHT: Summary & Forms -->
+<div class="w-full md:w-[400px] bg-surface-container-low/50 p-8 md:p-10 flex flex-col justify-between">
+<div>
+<h2 class="font-label text-sm font-bold tracking-widest text-outline-variant mb-6 uppercase">Order Summary</h2>
+<!-- Selection Card -->
+<div class="bg-surface-container-highest/60 rounded-2xl p-4 flex items-center space-x-4 mb-8 border border-outline-variant/10">
+<div class="w-16 h-16 rounded-xl overflow-hidden bg-surface shadow-lg border border-outline-variant/20">
+<img alt="tiktok logo icon on a dark background with vibrant cyan lighting" class="w-full h-full object-cover" data-alt="tiktok logo icon on a dark background with vibrant cyan lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZe0DeMcRKrVaLbkg-veAG5IbtTKymimm_w6ik4O0fi100Wcy0Z5251AhnR1FF5X9xTje0eEp3LxJ-9Uq_UrI_EWNB9_sp3_4nJz6VzCX-SPa4zXDjodDddTTbMIZX1MUreIAUk_biX19veWt7yvXFpf9p72tsQ-NTjB6PBiHa0i25dCvODS7yhy0vps4fToQeUzbIhXwlvWJiu4np0n6tVID_AuNT2vVN34uFPZTfABFKmYWoo8V9aTjA092W4O8jzZdOkT58J74"/>
+</div>
+<div class="flex-1">
+<div class="font-headline font-bold text-lg">700 Coins</div>
+<div class="text-xs text-outline font-label">Standard Pack</div>
+</div>
+<div class="text-right">
+<div class="text-primary-container font-black text-xl">$9.50</div>
+<div class="text-[10px] text-outline uppercase tracking-tighter">Total Price</div>
+</div>
+</div>
+<!-- Input Fields -->
+<div class="space-y-5">
+<div class="group">
+<label class="block font-label text-[10px] font-bold uppercase tracking-widest text-outline mb-2 ml-1">Email Address</label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border-0 rounded-xl px-5 py-3.5 text-on-surface placeholder:text-outline-variant focus:ring-2 focus:ring-primary-container/50 transition-all font-body text-sm" placeholder="cyberpunk@mea.cash" type="email"/>
+<div class="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-primary-container to-secondary-container group-focus-within:w-full transition-all duration-500"></div>
+</div>
+</div>
+<div class="group">
+<label class="block font-label text-[10px] font-bold uppercase tracking-widest text-outline mb-2 ml-1">Account ID</label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border-0 rounded-xl px-5 py-3.5 text-on-surface placeholder:text-outline-variant focus:ring-2 focus:ring-primary-container/50 transition-all font-body text-sm" placeholder="@neon_warrior_99" type="text"/>
+<div class="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-primary-container to-secondary-container group-focus-within:w-full transition-all duration-500"></div>
+</div>
+<p class="mt-2 text-[10px] text-outline italic px-1">Ensure your ID is correct for instant delivery.</p>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="mt-12 space-y-4">
+<button class="w-full py-5 rounded-2xl bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim text-on-primary-fixed font-headline font-black uppercase tracking-widest text-lg neon-glow-primary hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center space-x-3">
+<span>Purchase Now</span>
+<span class="material-symbols-outlined">bolt</span>
+</button>
+<div class="flex items-center justify-between px-2">
+<button class="flex items-center space-x-2 text-outline hover:text-secondary-container transition-all font-label text-[10px] uppercase tracking-widest">
+<span class="material-symbols-outlined text-sm">share</span>
+<span>Share Deal</span>
+</button>
+<div class="flex space-x-3">
+<img alt="visa credit card logo icon silver minimalist" class="h-4 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-help" data-alt="visa credit card logo icon silver minimalist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAR8KwR5FwesOZuUljvkaKlUbd3xEsiFYwvf1UFrq6sFVGWcNQj_KFxflWJMUxqdDKaNvoKYbTjybDDBMOFjXhhYXwJDzpgvVczQI-C3s6vErxRb_boWs2LhBWNzRM3oOC2YjaVCFGoYsLOujWd_2yQw2vKXI6aCRLzBOydY4if2JuZ3l4gpOa7KAkp1YXDi1QE4pPPcDK8WjNWrWf4p8GMk77V8mWbR7FZ4ChxCiHR-28p1bhuJZfeeqHFCnA3RGi5Fa5hqGj9Ts"/>
+<img alt="mastercard logo icon silver minimalist" class="h-4 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-help" data-alt="mastercard logo icon silver minimalist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCW4_F5C4vc9i_5VTYXupAjF6S8-k3QJDe_UU0XAnME09n9zKYRfKwDgyDfo1u2qvxBZWRfWXnPgzuPq_EX7W4H7_-GVh78EsFlGdcXFtzNJWVk0tZ2bVlQ9HlVzS5P-eF_XoJY1iSGX1XHY4aPkdEq7IlkpDr5ZeIEG2Ku7pzUOKnDGzPlceG8ru9L0Za6SSrtXEvurR2WbgQzPo2WOXZAVjWWRp4mcQE-1HrDLWXZG-v0ijBCDp7bI_cid_TjomZLczYww-D4yoA"/>
+<img alt="bitcoin and ethereum icons silver minimalist" class="h-4 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-help" data-alt="bitcoin and ethereum icons silver minimalist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0MvS7e5exTlyiui2Xtico0_JK3hP5MYHlMr37fj-z4j1GASdcVINkxC4WHrlS10_LwpBRD_VNLzCeNlqMtZ82CENsAb4Uba6hr_ZOToKbNwNg0C8LzOADbV4rBZ8i4QR9PdFprGQlK1BgHqKki_GaCxSYa1TpYsjWUboqU7hNmJs4bkfSrwsZGMHXw0Q6D1T3SjraPIFUbEycaF26SvWOUhX6-DS8kI2ij7nFFyAH9O79bive3EpnKrkI7b8sojXQygOcr-4sI4A"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Global Footer Anchor -->
+<footer class="bg-[#0c0e14] w-full py-12 mt-auto border-t border-[#3b494b]/10 tonal-shift flex flex-col items-center justify-center space-y-6 px-4">
+<div class="text-[#00f0ff] font-bold font-headline uppercase tracking-widest">KINETIC NOIR</div>
+<div class="flex flex-wrap justify-center gap-8">
+<a class="font-['Space_Grotesk'] text-[10px] tracking-widest text-slate-600 hover:text-[#00f0ff] transition-colors uppercase" href="#">Terms of Service</a>
+<a class="font-['Space_Grotesk'] text-[10px] tracking-widest text-slate-600 hover:text-[#00f0ff] transition-colors uppercase" href="#">Privacy Protocol</a>
+<a class="font-['Space_Grotesk'] text-[10px] tracking-widest text-slate-600 hover:text-[#00f0ff] transition-colors uppercase" href="#">Support Center</a>
+<a class="font-['Space_Grotesk'] text-[10px] tracking-widest text-slate-600 hover:text-[#00f0ff] transition-colors uppercase" href="#">API Docs</a>
+</div>
+<div class="font-['Space_Grotesk'] text-[10px] tracking-widest text-slate-600 opacity-100 hover:opacity-80 transition-opacity uppercase">
+            © 2024 KINETIC NOIR. HIGH-FIDELITY DIGITAL ASSETS.
+        </div>
+</footer>
+</body></html>

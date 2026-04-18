@@ -18,7 +18,7 @@
         @forelse($subcategories as $subcategory)
             <tr>
                 <td>#{{ $subcategory->id }}</td>
-                <td>@if($subcategory->image)<img src="{{ \Illuminate\Support\Facades\Storage::disk($disk)->url($subcategory->image) }}" class="h-10 w-10 rounded-lg object-cover" alt="{{ $subcategory->name_en }}">@else <span class="text-xs text-slate-400">No image</span>@endif</td>
+                <td>@if($subcategory->image)<img src="{{ str_starts_with($subcategory->image, 'http') ? $subcategory->image : \Illuminate\Support\Facades\Storage::disk($disk)->url($subcategory->image) }}" class="h-10 w-10 rounded-lg object-cover" alt="{{ $subcategory->name_en }}">@else <span class="text-xs text-slate-400">No image</span>@endif</td>
                 <td>{{ $subcategory->name_en }}</td>
                 <td>{{ $subcategory->category?->name_en ?? '-' }}</td>
                 <td>{{ $subcategory->productTypeDefinition?->name ?? '-' }}</td>

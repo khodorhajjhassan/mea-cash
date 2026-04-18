@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KINETIC NOIR | MEACASH REDESIGN</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#e2e2eb",
+                        "surface-tint": "#00dbe9",
+                        "outline-variant": "#3b494b",
+                        "on-secondary-fixed-variant": "#810081",
+                        "tertiary-fixed": "#e9ddff",
+                        "on-background": "#e2e2eb",
+                        "outline": "#849495",
+                        "secondary-container": "#fe00fe",
+                        "error": "#ffb4ab",
+                        "tertiary": "#faf3ff",
+                        "on-primary-fixed-variant": "#004f54",
+                        "on-tertiary-fixed-variant": "#5700c9",
+                        "on-primary": "#00363a",
+                        "primary-fixed-dim": "#00dbe9",
+                        "surface-container-lowest": "#0c0e14",
+                        "surface-bright": "#373940",
+                        "inverse-primary": "#006970",
+                        "background": "#111319",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary": "#3c0090",
+                        "on-secondary-container": "#500050",
+                        "inverse-on-surface": "#2e3037",
+                        "surface-container-high": "#282a30",
+                        "surface-container": "#1e1f26",
+                        "primary-container": "#00f0ff",
+                        "tertiary-container": "#e1d2ff",
+                        "error-container": "#93000a",
+                        "on-error": "#690005",
+                        "secondary-fixed": "#ffd7f5",
+                        "on-primary-fixed": "#002022",
+                        "on-tertiary-container": "#7213ff",
+                        "on-tertiary-fixed": "#23005b",
+                        "primary": "#dbfcff",
+                        "surface-variant": "#33343b",
+                        "surface-dim": "#111319",
+                        "on-primary-container": "#006970",
+                        "surface-container-low": "#191b22",
+                        "tertiary-fixed-dim": "#d1bcff",
+                        "secondary": "#ffabf3",
+                        "secondary-fixed-dim": "#ffabf3",
+                        "surface": "#111319",
+                        "on-surface-variant": "#b9cacb",
+                        "inverse-surface": "#e2e2eb",
+                        "primary-fixed": "#7df4ff",
+                        "on-secondary-fixed": "#380038",
+                        "on-secondary": "#5b005b",
+                        "surface-container-highest": "#33343b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Kinetic Glow Effects */
+        .glass-panel {
+            background: rgba(51, 52, 59, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 73, 75, 0.15);
+        }
+        .light-leak-magenta {
+            background: radial-gradient(circle, rgba(254, 0, 254, 0.15) 0%, transparent 70%);
+        }
+        .light-leak-cyan {
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.1) 0%, transparent 70%);
+        }
+        .neon-border-hover:hover {
+            border-color: #00f0ff;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            display: flex;
+            width: fit-content;
+            animation: marquee 30s linear infinite;
+        }
+        .animate-marquee:hover {
+            animation-play-state: paused;
+        }
+
+        .logo-item {
+            filter: grayscale(1) opacity(0.5);
+            transition: all 0.3s ease;
+        }
+        .logo-item:hover {
+            filter: grayscale(0) opacity(1);
+            transform: scale(1.05);
+        }
+
+        /* FAQ Accordion Details Styles */
+        summary::-webkit-details-marker { display: none; }
+        details[open] summary .expand-icon { transform: rotate(180deg); }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-[#111319]/60 backdrop-blur-xl docked full-width top-0 sticky z-50 border-b border-[#3b494b]/15 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+<nav class="flex justify-between items-center w-full px-8 h-20">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#fe00fe]">KINETIC NOIR</span>
+<div class="hidden md:flex items-center space-x-8 font-['Space_Grotesk'] uppercase tracking-widest text-sm">
+<a class="text-[#00f0ff] font-bold border-b-2 border-[#00f0ff] pb-1 hover:text-[#fe00fe] hover:scale-105 transition-all duration-300" href="#">Explore</a>
+<a class="text-slate-400 hover:text-[#fe00fe] hover:scale-105 transition-all duration-300" href="#">Trending</a>
+<a class="text-slate-400 hover:text-[#fe00fe] hover:scale-105 transition-all duration-300" href="#">Collections</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden lg:flex items-center bg-surface-container-lowest px-4 py-2 rounded-full border border-outline-variant/20">
+<span class="material-symbols-outlined text-outline text-sm">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-xs font-label tracking-widest w-48 uppercase" placeholder="SEARCH ASSETS..." type="text"/>
+</div>
+<div class="flex items-center gap-4 text-[#00f0ff]">
+<button class="scale-95 active:opacity-80 transition-transform"><span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span></button>
+<button class="scale-95 active:opacity-80 transition-transform"><span class="material-symbols-outlined" data-icon="account_circle">account_circle</span></button>
+</div>
+</div>
+</nav>
+</header>
+<main class="flex-grow relative overflow-hidden">
+<!-- Background Light Leaks -->
+<div class="fixed top-[-10%] left-[-10%] w-[600px] h-[600px] light-leak-cyan pointer-events-none z-0"></div>
+<div class="fixed bottom-[-10%] right-[-10%] w-[600px] h-[600px] light-leak-magenta pointer-events-none z-0"></div>
+<!-- Hero Carousel Section -->
+<section class="relative px-8 pt-6 pb-6 z-10">
+<div class="relative w-full h-[550px] rounded-3xl overflow-hidden group">
+<img class="w-full h-full object-cover" data-alt="Cinematic shot of high-end gaming equipment with neon cyan and magenta lighting on a dark reflective surface, cinematic atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDrlznlKgHHa63HOhVKSNWE8C5o6YWGzqxbSrsVKR6imUOq2BDzZoRlqJg_aBtStZO89zUqnzPz4cUR1Ar_9KPYAsyplUSUhl7Cu69sWYscBbkmZv8_Z23wFHRJUsaHoWrCgTg_AZAPtY_FpHMiau3uk0SCMp2vwzAl9Sk5ydgPkW2up5bhPyu8FmcOIpMoaTLYNwC-ofII6e2sndmu9_tc47MTiFoRRkToqSy-lC4CowcwR89nZBqQxnz4mrEdSPnNMxpTJO40tQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-12 w-full flex justify-between items-end">
+<div class="max-w-2xl">
+<span class="font-label text-primary-container tracking-[0.3em] uppercase text-sm mb-4 block">New Drop | Season 04</span>
+<h1 class="font-headline text-6xl font-bold tracking-tighter leading-none mb-6">UNLEASH THE <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-container to-secondary-container">DIGITAL EDGE</span></h1>
+<p class="text-on-surface-variant text-lg mb-8 max-w-lg leading-relaxed">Experience the next generation of digital asset exchange. High-fidelity skins, currency, and premium software vaults.</p>
+<div class="flex gap-4">
+<button class="px-8 py-4 bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim rounded-xl font-label font-bold text-on-primary-fixed uppercase tracking-widest shadow-[0_0_30px_rgba(0,240,255,0.3)] hover:scale-105 transition-all">Claim Now</button>
+<button class="px-8 py-4 glass-panel rounded-xl font-label font-bold text-on-surface uppercase tracking-widest hover:bg-surface-container-highest/60 transition-all">View Details</button>
+</div>
+</div>
+<div class="hidden lg:flex gap-4">
+<div class="w-24 h-1.5 bg-primary-container rounded-full"></div>
+<div class="w-24 h-1.5 bg-surface-container-highest rounded-full"></div>
+<div class="w-24 h-1.5 bg-surface-container-highest rounded-full"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Partner Logo Marquee Section -->
+<section class="w-full py-6 border-y border-outline-variant/10 bg-surface-container-lowest/50 backdrop-blur-sm overflow-hidden z-10 relative">
+<div class="animate-marquee flex items-center gap-16 md:gap-32">
+<!-- First Set -->
+<div class="flex items-center gap-3 logo-item group/logo cursor-pointer">
+<span class="material-symbols-outlined text-3xl group-hover/logo:text-[#00f0ff]">sports_esports</span>
+<span class="font-headline font-black text-xl tracking-widest uppercase italic group-hover/logo:text-[#00f0ff]">PLAYSTATION</span>
+</div>
+<div class="flex items-center gap-3 logo-item group/logo cursor-pointer">
+<span class="material-symbols-outlined text-3xl group-hover/logo:text-[#fe00fe]">steam</span>
+<span class="font-headline font-black text-xl tracking-widest uppercase italic group-hover/logo:text-[#fe00fe]">STEAM</span>
+</div>
+<div class="flex items-center gap-3 logo-item group/logo cursor-pointer">
+<span class="material-symbols-outlined text-3xl group-hover/logo:text-[#107C10]">videogame_asset</span>
+<span class="font-headline font-black text-xl tracking-widest uppercase italic group-hover/logo:text-[#107C10]">XBOX</span>
+</div>
+<div class="flex items-center gap-3 logo-item group/logo cursor-pointer">
+<span class="material-symbols-outlined text-3xl group-hover/logo:text-[#44D62C]">mouse</span>
+<span class="font-headline font-black text-xl tracking-widest uppercase italic group-hover/logo:text-[#44D62C]">RAZER</span>
+</div>
+<div class="flex items-center gap-3 logo-item group/logo cursor-pointer">
+<span class="material-symbols-outlined text-3xl group-hover/logo:text-[#E60012]">gamepad</span>
+<span class="font-headline font-black text-xl tracking-widest uppercase italic group-hover/logo:text-[#E60012]">NINTENDO</span>
+</div>
+<div class="flex items-center gap-3 logo-item group/logo cursor-pointer">
+<span class="material-symbols-outlined text-3xl group-hover/logo:text-[#FF4B2B]">stadia_controller</span>
+<span class="font-headline font-black text-xl tracking-widest uppercase italic group-hover/logo:text-[#FF4B2B]">STADIA</span>
+</div>
+<!-- Duplicate for infinite effect -->
+<div class="flex items-center gap-3 logo-item group/logo cursor-pointer">
+<span class="material-symbols-outlined text-3xl group-hover/logo:text-[#00f0ff]">sports_esports</span>
+<span class="font-headline font-black text-xl tracking-widest uppercase italic group-hover/logo:text-[#00f0ff]">PLAYSTATION</span>
+</div>
+<div class="flex items-center gap-3 logo-item group/logo cursor-pointer">
+<span class="material-symbols-outlined text-3xl group-hover/logo:text-[#fe00fe]">steam</span>
+<span class="font-headline font-black text-xl tracking-widest uppercase italic group-hover/logo:text-[#fe00fe]">STEAM</span>
+</div>
+<div class="flex items-center gap-3 logo-item group/logo cursor-pointer">
+<span class="material-symbols-outlined text-3xl group-hover/logo:text-[#107C10]">videogame_asset</span>
+<span class="font-headline font-black text-xl tracking-widest uppercase italic group-hover/logo:text-[#107C10]">XBOX</span>
+</div>
+<div class="flex items-center gap-3 logo-item group/logo cursor-pointer">
+<span class="material-symbols-outlined text-3xl group-hover/logo:text-[#44D62C]">mouse</span>
+<span class="font-headline font-black text-xl tracking-widest uppercase italic group-hover/logo:text-[#44D62C]">RAZER</span>
+</div>
+<div class="flex items-center gap-3 logo-item group/logo cursor-pointer">
+<span class="material-symbols-outlined text-3xl group-hover/logo:text-[#E60012]">gamepad</span>
+<span class="font-headline font-black text-xl tracking-widest uppercase italic group-hover/logo:text-[#E60012]">NINTENDO</span>
+</div>
+<div class="flex items-center gap-3 logo-item group/logo cursor-pointer">
+<span class="material-symbols-outlined text-3xl group-hover/logo:text-[#FF4B2B]">stadia_controller</span>
+<span class="font-headline font-black text-xl tracking-widest uppercase italic group-hover/logo:text-[#FF4B2B]">STADIA</span>
+</div>
+</div>
+</section>
+<!-- Sticky Filter Bar -->
+<section class="sticky top-20 z-40 px-8 py-6 bg-background/80 backdrop-blur-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 md:pb-0">
+<button class="px-6 py-2.5 bg-primary-container text-on-primary-container rounded-full font-label text-xs font-bold uppercase tracking-widest transition-all">All Assets</button>
+<button class="px-6 py-2.5 bg-surface-container-high/40 hover:bg-surface-container-high text-on-surface-variant hover:text-primary-container rounded-full font-label text-xs font-bold uppercase tracking-widest transition-all">Gaming</button>
+<button class="px-6 py-2.5 bg-surface-container-high/40 hover:bg-surface-container-high text-on-surface-variant hover:text-primary-container rounded-full font-label text-xs font-bold uppercase tracking-widest transition-all">Streaming</button>
+<button class="px-6 py-2.5 bg-surface-container-high/40 hover:bg-surface-container-high text-on-surface-variant hover:text-primary-container rounded-full font-label text-xs font-bold uppercase tracking-widest transition-all">Skins</button>
+<button class="px-6 py-2.5 bg-surface-container-high/40 hover:bg-surface-container-high text-on-surface-variant hover:text-primary-container rounded-full font-label text-xs font-bold uppercase tracking-widest transition-all">Vaults</button>
+<button class="px-6 py-2.5 bg-surface-container-high/40 hover:bg-surface-container-high text-on-surface-variant hover:text-primary-container rounded-full font-label text-xs font-bold uppercase tracking-widest transition-all">Boosts</button>
+</div>
+<button class="hidden md:flex items-center gap-2 text-primary-container font-label text-xs font-bold uppercase tracking-widest">
+<span>Filter &amp; Sort</span>
+<span class="material-symbols-outlined">tune</span>
+</button>
+</div>
+</section>
+<!-- Main Product Grid -->
+<section class="px-8 py-12">
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+<!-- Product Card 1 -->
+<div class="group bg-surface-container-low rounded-2xl overflow-hidden transition-all duration-300 hover:scale-105 border border-transparent hover:border-primary-container/30 hover:shadow-[0_0_40px_rgba(0,240,255,0.15)]">
+<div class="aspect-square relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="High resolution tactical shooter game card icon with glowing cyan energy effects and sharp futuristic details" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_UJOtH3XlciYO5mk7WV41-T2gA6NywSk2UbEuiPIQxRsAhMW24AQo4TyQo1E83nTJkLsyJOuPX4hmIv-CUypKgBYPOpIXPxwfyEj3IX2Jv4jwroACP_CQM_hcPxRMmEiPLIFMPWBGX1cmiFqb76txEMzf31qI-ZRFLdk8cvFt7m204z_wPBcenA8GTwatoSgj7JoyeexoTFZNndLIhkOTDHPnee3SXEkoU2dLIrmnUo-xaiv6LVdFs6k-j127mA8jwAwSP0jqZn0"/>
+<div class="absolute top-3 right-3 bg-background/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-label text-primary-container border border-primary-container/30 uppercase tracking-tighter">Instant Delivery</div>
+</div>
+<div class="p-4">
+<h3 class="font-headline font-bold text-sm tracking-wide mb-1 uppercase group-hover:text-primary-container transition-colors">VALORANT VP</h3>
+<p class="text-xs text-on-surface-variant mb-4">Riot Games</p>
+<div class="flex justify-between items-center">
+<span class="text-primary-container font-bold">$9.99</span>
+<button class="p-2 bg-surface-container-highest rounded-lg text-secondary-container hover:bg-secondary-container hover:text-on-secondary transition-all">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="group bg-surface-container-low rounded-2xl overflow-hidden transition-all duration-300 hover:scale-105 border border-transparent hover:border-primary-container/30 hover:shadow-[0_0_40px_rgba(0,240,255,0.15)]">
+<div class="aspect-square relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Playstation network gift card design with sleek blue gradient background and iconic controller symbols in glowing white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQtl4q9ZMwf4lfXx7_ofj1rPz6cZdcCSF3s4sOs9GyRgg45atEwL9FH6VZwalzB2GK5DBUTRzVjHqJfg2VKDLgkz2ovf7CmQ1hPKZz-aE-ESDJbCXxr3pm8gWZTo6iAOb9iR1TcKcU_MX0vDe2wBj3qd-BAylmsBJ0yUgrr73DQX9CbLdjl7UFCcOx5-hwJNAb-ji9YID1CksCe-Sz31V9GuvmbC9F037m2ILAh8Qw2vJfucwsvz539TXgdPpRxFVU3BZUvWRBBQk"/>
+<div class="absolute top-3 right-3 bg-secondary-container text-on-secondary-container px-2 py-1 rounded text-[10px] font-label font-black border border-secondary-container/30 uppercase tracking-tighter">Hot</div>
+</div>
+<div class="p-4">
+<h3 class="font-headline font-bold text-sm tracking-wide mb-1 uppercase group-hover:text-primary-container transition-colors">PSN WALLET</h3>
+<p class="text-xs text-on-surface-variant mb-4">Sony Interactive</p>
+<div class="flex justify-between items-center">
+<span class="text-primary-container font-bold">$25.00</span>
+<button class="p-2 bg-surface-container-highest rounded-lg text-secondary-container hover:bg-secondary-container hover:text-on-secondary transition-all">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="group bg-surface-container-low rounded-2xl overflow-hidden transition-all duration-300 hover:scale-105 border border-transparent hover:border-primary-container/30 hover:shadow-[0_0_40px_rgba(0,240,255,0.15)]">
+<div class="aspect-square relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Colorful battle royale game currency icon with stylized purple and blue lighting and energetic particles" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEm8HqQzuKOxIwhYWCSHG78vloi36LSRWk_aorkQxPVmIhqTMTQNpSMRBYXvGuneMxn6IcDDAQeB57J-NbEgCc5jJJwvv8I1SxjuUy7wTV1AhlQLMrBswg0EioM2u71k45L_i0D57lqjpyU4udEvWIGkJI-JgQycpFC94-0xC4vS7FbXir3JwYJApKQSrHeO7_py07XmOhg2SnT5H75a5GqsRnZg_KI1KUanc8ZIdO2BVSC508IQtZmEkJ_uxdLqVoqlKBAHli6BQ"/>
+</div>
+<div class="p-4">
+<h3 class="font-headline font-bold text-sm tracking-wide mb-1 uppercase group-hover:text-primary-container transition-colors">V-BUCKS PACK</h3>
+<p class="text-xs text-on-surface-variant mb-4">Epic Games</p>
+<div class="flex justify-between items-center">
+<span class="text-primary-container font-bold">$7.99</span>
+<button class="p-2 bg-surface-container-highest rounded-lg text-secondary-container hover:bg-secondary-container hover:text-on-secondary transition-all">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card 4 -->
+<div class="group bg-surface-container-low rounded-2xl overflow-hidden transition-all duration-300 hover:scale-105 border border-transparent hover:border-primary-container/30 hover:shadow-[0_0_40px_rgba(0,240,255,0.15)]">
+<div class="aspect-square relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Streaming service logo on dark glass background with red neon glow and cinematic depth of field" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAygMuh6fyeZ2B80kSDf3-VXSUzywIKMrRDm5MXH7GAvDBygZrhjxX8V4oqg1ne4d_BvfIIoWXJu7JBWKFSjT9p78BuifCSypITTXd1oiU3-RU9HKYbVX6Ifnd2pUancOP1sDO8GYcLqYLk7AjOYNmQZFwkVz-UADbKFUAJmu4rRBI6-cSaA1K3WeuyNBR8QZQ9EoIOv23vdEcRvYD1KMj3OVJqu3BZNHStlmBqugPgV68qWntzXuYmQAbIYGplbgfoGua-6ov-zv4"/>
+</div>
+<div class="p-4">
+<h3 class="font-headline font-bold text-sm tracking-wide mb-1 uppercase group-hover:text-primary-container transition-colors">NETFLIX PREMIUM</h3>
+<p class="text-xs text-on-surface-variant mb-4">Entertainment</p>
+<div class="flex justify-between items-center">
+<span class="text-primary-container font-bold">$15.99</span>
+<button class="p-2 bg-surface-container-highest rounded-lg text-secondary-container hover:bg-secondary-container hover:text-on-secondary transition-all">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card 5 -->
+<div class="group bg-surface-container-low rounded-2xl overflow-hidden transition-all duration-300 hover:scale-105 border border-transparent hover:border-primary-container/30 hover:shadow-[0_0_40px_rgba(0,240,255,0.15)]">
+<div class="aspect-square relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Steam digital platform logo with dark industrial texture and blue light leakage from the edges" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCB-_DXZ1btRYaI74NPfNoP4fWYm3iuAYdeAT1M4BNhwz4Cz3JtvW6t_Ia0YtWT5v5Lzitam8CI2G5mhIGiO_ExEJPEos0zu-7tAN6olu09warxrx--HksMdX4GbCr6UXJKQLWELXRZlnHTRMfAR10ZB675ZGk1l7YnNlD9T9RrQ-gpRICsOAwCQvhoQLR3pFMsI17farFDZkUMP03E2rpi2ojPDU0qz1I6MVeqicNOEhPjbUrKBNo0Syu_yvxkGSQZxro5EbDPS80"/>
+</div>
+<div class="p-4">
+<h3 class="font-headline font-bold text-sm tracking-wide mb-1 uppercase group-hover:text-primary-container transition-colors">STEAM CREDIT</h3>
+<p class="text-xs text-on-surface-variant mb-4">Valve Corp</p>
+<div class="flex justify-between items-center">
+<span class="text-primary-container font-bold">$50.00</span>
+<button class="p-2 bg-surface-container-highest rounded-lg text-secondary-container hover:bg-secondary-container hover:text-on-secondary transition-all">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card 6 -->
+<div class="group bg-surface-container-low rounded-2xl overflow-hidden transition-all duration-300 hover:scale-105 border border-transparent hover:border-primary-container/30 hover:shadow-[0_0_40px_rgba(0,240,255,0.15)]">
+<div class="aspect-square relative overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Xbox console brand icon with deep green glowing circle on black brushed metal background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDy0Oe4v-XiYm6nKw6zZuZvY25vKU6FtH66EE62VoR9UiPuztZ3FJeIIceAm7Pbo4nBLgw-_PazX4-orGTGrbbUz_hC2yBSms7uyQ2lOi6q00VfD2cTDT9ZaRq1qJvZ8p6GKi6Z_dZPdRIQwymwo9k5SHl9hsjRJBTDh1agIJWdpJrTIH9qkShiclKo99y-MOBQJLj4Hy643FnTLnn-jrgHcFzaHZ1vMiJHL9VVHn5j2oGoPO42Xs0D06JVJITSHUvNQZr_L_9ZTBo"/>
+</div>
+<div class="p-4">
+<h3 class="font-headline font-bold text-sm tracking-wide mb-1 uppercase group-hover:text-primary-container transition-colors">GAME PASS ULTIMATE</h3>
+<p class="text-xs text-on-surface-variant mb-4">Microsoft</p>
+<div class="flex justify-between items-center">
+<span class="text-primary-container font-bold">$14.99</span>
+<button class="p-2 bg-surface-container-highest rounded-lg text-secondary-container hover:bg-secondary-container hover:text-on-secondary transition-all">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Section with Asymmetric Layout -->
+<section class="px-8 py-20 relative">
+<div class="grid grid-cols-12 gap-8 items-center">
+<div class="col-span-12 lg:col-span-5 order-2 lg:order-1">
+<h2 class="font-headline text-5xl font-bold tracking-tight mb-8">SECURE THE <br/><span class="text-on-tertiary-container">RAREST ASSETS</span></h2>
+<p class="text-on-surface-variant text-lg leading-relaxed mb-10">Our global infrastructure ensures that every transaction is encrypted through a 256-bit protocol, delivering your digital goods within seconds of confirmation.</p>
+<div class="space-y-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center border border-primary-container/20">
+<span class="material-symbols-outlined text-primary-container">speed</span>
+</div>
+<div>
+<h4 class="font-headline text-sm font-bold uppercase tracking-widest">Ultra Fast Delivery</h4>
+<p class="text-xs text-slate-500">Average delivery time: 14 seconds</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary-container/10 flex items-center justify-center border border-secondary-container/20">
+<span class="material-symbols-outlined text-secondary-container">security</span>
+</div>
+<div>
+<h4 class="font-headline text-sm font-bold uppercase tracking-widest">Vanguard Security</h4>
+<p class="text-xs text-slate-500">Military grade encryption protocols</p>
+</div>
+</div>
+</div>
+</div>
+<div class="col-span-12 lg:col-span-7 order-1 lg:order-2 flex justify-end">
+<div class="relative w-full aspect-video rounded-3xl overflow-hidden glass-panel p-1">
+<img class="w-full h-full object-cover rounded-2xl" data-alt="High-tech digital interface showing code and data visualizations in cyan and magenta on a deep obsidian screen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRQAeS2ZAoyahfL86240LJ26Ih0F4jliE9yad411iOINSt87VdX-bC4PHrU3QM1Adrs0iP357z99aoZCjSU3nFCwUWmTM_s2eT7SuL7kOi_DKdnxIM6GIOY-2X_tF4VSNlfVXvriKPLiCfXsKRvkQWvt859u-jl6ttPOLclU_DS4fM30A_DKjIq0EMg9EYY-npcbrfJe_2EYoFqxxmkHvPmM8_zgN48QvwTGRH6HlTqawlZ2Zy8GgGWkv24yDT8m5RKMpWX3x4Nd4"/>
+<div class="absolute inset-0 bg-gradient-to-tr from-primary-container/20 to-transparent pointer-events-none"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Partner Marquee -->
+<section class="w-full py-12 border-t border-b border-outline-variant/10 overflow-hidden bg-surface-container-low/30 backdrop-blur-sm">
+<div class="flex items-center gap-24 animate-marquee whitespace-nowrap px-8">
+<span class="font-headline text-2xl font-black text-slate-700 uppercase tracking-widest opacity-40 italic">RIOT GAMES</span>
+<span class="font-headline text-2xl font-black text-slate-700 uppercase tracking-widest opacity-40 italic">EPIC GAMES</span>
+<span class="font-headline text-2xl font-black text-slate-700 uppercase tracking-widest opacity-40 italic">VALVE</span>
+<span class="font-headline text-2xl font-black text-slate-700 uppercase tracking-widest opacity-40 italic">SONY INTERACTIVE</span>
+<span class="font-headline text-2xl font-black text-slate-700 uppercase tracking-widest opacity-40 italic">MICROSOFT</span>
+<span class="font-headline text-2xl font-black text-slate-700 uppercase tracking-widest opacity-40 italic">NETFLIX</span>
+<span class="font-headline text-2xl font-black text-slate-700 uppercase tracking-widest opacity-40 italic">SPOTIFY</span>
+<span class="font-headline text-2xl font-black text-slate-700 uppercase tracking-widest opacity-40 italic">UBISOFT</span>
+<span class="font-headline text-2xl font-black text-slate-700 uppercase tracking-widest opacity-40 italic">BLIZZARD</span>
+</div>
+</section>
+<!-- How It Works Section -->
+<section class="px-8 py-24 relative z-10">
+<div class="text-center mb-16">
+<h2 class="font-headline text-4xl md:text-5xl font-black tracking-tighter uppercase">HOW IT <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#fe00fe]">WORKS</span></h2>
+<div class="h-1 w-24 bg-gradient-to-r from-primary-container to-secondary-container mx-auto mt-4 rounded-full"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+<!-- Step 1 -->
+<div class="glass-panel p-10 rounded-3xl group relative overflow-hidden hover:border-[#00f0ff]/50 transition-all duration-500">
+<div class="absolute top-0 right-0 p-6 font-headline font-black text-6xl text-on-surface-variant/5">01</div>
+<div class="w-16 h-16 rounded-2xl bg-primary-container/10 flex items-center justify-center mb-8 border border-primary-container/30 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-4xl text-primary-container shadow-[0_0_15px_rgba(0,240,255,0.5)]">search_insights</span>
+</div>
+<h3 class="font-headline text-xl font-bold tracking-wider uppercase mb-4 text-on-surface group-hover:text-primary-container transition-colors">Browse &amp; Select</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">Find your favorite game or digital service from our massive collection of premium assets and vaults.</p>
+</div>
+<!-- Step 2 -->
+<div class="glass-panel p-10 rounded-3xl group relative overflow-hidden hover:border-[#fe00fe]/50 transition-all duration-500">
+<div class="absolute top-0 right-0 p-6 font-headline font-black text-6xl text-on-surface-variant/5">02</div>
+<div class="w-16 h-16 rounded-2xl bg-secondary-container/10 flex items-center justify-center mb-8 border border-secondary-container/30 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-4xl text-secondary-container shadow-[0_0_15px_rgba(254,0,254,0.5)]">bolt</span>
+</div>
+<h3 class="font-headline text-xl font-bold tracking-wider uppercase mb-4 text-on-surface group-hover:text-secondary-container transition-colors">Instant Top-up</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">Enter your player ID or email and choose your desired amount. Secure checkout via encrypted gateway.</p>
+</div>
+<!-- Step 3 -->
+<div class="glass-panel p-10 rounded-3xl group relative overflow-hidden hover:border-[#00f0ff]/50 transition-all duration-500">
+<div class="absolute top-0 right-0 p-6 font-headline font-black text-6xl text-on-surface-variant/5">03</div>
+<div class="w-16 h-16 rounded-2xl bg-primary-container/10 flex items-center justify-center mb-8 border border-primary-container/30 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-4xl text-primary-container shadow-[0_0_15px_rgba(0,240,255,0.5)]">videogame_asset</span>
+</div>
+<h3 class="font-headline text-xl font-bold tracking-wider uppercase mb-4 text-on-surface group-hover:text-primary-container transition-colors">Game On</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">Receive your credits instantly and securely. Our automated system handles the rest within seconds.</p>
+</div>
+</div>
+</section>
+<!-- FAQ Section -->
+<section class="px-8 py-24 bg-surface-container-lowest/30 relative z-10">
+<div class="max-w-4xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="font-headline text-4xl font-black tracking-tighter uppercase">COMMON <span class="text-primary-container">QUERIES</span></h2>
+</div>
+<div class="space-y-4">
+<details class="group bg-surface-container/40 rounded-2xl border border-outline-variant/10 overflow-hidden">
+<summary class="flex justify-between items-center p-6 cursor-pointer hover:bg-surface-container-high transition-colors">
+<span class="font-headline font-bold text-sm md:text-base uppercase tracking-widest text-on-surface">How fast is the delivery?</span>
+<span class="material-symbols-outlined expand-icon transition-transform duration-300 text-primary-container">expand_more</span>
+</summary>
+<div class="px-6 pb-6 pt-2">
+<p class="text-on-surface-variant text-sm leading-relaxed">Instant! Most orders are processed in under 60 seconds. Our direct-link APIs ensure your assets reach your account as soon as the payment is confirmed.</p>
+</div>
+</details>
+<details class="group bg-surface-container/40 rounded-2xl border border-outline-variant/10 overflow-hidden">
+<summary class="flex justify-between items-center p-6 cursor-pointer hover:bg-surface-container-high transition-colors">
+<span class="font-headline font-bold text-sm md:text-base uppercase tracking-widest text-on-surface">Is my payment secure?</span>
+<span class="material-symbols-outlined expand-icon transition-transform duration-300 text-primary-container">expand_more</span>
+</summary>
+<div class="px-6 pb-6 pt-2">
+<p class="text-on-surface-variant text-sm leading-relaxed">Absolutely. We use 256-bit AES encryption for all transactions. We partner with world-class payment processors and never store your sensitive financial information on our servers.</p>
+</div>
+</details>
+<details class="group bg-surface-container/40 rounded-2xl border border-outline-variant/10 overflow-hidden">
+<summary class="flex justify-between items-center p-6 cursor-pointer hover:bg-surface-container-high transition-colors">
+<span class="font-headline font-bold text-sm md:text-base uppercase tracking-widest text-on-surface">Which regions do you support?</span>
+<span class="material-symbols-outlined expand-icon transition-transform duration-300 text-primary-container">expand_more</span>
+</summary>
+<div class="px-6 pb-6 pt-2">
+<p class="text-on-surface-variant text-sm leading-relaxed">We offer global support for most major games and streaming services. While some assets are region-locked by the provider, we clearly label each product with its supported region (Global, NA, EU, SEA, etc.).</p>
+</div>
+</details>
+</div>
+</div>
+</section>
+</main>
+<!-- Expanded Footer -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant/20 pt-20 pb-10 relative overflow-hidden">
+<!-- Floating Back to Top FAB -->
+<button class="fixed bottom-8 right-8 z-50 w-12 h-12 bg-primary-container text-on-primary-container rounded-full shadow-[0_0_20px_rgba(0,240,255,0.4)] flex items-center justify-center hover:scale-110 transition-transform group" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+<span class="material-symbols-outlined font-bold">arrow_upward</span>
+</button>
+<div class="max-w-[1440px] mx-auto px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
+<div class="lg:col-span-2">
+<div class="text-[#00f0ff] font-headline font-black text-3xl tracking-tighter mb-6 italic">KINETIC NOIR</div>
+<p class="text-on-surface-variant text-sm leading-relaxed max-w-sm mb-8 font-body">
+                The premier destination for high-fidelity digital assets, game currencies, and premium software vaults. Empowering the digital generation with secure, instant transactions.
+            </p>
+<div class="flex gap-4">
+<a class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface-variant hover:text-primary-container hover:border-primary-container transition-all" href="#">
+<span class="material-symbols-outlined text-xl">share</span>
+</a>
+<a class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface-variant hover:text-secondary-container hover:border-secondary-container transition-all" href="#">
+<span class="material-symbols-outlined text-xl">forum</span>
+</a>
+<a class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface-variant hover:text-primary-container hover:border-primary-container transition-all" href="#">
+<span class="material-symbols-outlined text-xl">public</span>
+</a>
+</div>
+</div>
+<div>
+<h4 class="font-headline font-bold text-sm tracking-widest uppercase mb-6 text-on-surface border-b border-primary-container/20 pb-2 inline-block">Platform</h4>
+<ul class="space-y-4 font-label text-xs uppercase tracking-widest text-on-surface-variant">
+<li><a class="hover:text-primary-container transition-colors" href="#">Store</a></li>
+<li><a class="hover:text-primary-container transition-colors" href="#">How it works</a></li>
+<li><a class="hover:text-primary-container transition-colors" href="#">Affiliate Program</a></li>
+<li><a class="hover:text-primary-container transition-colors" href="#">Drops &amp; Events</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-headline font-bold text-sm tracking-widest uppercase mb-6 text-on-surface border-b border-secondary-container/20 pb-2 inline-block">Support</h4>
+<ul class="space-y-4 font-label text-xs uppercase tracking-widest text-on-surface-variant">
+<li><a class="hover:text-secondary-container transition-colors" href="#">Help Center</a></li>
+<li><a class="hover:text-secondary-container transition-colors" href="#">Refund Policy</a></li>
+<li><a class="hover:text-secondary-container transition-colors" href="#">Discord Server</a></li>
+<li><a class="hover:text-secondary-container transition-colors" href="#">Contact Agent</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-headline font-bold text-sm tracking-widest uppercase mb-6 text-on-surface border-b border-primary-container/20 pb-2 inline-block">Legal</h4>
+<ul class="space-y-4 font-label text-xs uppercase tracking-widest text-on-surface-variant">
+<li><a class="hover:text-primary-container transition-colors" href="#">Privacy Protocol</a></li>
+<li><a class="hover:text-primary-container transition-colors" href="#">Terms of Service</a></li>
+<li><a class="hover:text-primary-container transition-colors" href="#">Partner License</a></li>
+<li><a class="hover:text-primary-container transition-colors" href="#">API Governance</a></li>
+</ul>
+</div>
+</div>
+<div class="max-w-[1440px] mx-auto px-8 mt-20 pt-8 border-t border-outline-variant/10 flex flex-col md:flex-row justify-between items-center gap-6">
+<p class="font-headline text-[10px] tracking-[0.3em] text-on-surface-variant uppercase">© 2024 KINETIC NOIR. HIGH-FIDELITY DIGITAL ASSETS. ALL RIGHTS RESERVED.</p>
+<div class="flex gap-8">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="font-headline text-[10px] tracking-widest uppercase text-on-surface-variant">Systems Operational</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">language</span>
+<span class="font-headline text-[10px] tracking-widest uppercase text-on-surface-variant">EN / USD</span>
+</div>
+</div>
+</div>
+</footer>
+</body></html>

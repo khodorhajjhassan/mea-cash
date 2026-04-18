@@ -9,15 +9,22 @@ use Symfony\Component\HttpFoundation\Response;
 class SetLocale
 {
     /**
-     * Handle locale switching via ?lang= query parameter or session.
+     * Handle locale switching via /en, /ar, ?lang=, user preference, or session.
      * Stores the chosen locale in the session for persistence.
      */
     public function handle(Request $request, Closure $next): Response
     {
         $supported = ['en', 'ar'];
 
-        // Check query param first
-        if ($request->has('lang') && in_array($request->query('lang'), $supported, true)) {
+        $pathLocale = $request->route('locale');
+
+        if (in_array($pathLocale, $supported, true)) {
+            $locale = $pathLocale;
+            session(['locale' => $locale]);
+            app()->setLocale($locale);
+        }
+        // Check query param next
+        elseif ($request->has('lang') && in_array($request->query('lang'), $supported, true)) {
             $locale = $request->query('lang');
             session(['locale' => $locale]);
             app()->setLocale($locale);

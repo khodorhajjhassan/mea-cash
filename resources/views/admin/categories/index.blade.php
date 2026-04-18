@@ -36,6 +36,7 @@
             <tr><th width="40"></th><th>ID</th><th>Image</th><th>Name</th><th>Slug</th><th>Status</th><th>Actions</th></tr>
             </thead>
             <tbody>
+            @forelse($categories as $category)
                 <tr data-id="{{ $category->id }}">
                     <td class="drag-handle cursor-move text-slate-400">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>
@@ -43,7 +44,7 @@
                     <td>#{{ $category->id }}</td>
                     <td>
                         @if($category->image)
-                            <img src="{{ \Illuminate\Support\Facades\Storage::disk($disk)->url($category->image) }}" alt="{{ $category->name_en }}" class="h-10 w-10 rounded-lg object-cover">
+                            <img src="{{ str_starts_with($category->image, 'http') ? $category->image : \Illuminate\Support\Facades\Storage::disk($disk)->url($category->image) }}" alt="{{ $category->name_en }}" class="h-10 w-10 rounded-lg object-cover">
                         @else
                             <span class="text-xs text-slate-400">No image</span>
                         @endif

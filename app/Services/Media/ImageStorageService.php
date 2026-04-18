@@ -87,6 +87,10 @@ class ImageStorageService
             return;
         }
 
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return;
+        }
+
         $disk = config('media.disk', config('filesystems.default'));
         Storage::disk($disk)->delete($path);
     }
@@ -95,6 +99,10 @@ class ImageStorageService
     {
         if ($path === null || $path === '') {
             return null;
+        }
+
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return $path;
         }
 
         $disk = config('media.disk', config('filesystems.default'));

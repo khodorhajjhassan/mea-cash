@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\Web\ContactController;
 use App\Http\Controllers\Admin\Web\DashboardController;
 use App\Http\Controllers\Admin\Web\FeedbackController;
 use App\Http\Controllers\Admin\Web\OrderController;
+use App\Http\Controllers\Admin\Web\HomepageSectionController;
 use App\Http\Controllers\Admin\Web\PaymentMethodController;
 use App\Http\Controllers\Admin\Web\ProductController;
 use App\Http\Controllers\Admin\Web\ProductPackageController;
@@ -34,6 +35,15 @@ use App\Http\Controllers\Storefront\CheckoutController;
 use App\Http\Controllers\Storefront\CustomerDashboardController;
 use App\Http\Controllers\Storefront\CustomerAuthController;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Language Switching Routes
+|--------------------------------------------------------------------------
+*/
+Route::get('/{locale}', [StorefrontController::class, 'index'])
+    ->whereIn('locale', ['en', 'ar'])
+    ->name('store.home.locale');
 
 /*
 |--------------------------------------------------------------------------
@@ -118,7 +128,12 @@ Route::prefix('admin')
             Route::post('users/{user}/credit', [UserController::class, 'credit'])->middleware('permission:users.credit-wallet')->name('users.credit');
             Route::resource('users', UserController::class)->middleware('permission:users.index');
 
-            Route::resource('payment-methods', PaymentMethodController::class)->middleware('permission:payment-methods.index');
+            Route::post('payment-methods/{paymentMethod}/toggle', [PaymentMethodController::class, 'toggle'])
+                ->middleware('permission:payment-methods.index')
+                ->name('payment-methods.toggle');
+            Route::resource('payment-methods', PaymentMethodController::class)
+                ->only(['index', 'update'])
+                ->middleware('permission:payment-methods.index');
             Route::resource('suppliers', SupplierController::class)->middleware('permission:suppliers.index');
             Route::resource('analytics', AnalyticsController::class)->middleware('permission:analytics.index');
             Route::resource('contact', ContactController::class)->middleware('permission:contact.index');
@@ -148,6 +163,9 @@ Route::prefix('admin')
             Route::post('products/{product}/fields', [ProductController::class, 'storeField'])->middleware('permission:products.edit')->name('products.fields.store');
             Route::resource('banners', BannerController::class)->middleware('permission:categories.index');
             Route::resource('faqs', FaqController::class)->middleware('permission:categories.index');
+            Route::resource('homepage-sections', HomepageSectionController::class)
+                ->except(['show'])
+                ->middleware('permission:categories.index');
 
             Route::post('categories/reorder', [CategoryController::class, 'reorder'])->middleware('permission:categories.index')->name('categories.reorder');
             Route::post('products/reorder', [ProductController::class, 'reorder'])->middleware('permission:products.index')->name('products.reorder');

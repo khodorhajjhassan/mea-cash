@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#00dbe9",
+                        "secondary-fixed-dim": "#ffabf3",
+                        "on-tertiary-container": "#7213ff",
+                        "on-background": "#e2e2eb",
+                        "on-secondary": "#5b005b",
+                        "background": "#111319",
+                        "tertiary-fixed-dim": "#d1bcff",
+                        "on-error-container": "#ffdad6",
+                        "outline": "#849495",
+                        "tertiary": "#faf3ff",
+                        "on-tertiary-fixed": "#23005b",
+                        "surface-bright": "#373940",
+                        "on-secondary-container": "#500050",
+                        "on-primary-fixed-variant": "#004f54",
+                        "inverse-on-surface": "#2e3037",
+                        "surface-container-lowest": "#0c0e14",
+                        "primary": "#dbfcff",
+                        "tertiary-fixed": "#e9ddff",
+                        "primary-container": "#00f0ff",
+                        "tertiary-container": "#e1d2ff",
+                        "surface-dim": "#111319",
+                        "error": "#ffb4ab",
+                        "surface-container": "#1e1f26",
+                        "secondary-container": "#fe00fe",
+                        "surface-container-highest": "#33343b",
+                        "surface-variant": "#33343b",
+                        "surface-tint": "#00dbe9",
+                        "outline-variant": "#3b494b",
+                        "on-primary-fixed": "#002022",
+                        "on-tertiary-fixed-variant": "#5700c9",
+                        "inverse-surface": "#e2e2eb",
+                        "on-secondary-fixed": "#380038",
+                        "on-error": "#690005",
+                        "surface": "#111319",
+                        "secondary": "#ffabf3",
+                        "on-tertiary": "#3c0090",
+                        "surface-container-low": "#191b22",
+                        "on-surface-variant": "#b9cacb",
+                        "surface-container-high": "#282a30",
+                        "error-container": "#93000a",
+                        "secondary-fixed": "#ffd7f5",
+                        "on-primary": "#00363a",
+                        "inverse-primary": "#006970",
+                        "on-primary-container": "#006970",
+                        "on-surface": "#e2e2eb",
+                        "primary-fixed": "#7df4ff",
+                        "on-secondary-fixed-variant": "#810081"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(51, 52, 59, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 73, 75, 0.15);
+        }
+        .light-leak-magenta {
+            background: radial-gradient(circle, rgba(254, 0, 254, 0.08) 0%, rgba(17, 19, 25, 0) 70%);
+        }
+        .light-leak-cyan {
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.08) 0%, rgba(17, 19, 25, 0) 70%);
+        }
+        .text-glow-primary {
+            text-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body min-h-screen selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Navigation Anchor (Persistent and Updated) -->
+<header class="bg-[#111319]/60 backdrop-blur-xl border-b border-[#3b494b]/15 fixed top-0 w-full z-50 h-20 flex justify-between items-center px-8 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+<div class="flex items-center">
+<span class="text-2xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#fe00fe] uppercase">KINETIC NOIR</span>
+</div>
+<div class="flex items-center space-x-10">
+<nav class="hidden lg:flex items-center space-x-8">
+<a class="flex items-center space-x-2 text-[#00f0ff] font-headline uppercase tracking-widest text-xs font-bold border-b-2 border-[#00f0ff] pb-1" href="#">
+<span class="material-symbols-outlined text-sm">receipt_long</span>
+<span>Orders</span>
+</a>
+<a class="flex items-center space-x-2 text-slate-400 font-headline uppercase tracking-widest text-xs hover:text-[#fe00fe] transition-all" href="#">
+<span class="material-symbols-outlined text-sm">account_balance_wallet</span>
+<span>Wallet</span>
+</a>
+<a class="flex items-center space-x-2 text-slate-400 font-headline uppercase tracking-widest text-xs hover:text-[#fe00fe] transition-all" href="#">
+<span class="material-symbols-outlined text-sm">storefront</span>
+<span>Shop</span>
+</a>
+<a class="flex items-center space-x-2 text-slate-400 font-headline uppercase tracking-widest text-xs hover:text-[#fe00fe] transition-all" href="#">
+<span class="material-symbols-outlined text-sm">explore</span>
+<span>Explore</span>
+</a>
+</nav>
+<div class="h-8 w-[1px] bg-[#3b494b]/30"></div>
+<div class="flex items-center space-x-4">
+<button class="text-[#00f0ff] hover:scale-110 active:opacity-80 transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="flex items-center space-x-2 text-[#00f0ff] hover:opacity-80 transition-all">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="font-headline text-[10px] tracking-widest font-bold uppercase hidden md:inline">Account</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Canvas (Expanded width) -->
+<main class="relative pt-20">
+<!-- Background Light Leaks -->
+<div class="fixed top-20 right-0 w-[500px] h-[500px] light-leak-magenta -z-10 pointer-events-none"></div>
+<div class="fixed bottom-0 left-0 w-[400px] h-[400px] light-leak-cyan -z-10 pointer-events-none"></div>
+<div class="max-w-7xl mx-auto px-6 md:px-12 py-12">
+<!-- Hero Header Section -->
+<div class="mb-16">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+<div>
+<h1 class="font-headline text-5xl font-extrabold tracking-tighter uppercase mb-2">My <span class="text-on-tertiary-container">Wallet</span></h1>
+<p class="font-body text-on-surface-variant max-w-md">Manage your digital assets and view granular transaction logs with high-fidelity security protocols.</p>
+</div>
+<div class="glass-panel p-8 rounded-xl border-l-4 border-primary-container min-w-[320px]">
+<p class="font-headline text-[10px] tracking-[0.2em] text-slate-500 uppercase mb-2">Current Balance</p>
+<div class="flex items-baseline space-x-3">
+<span class="font-headline text-5xl font-black text-primary-container text-glow-primary">$2,450.00</span>
+<span class="font-headline text-xs text-on-surface-variant font-bold">USD</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-12 gap-10">
+<!-- Left: Top Up Form -->
+<div class="col-span-12 lg:col-span-4 space-y-10">
+<div class="glass-panel p-8 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-8xl">add_card</span>
+</div>
+<h3 class="font-headline text-lg font-bold uppercase tracking-wider mb-8 flex items-center">
+<span class="w-1 h-6 bg-secondary-container mr-3"></span>
+                        Top Up Wallet
+                    </h3>
+<form class="space-y-6">
+<div>
+<label class="font-headline text-[10px] tracking-widest text-slate-400 uppercase mb-2 block">Payment Method</label>
+<select class="w-full bg-surface-container-lowest border-none rounded-lg text-on-surface py-4 px-4 font-body focus:ring-2 focus:ring-primary-container transition-all appearance-none cursor-pointer">
+<option>Electronic Wire Transfer</option>
+<option>Crypto Payment (USDT)</option>
+<option>Credit/Debit Card</option>
+</select>
+</div>
+<div>
+<label class="font-headline text-[10px] tracking-widest text-slate-400 uppercase mb-2 block">Amount (USD)</label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border-none rounded-lg text-on-surface py-4 px-4 pl-12 font-body focus:ring-2 focus:ring-primary-container transition-all" placeholder="0.00" type="number"/>
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-primary-container font-bold">$</span>
+</div>
+</div>
+<div>
+<label class="font-headline text-[10px] tracking-widest text-slate-400 uppercase mb-2 block">Receipt Image</label>
+<div class="border-2 border-dashed border-outline-variant/30 rounded-xl p-8 text-center hover:border-secondary-container/50 transition-colors cursor-pointer group bg-surface-container-low/50">
+<span class="material-symbols-outlined text-slate-500 mb-2 group-hover:text-secondary-container transition-colors">cloud_upload</span>
+<p class="font-label text-[10px] tracking-wider text-slate-500 uppercase">Click or Drag to Upload</p>
+</div>
+</div>
+<button class="w-full bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim text-on-primary-fixed font-headline font-bold py-5 rounded-xl uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(0,240,255,0.2)] hover:shadow-[0_0_30px_rgba(254,0,254,0.3)] transition-all" type="submit">
+                            Initialize Deposit
+                        </button>
+</form>
+</div>
+<div class="glass-panel p-8 rounded-xl">
+<div class="flex items-center space-x-4 mb-6">
+<div class="w-12 h-12 rounded-full bg-on-tertiary-container/20 flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined">verified_user</span>
+</div>
+<div>
+<p class="font-headline text-xs font-bold uppercase">Security Protocol</p>
+<p class="text-[10px] text-slate-500 uppercase tracking-widest">Active Level: Maximum</p>
+</div>
+</div>
+<p class="font-body text-xs text-on-surface-variant leading-relaxed">
+                        All transactions are encrypted using AES-256 standards. Our Kinetic Noir ledger ensures real-time validation of every asset movement.
+                    </p>
+</div>
+</div>
+<!-- Right: Transaction History -->
+<div class="col-span-12 lg:col-span-8">
+<div class="glass-panel rounded-xl overflow-hidden">
+<div class="p-8 flex justify-between items-center border-b border-outline-variant/10">
+<h3 class="font-headline text-lg font-bold uppercase tracking-wider flex items-center">
+<span class="w-1 h-6 bg-primary-container mr-3"></span>
+                            Transaction History
+                        </h3>
+<button class="text-[10px] font-headline font-bold text-[#fe00fe] tracking-widest uppercase hover:underline">Download Report</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low/50">
+<tr>
+<th class="px-8 py-5 font-headline text-[10px] tracking-widest text-slate-500 uppercase">Date &amp; ID</th>
+<th class="px-8 py-5 font-headline text-[10px] tracking-widest text-slate-500 uppercase">Item/Service</th>
+<th class="px-8 py-5 font-headline text-[10px] tracking-widest text-slate-500 uppercase">Amount</th>
+<th class="px-8 py-5 font-headline text-[10px] tracking-widest text-slate-500 uppercase">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="px-8 py-6">
+<div class="font-headline text-sm font-bold text-on-surface">Oct 24, 2024</div>
+<div class="font-headline text-[9px] tracking-widest text-slate-500 uppercase">#KN-92834-X</div>
+</td>
+<td class="px-8 py-6">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-sm text-primary-container">shopping_cart</span>
+</div>
+<span class="font-body text-sm font-medium">Premium Asset Pack v.2</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<span class="font-headline text-sm font-bold text-on-surface">-$120.00</span>
+</td>
+<td class="px-8 py-6">
+<span class="px-3 py-1 rounded-full bg-primary-container/10 text-primary-container font-headline text-[9px] font-bold uppercase tracking-widest border border-primary-container/20">Completed</span>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="bg-surface-container-low/20 hover:bg-surface-container-high/40 transition-colors">
+<td class="px-8 py-6">
+<div class="font-headline text-sm font-bold text-on-surface">Oct 22, 2024</div>
+<div class="font-headline text-[9px] tracking-widest text-slate-500 uppercase">#KN-91045-A</div>
+</td>
+<td class="px-8 py-6">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-sm text-secondary-container">account_balance</span>
+</div>
+<span class="font-body text-sm font-medium">Wallet Deposit</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<span class="font-headline text-sm font-bold text-primary-container">+$500.00</span>
+</td>
+<td class="px-8 py-6">
+<span class="px-3 py-1 rounded-full bg-primary-container/10 text-primary-container font-headline text-[9px] font-bold uppercase tracking-widest border border-primary-container/20">Completed</span>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="px-8 py-6">
+<div class="font-headline text-sm font-bold text-on-surface">Oct 20, 2024</div>
+<div class="font-headline text-[9px] tracking-widest text-slate-500 uppercase">#KN-88219-L</div>
+</td>
+<td class="px-8 py-6">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-sm text-on-tertiary-container">extension</span>
+</div>
+<span class="font-body text-sm font-medium">API Subscription (Annual)</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<span class="font-headline text-sm font-bold text-on-surface">-$1,200.00</span>
+</td>
+<td class="px-8 py-6">
+<span class="px-3 py-1 rounded-full bg-secondary-container/10 text-secondary-container font-headline text-[9px] font-bold uppercase tracking-widest border border-secondary-container/20">Pending</span>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="bg-surface-container-low/20 hover:bg-surface-container-high/40 transition-colors">
+<td class="px-8 py-6">
+<div class="font-headline text-sm font-bold text-on-surface">Oct 18, 2024</div>
+<div class="font-headline text-[9px] tracking-widest text-slate-500 uppercase">#KN-87554-C</div>
+</td>
+<td class="px-8 py-6">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-sm text-primary-container">dns</span>
+</div>
+<span class="font-body text-sm font-medium">Server Allocation</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<span class="font-headline text-sm font-bold text-on-surface">-$45.00</span>
+</td>
+<td class="px-8 py-6">
+<span class="px-3 py-1 rounded-full bg-primary-container/10 text-primary-container font-headline text-[9px] font-bold uppercase tracking-widest border border-primary-container/20">Completed</span>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="px-8 py-6">
+<div class="font-headline text-sm font-bold text-on-surface">Oct 15, 2024</div>
+<div class="font-headline text-[9px] tracking-widest text-slate-500 uppercase">#KN-82103-W</div>
+</td>
+<td class="px-8 py-6">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-sm text-secondary-container">shield</span>
+</div>
+<span class="font-body text-sm font-medium">Domain Protection</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<span class="font-headline text-sm font-bold text-on-surface">-$25.00</span>
+</td>
+<td class="px-8 py-6">
+<span class="px-3 py-1 rounded-full bg-primary-container/10 text-primary-container font-headline text-[9px] font-bold uppercase tracking-widest border border-primary-container/20">Completed</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-6 bg-surface-container-low/30 flex justify-center">
+<nav class="flex space-x-2">
+<button class="w-8 h-8 rounded flex items-center justify-center border border-outline-variant/20 hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center bg-primary-container text-on-primary-fixed font-headline text-xs font-bold">1</button>
+<button class="w-8 h-8 rounded flex items-center justify-center border border-outline-variant/20 hover:bg-surface-container-highest transition-colors font-headline text-xs">2</button>
+<button class="w-8 h-8 rounded flex items-center justify-center border border-outline-variant/20 hover:bg-surface-container-highest transition-colors font-headline text-xs">3</button>
+<button class="w-8 h-8 rounded flex items-center justify-center border border-outline-variant/20 hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</nav>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Shell -->
+<footer class="w-full py-12 mt-20 border-t border-[#3b494b]/10 bg-[#0c0e14] flex flex-col items-center justify-center space-y-6 px-4">
+<div class="flex flex-col items-center space-y-2">
+<span class="text-[#00f0ff] font-bold font-headline uppercase tracking-widest text-lg">KINETIC NOIR</span>
+<p class="font-headline text-[10px] tracking-widest text-slate-600 uppercase">© 2024 KINETIC NOIR. HIGH-FIDELITY DIGITAL ASSETS.</p>
+</div>
+<div class="flex space-x-8">
+<a class="font-headline text-[10px] tracking-widest text-slate-600 hover:text-[#00f0ff] transition-colors uppercase" href="#">Terms of Service</a>
+<a class="font-headline text-[10px] tracking-widest text-slate-600 hover:text-[#00f0ff] transition-colors uppercase" href="#">Privacy Protocol</a>
+<a class="font-headline text-[10px] tracking-widest text-slate-600 hover:text-[#00f0ff] transition-colors uppercase" href="#">Support Center</a>
+<a class="font-headline text-[10px] tracking-widest text-slate-600 hover:text-[#00f0ff] transition-colors uppercase" href="#">API Docs</a>
+</div>
+</footer>
+</main>
+</body></html>

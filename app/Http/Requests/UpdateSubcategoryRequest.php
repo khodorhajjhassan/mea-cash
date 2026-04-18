@@ -23,6 +23,8 @@ class UpdateSubcategoryRequest extends FormRequest
             'product_type_id' => ['nullable', 'integer', 'exists:product_types,id'],
             'name_ar' => ['sometimes', 'string', 'max:255'],
             'name_en' => ['sometimes', 'string', 'max:255'],
+            'description_ar' => ['nullable', 'string'],
+            'description_en' => ['nullable', 'string'],
             'slug' => ['sometimes', 'string', 'max:255', Rule::unique('subcategories', 'slug')->ignore($subcategory->id)],
             'image' => ['nullable', 'image', 'max:5120'],
             'is_active' => ['sometimes', 'boolean'],

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AdminSetting;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 class SettingsService
 {
@@ -17,6 +18,10 @@ class SettingsService
     public function get(string $key, mixed $default = null): mixed
     {
         return Cache::rememberForever("setting:{$key}", function () use ($key, $default) {
+            if (! Schema::hasTable('admin_settings')) {
+                return $default;
+            }
+
             return AdminSetting::query()->where('key', $key)->value('value') ?? $default;
         });
     }
@@ -38,6 +43,10 @@ class SettingsService
     public function getAllCached(): array
     {
         return Cache::rememberForever('settings:all', function () {
+            if (! Schema::hasTable('admin_settings')) {
+                return [];
+            }
+
             return AdminSetting::all()->pluck('value', 'key')->toArray();
         });
     }

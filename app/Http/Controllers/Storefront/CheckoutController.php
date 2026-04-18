@@ -29,7 +29,7 @@ class CheckoutController extends Controller
         $items = $this->cartService->get();
 
         if (empty($items)) {
-            return redirect()->route('store.cart')->with('error', __('storefront.checkout.empty_cart'));
+            return redirect()->route('store.home')->with('error', __('storefront.checkout.empty_cart'));
         }
 
         $user = auth()->user();
@@ -52,7 +52,7 @@ class CheckoutController extends Controller
         $items = $this->cartService->get();
 
         if (empty($items)) {
-            return redirect()->route('store.cart')->with('error', __('storefront.checkout.empty_cart'));
+            return redirect()->route('store.home')->with('error', __('storefront.checkout.empty_cart'));
         }
 
         $user = auth()->user();

@@ -8,23 +8,39 @@ use App\Models\Product;
 use App\Models\Subcategory;
 use App\Models\Banner;
 use App\Models\Faq;
+use App\Services\HomepageSectionService;
 use App\Services\SeoService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
  
 class StorefrontController extends Controller
 {
     public function __construct(
         private readonly SeoService $seoService,
+        private readonly HomepageSectionService $homepageSections,
     ) {}
  
     /**
      * Homepage: hero, featured categories, hot deals, product grid.
      */
-    public function index(Request $request)
+    public function index(Request $request, ?string $locale = null)
     {
+        if (! Schema::hasTable('categories') || ! Schema::hasTable('subcategories') || ! Schema::hasTable('products')) {
+            return view('storefront.home', [
+                'categories' => collect(),
+                'featuredSubcategories' => collect(),
+                'products' => new LengthAwarePaginator([], 0, 12),
+                'banners' => collect(),
+                'faqs' => collect(),
+                'homepageSections' => collect(),
+                'seo' => $this->seoService->forPage('MeaCash'),
+            ]);
+        }
+
         $categories = Category::query()
             ->where('is_active', true)
             ->orderBy('sort_order')
@@ -33,13 +49,21 @@ class StorefrontController extends Controller
         $featuredSubcategories = Subcategory::query()
             ->where('is_active', true)
             ->where('is_featured', true)
+            ->whereHas('products', fn ($query) => $query->where('is_active', true))
             ->orderBy('sort_order')
             ->limit(10)
             ->get();
  
         $subcategoriesQuery = Subcategory::query()
             ->where('is_active', true)
-            ->with(['category', 'products.packages'])
+            ->whereHas('products', fn ($query) => $query->where('is_active', true))
+            ->with([
+                'category',
+                'products' => fn ($query) => $query->where('is_active', true)
+                    ->with(['packages' => fn ($packageQuery) => $packageQuery->where('is_available', true)->orderBy('sort_order')])
+                    ->orderByDesc('is_featured')
+                    ->orderBy('sort_order'),
+            ])
             ->orderByDesc('is_featured')
             ->orderBy('sort_order');
  
@@ -48,7 +72,7 @@ class StorefrontController extends Controller
             $subSlug = $request->input('subcategory');
             $subcategory = Subcategory::where('slug', $subSlug)->first();
             if ($subcategory) {
-                $productsQuery->where('subcategory_id', $subcategory->id);
+                $subcategoriesQuery->where('id', $subcategory->id);
             }
         }
 
@@ -58,7 +82,7 @@ class StorefrontController extends Controller
             $category = Category::where('slug', $catSlug)->first();
             if ($category) {
                 $subcategoryIds = Subcategory::where('category_id', $category->id)->pluck('id');
-                $productsQuery->whereIn('subcategory_id', $subcategoryIds);
+                $subcategoriesQuery->whereIn('id', $subcategoryIds);
             }
         }
  
@@ -77,7 +101,7 @@ class StorefrontController extends Controller
             });
         }
  
-        $products = $subcategoriesQuery->paginate(12); // Keeping variable name 'products' for blade compatibility if needed, but it's subs now
+        $products = $subcategoriesQuery->paginate(24); // Keeping variable name 'products' for blade compatibility if needed, but it's subs now
  
         if ($request->ajax()) {
             return view('storefront.partials.product-grid-items', compact('products'))->render();
@@ -94,6 +118,7 @@ class StorefrontController extends Controller
             ->get();
  
         $seo = $this->seoService->forPage('MeaCash');
+        $homepageSections = $this->homepageSections->activeSections();
  
         return view('storefront.home', compact(
             'categories',
@@ -101,6 +126,7 @@ class StorefrontController extends Controller
             'products',
             'banners',
             'faqs',
+            'homepageSections',
             'seo',
         ));
     }
@@ -163,7 +189,7 @@ class StorefrontController extends Controller
             return response()->json([
                 'results' => $products->map(fn (Product $product) => [
                     'id' => $product->id,
-                    'slug' => $product->slug,
+                    'slug' => $product->subcategory?->slug ?? $product->slug,
                     'name' => $product->{"name_{$locale}"} ?? $product->name_en,
                     'category_name' => $product->subcategory?->category?->{"name_{$locale}"} ?? 'Uncategorized',
                     'image' => $product->image ? (str_starts_with($product->image, 'http') ? $product->image : Storage::url($product->image)) : null,
@@ -214,14 +240,21 @@ class StorefrontController extends Controller
             ->where('is_active', true)
             ->with([
                 'category',
-                'products' => fn($q) => $q->where('is_active', true)->with(['packages' => fn($pq) => $pq->where('is_available', true)->orderBy('sort_order')]),
+                'products' => fn($q) => $q->where('is_active', true)
+                    ->with(['packages' => fn($pq) => $pq->where('is_available', true)->orderBy('sort_order')])
+                    ->orderByDesc('is_featured')
+                    ->orderBy('sort_order'),
             ])
             ->firstOrFail();
 
         return response()->json([
             'id' => $subcategory->id,
             'name' => $subcategory->{"name_{$locale}"},
+            'name_en' => $subcategory->name_en,
+            'name_ar' => $subcategory->name_ar,
             'description' => $subcategory->{"description_{$locale}"},
+            'description_en' => $subcategory->description_en,
+            'description_ar' => $subcategory->description_ar,
             'image' => (function() use ($subcategory) {
                 if (!$subcategory->image) return null;
                 return str_starts_with($subcategory->image, 'http') ? $subcategory->image : \Illuminate\Support\Facades\Storage::url($subcategory->image);
@@ -235,7 +268,11 @@ class StorefrontController extends Controller
                 return [
                     'id' => $product->id,
                     'name' => $product->{"name_{$locale}"},
+                    'name_en' => $product->name_en,
+                    'name_ar' => $product->name_ar,
                     'description' => $product->{"description_{$locale}"},
+                    'description_en' => $product->description_en,
+                    'description_ar' => $product->description_ar,
                     'image' => (function() use ($product) {
                         if (!$product->image) return null;
                         return str_starts_with($product->image, 'http') ? $product->image : \Illuminate\Support\Facades\Storage::url($product->image);
@@ -247,6 +284,19 @@ class StorefrontController extends Controller
                     'price_per_unit' => (float) ($product->price_per_unit ?? $product->selling_price),
                     'min_quantity' => (int) ($product->min_quantity ?? 1),
                     'max_quantity' => (int) ($product->max_quantity ?? 10),
+                    'packages' => $product->packages->map(fn ($package) => [
+                        'id' => $package->id,
+                        'name' => $package->{"name_{$locale}"},
+                        'name_en' => $package->name_en,
+                        'name_ar' => $package->name_ar,
+                        'amount' => (float) $package->amount,
+                        'selling_price' => (float) $package->selling_price,
+                        'badge_text' => $package->badge_text,
+                        'image' => (function() use ($package) {
+                            if (!$package->image) return null;
+                            return str_starts_with($package->image, 'http') ? $package->image : \Illuminate\Support\Facades\Storage::url($package->image);
+                        })(),
+                    ])->values(),
                     'fields' => $groupedForms['fields'],
                     'forms' => $groupedForms['forms'],
                 ];

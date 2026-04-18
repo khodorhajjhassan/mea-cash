@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MeaCash Dashboard | Kinetic Noir</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#00dbe9",
+                    "secondary-fixed-dim": "#ffabf3",
+                    "on-tertiary-container": "#7213ff",
+                    "on-background": "#e2e2eb",
+                    "on-secondary": "#5b005b",
+                    "background": "#111319",
+                    "tertiary-fixed-dim": "#d1bcff",
+                    "on-error-container": "#ffdad6",
+                    "outline": "#849495",
+                    "tertiary": "#faf3ff",
+                    "on-tertiary-fixed": "#23005b",
+                    "surface-bright": "#373940",
+                    "on-secondary-container": "#500050",
+                    "on-primary-fixed-variant": "#004f54",
+                    "inverse-on-surface": "#2e3037",
+                    "surface-container-lowest": "#0c0e14",
+                    "primary": "#dbfcff",
+                    "tertiary-fixed": "#e9ddff",
+                    "primary-container": "#00f0ff",
+                    "tertiary-container": "#e1d2ff",
+                    "surface-dim": "#111319",
+                    "error": "#ffb4ab",
+                    "surface-container": "#1e1f26",
+                    "secondary-container": "#fe00fe",
+                    "surface-container-highest": "#33343b",
+                    "surface-variant": "#33343b",
+                    "surface-tint": "#00dbe9",
+                    "outline-variant": "#3b494b",
+                    "on-primary-fixed": "#002022",
+                    "on-tertiary-fixed-variant": "#5700c9",
+                    "inverse-surface": "#e2e2eb",
+                    "on-secondary-fixed": "#380038",
+                    "on-error": "#690005",
+                    "surface": "#111319",
+                    "secondary": "#ffabf3",
+                    "on-tertiary": "#3c0090",
+                    "surface-container-low": "#191b22",
+                    "on-surface-variant": "#b9cacb",
+                    "surface-container-high": "#282a30",
+                    "error-container": "#93000a",
+                    "secondary-fixed": "#ffd7f5",
+                    "on-primary": "#00363a",
+                    "inverse-primary": "#006970",
+                    "on-primary-container": "#006970",
+                    "on-surface": "#e2e2eb",
+                    "primary-fixed": "#7df4ff",
+                    "on-secondary-fixed-variant": "#810081"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Inter"],
+                    "label": ["Space Grotesk"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(51, 52, 59, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 73, 75, 0.15);
+        }
+        .light-leak-magenta {
+            background: radial-gradient(circle, rgba(254, 0, 254, 0.1) 0%, transparent 70%);
+        }
+        .light-leak-cyan {
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.1) 0%, transparent 70%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-secondary-container selection:text-white">
+<!-- Top Navigation -->
+<header class="bg-[#111319]/60 backdrop-blur-xl docked full-width top-0 sticky z-50 border-b border-[#3b494b]/15 shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex justify-between items-center w-full px-8 h-20">
+<div class="flex items-center gap-12">
+<div class="text-2xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#fe00fe] font-headline uppercase">
+                KINETIC NOIR
+            </div>
+<nav class="hidden lg:flex items-center space-x-1 font-label uppercase tracking-[0.15em] text-[10px] font-bold">
+<a class="px-4 py-2 text-[#00f0ff] border-b-2 border-[#00f0ff] transition-all" href="#">Home</a>
+<a class="px-4 py-2 text-slate-400 hover:text-[#fe00fe] hover:scale-105 transition-all" href="#">Wallet</a>
+<a class="px-4 py-2 text-slate-400 hover:text-[#fe00fe] hover:scale-105 transition-all" href="#">Orders</a>
+<a class="px-4 py-2 text-slate-400 hover:text-[#fe00fe] hover:scale-105 transition-all" href="#">Profile</a>
+<a class="px-4 py-2 text-slate-400 hover:text-[#fe00fe] hover:scale-105 transition-all" href="#">Shop</a>
+</nav>
+</div>
+<div class="flex items-center space-x-6 text-[#00f0ff]">
+<button class="material-symbols-outlined scale-95 active:opacity-80 transition-transform">notifications</button>
+<div class="h-8 w-px bg-[#3b494b]/30"></div>
+<button class="flex items-center gap-3 group">
+<div class="text-right hidden sm:block">
+<p class="font-label text-[10px] text-slate-400 leading-none mb-1">PREMIUM</p>
+<p class="font-headline text-[11px] font-bold tracking-widest uppercase">User_Core</p>
+</div>
+<span class="material-symbols-outlined scale-110 group-hover:text-[#fe00fe] transition-colors">account_circle</span>
+</button>
+</div>
+</header>
+<div class="flex">
+<!-- Main Content Canvas -->
+<main class="flex-1 p-8 md:px-16 lg:px-24 relative min-h-screen">
+<!-- Atmospheric Glows -->
+<div class="fixed top-1/4 right-0 w-[400px] h-[400px] light-leak-magenta pointer-events-none -z-10"></div>
+<div class="fixed bottom-0 left-1/4 w-[600px] h-[600px] light-leak-cyan pointer-events-none -z-10"></div>
+<!-- Welcome Header -->
+<section class="mb-16 mt-8">
+<h1 class="font-headline text-5xl md:text-7xl font-black uppercase tracking-tighter mb-2 leading-none">
+                    Welcome <span class="text-on-tertiary-container">back</span>, user
+                </h1>
+<p class="font-body text-slate-400 text-lg max-w-2xl">
+                    Your digital portfolio is synchronized. All systems operational within the MeaCash ecosystem.
+                </p>
+</section>
+<!-- Stats Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+<!-- Wallet Balance -->
+<div class="glass-card p-8 rounded-xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
+<div class="flex justify-between items-start mb-6">
+<span class="font-label text-xs uppercase tracking-[0.2em] text-slate-400">Wallet Balance</span>
+<span class="material-symbols-outlined text-[#00f0ff]">account_balance_wallet</span>
+</div>
+<div class="flex items-end gap-3 mb-8">
+<h3 class="font-headline text-5xl font-bold tracking-tight">$0.00</h3>
+<span class="font-label text-xs text-[#00f0ff] mb-2 uppercase tracking-widest">USD</span>
+</div>
+<button class="w-full py-3 rounded-lg font-headline font-bold text-xs tracking-widest bg-transparent border border-[#00f0ff]/30 text-[#00f0ff] uppercase hover:bg-[#00f0ff]/10 hover:border-[#00f0ff] transition-all shadow-[0_0_15px_rgba(0,240,255,0.1)]">
+                        Top Up
+                    </button>
+<div class="absolute -right-4 -bottom-4 w-24 h-24 bg-[#00f0ff]/5 blur-3xl rounded-full"></div>
+</div>
+<!-- Total Orders -->
+<div class="glass-card p-8 rounded-xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
+<div class="flex justify-between items-start mb-6">
+<span class="font-label text-xs uppercase tracking-[0.2em] text-slate-400">Total Orders</span>
+<span class="material-symbols-outlined text-[#fe00fe]">receipt_long</span>
+</div>
+<div class="flex items-end gap-3">
+<h3 class="font-headline text-5xl font-bold tracking-tight">0</h3>
+<span class="font-label text-xs text-slate-500 mb-2 uppercase tracking-widest">Completed</span>
+</div>
+<div class="mt-8 pt-8 border-t border-[#3b494b]/15">
+<div class="flex justify-between items-center text-xs font-label">
+<span class="text-slate-500 uppercase tracking-widest">Performance</span>
+<span class="text-[#fe00fe]">Stable</span>
+</div>
+</div>
+</div>
+<!-- Total Spent -->
+<div class="glass-card p-8 rounded-xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
+<div class="flex justify-between items-start mb-6">
+<span class="font-label text-xs uppercase tracking-[0.2em] text-slate-400">Total Spent</span>
+<span class="material-symbols-outlined text-on-tertiary-container">payments</span>
+</div>
+<div class="flex items-end gap-3">
+<h3 class="font-headline text-5xl font-bold tracking-tight">$0.00</h3>
+<span class="font-label text-xs text-slate-500 mb-2 uppercase tracking-widest">All Time</span>
+</div>
+<div class="mt-8 pt-8 border-t border-[#3b494b]/15">
+<div class="flex justify-between items-center text-xs font-label">
+<span class="text-slate-500 uppercase tracking-widest">Digital Assets</span>
+<span class="text-on-tertiary-container">0 items</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Quick Actions Bento -->
+<section class="mb-24">
+<div class="flex items-center justify-between mb-8">
+<h2 class="font-headline text-2xl font-bold uppercase tracking-widest">Quick Actions</h2>
+<div class="h-px flex-1 bg-gradient-to-r from-[#3b494b]/30 to-transparent ml-8"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="col-span-1 md:col-span-2 relative h-64 rounded-xl overflow-hidden group cursor-pointer glass-card">
+<img class="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-50 transition-opacity duration-700" data-alt="abstract flowing liquid metal textures with vibrant cyan and purple neon reflections and deep shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGqZ5wou0CBOvq6d1wL6ZEq6HXeG3LQSuCYN6qW547wuPsClyuR71cme0ypM2MFr1H4eU52gNqHdlAVv5XhCZM0DW7026SCbGLZ2_CGAP3_wjqC8FaDV40yKZAiaAgCKuuGkjJfwrXs4QGL9myxJ3EA12MXQwctM9KZFpOacd1Du_7NKGkoRtyXHKBQHda8jymDc6S0fgTIiPRqJFmCLJF3e9jfLDA69c9082EEEXG_--c6O_jMwKzZ9kVXi0op-PvdtidjjxvUQ8"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8">
+<h3 class="font-headline text-3xl font-black uppercase tracking-tighter mb-2">My Wallet</h3>
+<p class="font-label text-xs text-[#00f0ff] uppercase tracking-widest group-hover:translate-x-2 transition-transform">Configure digital assets →</p>
+</div>
+</div>
+<div class="relative h-64 rounded-xl overflow-hidden group cursor-pointer glass-card">
+<div class="absolute inset-0 bg-[#fe00fe]/5 group-hover:bg-[#fe00fe]/10 transition-colors"></div>
+<div class="p-8 h-full flex flex-col justify-between">
+<span class="material-symbols-outlined text-3xl text-[#fe00fe]">shopping_cart</span>
+<div>
+<h3 class="font-headline text-xl font-bold uppercase tracking-widest mb-1">My Orders</h3>
+<p class="text-[10px] font-label text-slate-500 uppercase tracking-widest">Track history</p>
+</div>
+</div>
+</div>
+<div class="relative h-64 rounded-xl overflow-hidden group cursor-pointer glass-card">
+<div class="absolute inset-0 bg-[#00f0ff]/5 group-hover:bg-[#00f0ff]/10 transition-colors"></div>
+<div class="p-8 h-full flex flex-col justify-between">
+<span class="material-symbols-outlined text-3xl text-[#00f0ff]">person_pin</span>
+<div>
+<h3 class="font-headline text-xl font-bold uppercase tracking-widest mb-1">Profile</h3>
+<p class="text-[10px] font-label text-slate-500 uppercase tracking-widest">Identity settings</p>
+</div>
+</div>
+</div>
+<div class="col-span-1 md:col-span-4 relative h-48 rounded-xl overflow-hidden group cursor-pointer glass-card border-none">
+<div class="absolute inset-0 bg-gradient-to-r from-on-tertiary-container/20 to-secondary-container/20"></div>
+<div class="absolute inset-0 flex items-center justify-between px-12">
+<div>
+<h3 class="font-headline text-4xl font-black uppercase tracking-tighter italic">Official Shop</h3>
+<p class="font-body text-slate-400 mt-2">Explore the latest high-fidelity digital releases.</p>
+</div>
+<div class="w-16 h-16 rounded-full border border-white/20 flex items-center justify-center group-hover:scale-110 group-hover:bg-white group-hover:text-black transition-all">
+<span class="material-symbols-outlined">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer Anchor -->
+<footer class="w-full py-12 mt-auto border-t border-[#3b494b]/10 flex flex-col items-center justify-center space-y-6 px-4">
+<div class="text-[#00f0ff] font-bold font-headline uppercase tracking-widest">KINETIC NOIR</div>
+<div class="flex flex-wrap justify-center gap-8">
+<a class="font-label text-[10px] tracking-widest text-slate-600 hover:text-[#00f0ff] transition-colors" href="#">Terms of Service</a>
+<a class="font-label text-[10px] tracking-widest text-slate-600 hover:text-[#00f0ff] transition-colors" href="#">Privacy Protocol</a>
+<a class="font-label text-[10px] tracking-widest text-slate-600 hover:text-[#00f0ff] transition-colors" href="#">Support Center</a>
+<a class="font-label text-[10px] tracking-widest text-slate-600 hover:text-[#00f0ff] transition-colors" href="#">API Docs</a>
+</div>
+<p class="font-label text-[10px] tracking-widest text-slate-600 opacity-60">
+                    © 2024 KINETIC NOIR. HIGH-FIDELITY DIGITAL ASSETS.
+                </p>
+</footer>
+</main>
+</div>
+<!-- Mobile Bottom Navigation (Platform Pivot) -->
+<nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-[#111319]/80 backdrop-blur-xl flex justify-around items-center h-16 z-50 px-4 border-t border-[#3b494b]/10">
+<a class="flex flex-col items-center text-[#00f0ff]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-[8px] font-label uppercase mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center text-slate-600" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-[8px] font-label uppercase mt-1">Wallet</span>
+</a>
+<a class="flex flex-col items-center text-slate-600" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-[8px] font-label uppercase mt-1">Orders</span>
+</a>
+<a class="flex flex-col items-center text-slate-600" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[8px] font-label uppercase mt-1">Profile</span>
+</a>
+<a class="flex flex-col items-center text-slate-600" href="#">
+<span class="material-symbols-outlined">storefront</span>
+<span class="text-[8px] font-label uppercase mt-1">Shop</span>
+</a>
+</nav>
+</body></html>

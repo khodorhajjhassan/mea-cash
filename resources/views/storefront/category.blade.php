@@ -48,7 +48,7 @@
                     <span class="sf-hot-badge">🔥</span>
                 @endif
                 @if($product->image)
-                    <img src="{{ Storage::url($product->image) }}" alt="{{ $name }}" loading="lazy">
+                    <img src="{{ str_starts_with($product->image, 'http') ? $product->image : Storage::url($product->image) }}" alt="{{ $name }}" loading="lazy">
                 @else
                     <div class="w-full h-full flex items-center justify-center text-4xl opacity-40">🎮</div>
                 @endif

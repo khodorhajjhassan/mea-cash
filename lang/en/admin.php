@@ -8,6 +8,8 @@ return [
         'subcategories' => 'Subcategories',
         'product_types' => 'Product Types',
         'products' => 'Products',
+        'cms_group' => 'CMS',
+        'homepage_sections' => 'Homepage Sections',
         'banners' => 'Banners',
         'faqs' => 'FAQs',
         'orders_group' => 'Orders',
