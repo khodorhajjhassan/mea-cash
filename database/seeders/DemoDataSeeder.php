@@ -20,6 +20,8 @@ use App\Models\TopupRequest;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
+use App\Models\Banner;
+use App\Models\Faq;
 use Faker\Factory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -50,13 +52,15 @@ class DemoDataSeeder extends Seeder
             ['balance' => 0, 'currency' => 'USD']
         );
 
+        // ─── Suppliers ───
         $suppliers = collect([
             ['name' => 'Global Pins Hub', 'contact_name' => 'Nora Ali', 'email' => 'sales@globalpins.example', 'phone' => '71110001', 'notes' => 'Primary code supplier', 'is_active' => true],
             ['name' => 'TopUp Express', 'contact_name' => 'Rami S', 'email' => 'ops@topupexpress.example', 'phone' => '71110002', 'notes' => 'Fast delivery for gaming', 'is_active' => true],
             ['name' => 'Digital Wallet Source', 'contact_name' => 'Mina K', 'email' => 'support@dwsource.example', 'phone' => '71110003', 'notes' => 'Flexible payment products', 'is_active' => true],
             ['name' => 'GiftCard Depot', 'contact_name' => 'Rana F', 'email' => 'team@giftcarddepot.example', 'phone' => '71110004', 'notes' => null, 'is_active' => true],
-        ])->map(fn (array $data) => Supplier::query()->updateOrCreate(['name' => $data['name']], $data));
+        ])->map(fn(array $data) => Supplier::query()->updateOrCreate(['name' => $data['name']], $data));
 
+        // ─── Product Types ───
         $productTypes = collect([
             [
                 'name' => 'Account ID Required',
@@ -162,6 +166,7 @@ class DemoDataSeeder extends Seeder
             );
         })->keyBy('key');
 
+        // ─── Expanded Catalog Map (10+ Categories) ───
         $catalogMap = [
             'Gaming' => [
                 'Free Fire' => ['110 Diamonds', '231 Diamonds', '572 Diamonds', '1166 Diamonds'],
@@ -185,11 +190,70 @@ class DemoDataSeeder extends Seeder
                 'Spotify Premium' => ['1 Month', '3 Months', '6 Months', '12 Months'],
                 'Shahid VIP' => ['1 Month', '3 Months', '12 Months', 'Sports Pack'],
             ],
+            'Software' => [
+                'Windows 11 Pro' => ['Retail Key', 'OEM Key'],
+                'Office 2021' => ['Global Key'],
+                'Adobe Creative Cloud' => ['1 Month', '1 Year'],
+            ],
+            'Antivirus' => [
+                'Kaspersky' => ['1 Device / 1 Year', '3 Devices / 1 Year'],
+                'Eset NOD32' => ['1 Year License'],
+                'McAfee' => ['Total Protection'],
+            ],
+            'Education' => [
+                'LinkedIn Learning' => ['1 Month', 'Premium Account'],
+                'Skillshare' => ['Annual Account'],
+                'Udemy' => ['Gift Vouchers'],
+            ],
+            'Work & Tools' => [
+                'Canva Pro' => ['Team Invite', '1 Year Individual'],
+                'Zoom Pro' => ['1 Month License'],
+                'ChatGPT Plus' => ['Shared Account'],
+            ],
+            'Mobile Topup' => [
+                'Alfa Lebanon' => ['10,000 LBP', '22,000 LBP'],
+                'Touch Lebanon' => ['Credits', 'Data Bundle'],
+            ],
+            'Internet' => [
+                'Connect ISP' => ['50GB', '100GB'],
+                'Sodetel' => ['Points Card'],
+            ],
             'Payments' => [
                 'USDT (TRC20)' => ['10 USD', '25 USD', '50 USD', '100 USD'],
                 'Perfect Money' => ['10 USD', '25 USD', '50 USD', '100 USD'],
                 'Payeer' => ['10 USD', '20 USD', '50 USD', '100 USD'],
             ],
+        ];
+
+        $categoryIcons = [
+            'Gaming' => '🎮',
+            'Social Media' => '📱',
+            'Gift Cards' => '🎁',
+            'Streaming' => '📺',
+            'Software' => '💻',
+            'Antivirus' => '🛡️',
+            'Education' => '📚',
+            'Work & Tools' => '⚙️',
+            'Mobile Topup' => '📞',
+            'Internet' => '🌐',
+            'Payments' => '💳',
+        ];
+
+        // ─── Favicon / Brand Logos for placeholders ───
+        $brandImages = [
+            'canva' => 'https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://canva.com&size=128',
+            'amazon' => 'https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://amazon.com&size=128',
+            'pubg' => 'https://www.pubgmobile.com/common/images/icon_logo.jpg',
+            'freefire' => 'https://ff.garena.com/static/logo.png',
+            'mobilelegends' => 'https://m.mobilelegends.com/static/images/favicon.ico',
+            'jawaker' => 'https://www.jawaker.com/favicon.ico',
+            'razer' => 'https://gold.razer.com/favicon.ico',
+            'netflix' => 'https://www.netflix.com/favicon.ico',
+            'spotify' => 'https://www.scdn.co/v2/2/5/0/favicon.ico',
+            'steam' => 'https://store.steampowered.com/favicon.ico',
+            'xbox' => 'https://www.xbox.com/favicon.ico',
+            'playstation' => 'https://www.playstation.com/favicon.ico',
+            'google' => 'https://www.google.com/favicon.ico',
         ];
 
         $allProducts = collect();
@@ -199,28 +263,31 @@ class DemoDataSeeder extends Seeder
                 ['slug' => Str::slug($categoryName)],
                 [
                     'name_en' => $categoryName,
-                    'name_ar' => $categoryName,
-                    'icon' => 'grid',
-                    'image' => null,
+                    'name_ar' => $categoryName, // In real app, provide Arabic translations
+                    'icon' => $categoryIcons[$categoryName] ?? '✨',
                     'is_active' => true,
                     'sort_order' => rand(1, 50),
-                    'seo_title' => $categoryName.' Digital Topups',
-                    'seo_description' => 'Fast and secure '.$categoryName.' topups and gift cards.',
+                    'seo_title' => $categoryName . ' Digital Services',
+                    'seo_description' => 'Fast and secure ' . $categoryName . ' topups and licenses.',
                 ]
             );
 
             foreach ($subcategoriesData as $subcategoryName => $packages) {
+                // Featured logic: Some specific brands are featured, others random
+                $featuredBrands = ['PUBG MOBLIE', 'Free Fire', 'Mobile Legends', 'Jawaker', 'Netflix', 'Spotify', 'Steam', 'TikTok Coins', 'Razer Gold'];
+                $isFeaturedSub = in_array($subcategoryName, $featuredBrands) || (rand(0, 100) < 15);
+
                 $subcategory = Subcategory::query()->updateOrCreate(
                     ['slug' => Str::slug($subcategoryName)],
                     [
                         'category_id' => $category->id,
                         'name_en' => $subcategoryName,
                         'name_ar' => $subcategoryName,
-                        'image' => null,
+                        'description_en' => 'Get the best rates for ' . $subcategoryName . ' with instant delivery.',
+                        'description_ar' => 'احصل على أفضل الأسعار لـ ' . $subcategoryName . ' مع تسليم فوري.',
                         'is_active' => true,
+                        'is_featured' => $isFeaturedSub,
                         'sort_order' => rand(1, 100),
-                        'seo_title' => $subcategoryName.' Topup',
-                        'seo_description' => 'Buy '.$subcategoryName.' packages instantly.',
                     ]
                 );
 
@@ -233,68 +300,74 @@ class DemoDataSeeder extends Seeder
                     default => 'account-id-required',
                 };
 
-                $product = Product::query()->updateOrCreate(
-                    ['slug' => Str::slug($subcategoryName.' package')],
-                    [
-                        'subcategory_id' => $subcategory->id,
-                        'supplier_id' => $supplierId,
-                        'product_type_id' => $productTypes->get($templateKey)?->id,
-                        'name_en' => $subcategoryName.' Recharge',
-                        'name_ar' => $subcategoryName.' Recharge',
-                        'description_en' => 'Instant delivery for '.$subcategoryName,
-                        'description_ar' => 'Instant delivery for '.$subcategoryName,
-                        'product_type' => $isCustom ? 'custom_quantity' : 'fixed_package',
-                        'delivery_type' => 'instant',
-                        'delivery_time_minutes' => 5,
-                        'cost_price' => 1,
-                        'selling_price' => 1.2,
-                        'price_per_unit' => $isCustom ? 0.01 : null,
-                        'min_quantity' => 1,
-                        'max_quantity' => $isCustom ? 1000000 : null,
-                        'image' => null,
-                        'is_active' => true,
-                        'is_featured' => (bool) rand(0, 1),
-                        'stock_alert_threshold' => 5,
-                        'seo_title' => $subcategoryName.' Digital Topup',
-                        'seo_description' => 'Best rates for '.$subcategoryName,
-                        'seo_keywords' => strtolower($subcategoryName).', topup, card',
-                        'sort_order' => rand(1, 100),
-                    ]
-                );
+                // Assign a brand image if match found
+                $imagePath = null;
+                $lowerSub = strtolower($subcategoryName);
+                if (str_contains($lowerSub, 'canva'))
+                    $imagePath = $brandImages['canva'];
+                elseif (str_contains($lowerSub, 'amazon'))
+                    $imagePath = $brandImages['amazon'];
+                elseif (str_contains($lowerSub, 'pubg'))
+                    $imagePath = $brandImages['pubg'];
+                elseif (str_contains($lowerSub, 'free fire'))
+                    $imagePath = $brandImages['freefire'];
+                elseif (str_contains($lowerSub, 'mobile legends'))
+                    $imagePath = $brandImages['mobilelegends'];
+                elseif (str_contains($lowerSub, 'jawaker'))
+                    $imagePath = $brandImages['jawaker'];
+                elseif (str_contains($lowerSub, 'razer'))
+                    $imagePath = $brandImages['razer'];
+                elseif (str_contains($lowerSub, 'netflix'))
+                    $imagePath = $brandImages['netflix'];
+                elseif (str_contains($lowerSub, 'spotify'))
+                    $imagePath = $brandImages['spotify'];
+                elseif (str_contains($lowerSub, 'steam'))
+                    $imagePath = $brandImages['steam'];
+                elseif (str_contains($lowerSub, 'xbox'))
+                    $imagePath = $brandImages['xbox'];
+                elseif (str_contains($lowerSub, 'playstation'))
+                    $imagePath = $brandImages['playstation'];
 
-                $allProducts->push($product);
-                $this->seedProductFormFieldsFromTemplate($product);
-
+                // Define products for this subcategory
                 foreach ($packages as $index => $packageName) {
                     $amount = (float) preg_replace('/[^0-9.]/', '', $packageName) ?: ($index + 1) * 10;
-                    $costPrice = max(0.5, $amount * 0.008);
-                    $sellPrice = round($costPrice * 1.15, 2);
+                    $costPrice = max(0.5, $amount * 0.009);
+                    $sellPrice = round($costPrice * 1.20, 2);
 
-                    $package = ProductPackage::query()->updateOrCreate(
-                        ['product_id' => $product->id, 'name_en' => $packageName],
+                    $product = Product::query()->updateOrCreate(
+                        ['slug' => Str::slug($subcategoryName . ' ' . $packageName)],
                         [
+                            'subcategory_id' => $subcategory->id,
+                            'supplier_id' => $supplierId,
+                            'product_type_id' => $productTypes->get($templateKey)?->id,
+                            'name_en' => $packageName,
                             'name_ar' => $packageName,
-                            'amount' => $amount,
+                            'description_en' => 'Official recharge service for ' . $subcategoryName . '. 24/7 Support.',
+                            'description_ar' => 'خدمة شحن رسمية لـ ' . $subcategoryName . '. دعم على مدار الساعة.',
+                            'product_type' => $isCustom ? 'custom_quantity' : 'fixed_package',
+                            'delivery_type' => 'instant',
+                            'delivery_time_minutes' => 5,
                             'cost_price' => $costPrice,
                             'selling_price' => $sellPrice,
-                            'image' => null,
-                            'badge_text' => $index === 0 ? 'Fast' : null,
-                            'is_available' => true,
+                            'price_per_unit' => $isCustom ? 0.012 : null,
+                            'min_quantity' => 1,
+                            'max_quantity' => $isCustom ? 1000000 : null,
+                            'image' => $imagePath,
+                            'is_active' => true,
+                            'is_featured' => (bool) (rand(0, 10) < 3), // 30% of products are featured
                             'sort_order' => $index + 1,
                         ]
                     );
 
-                    $existingCodeCount = ProductCode::query()
-                        ->where('product_id', $product->id)
-                        ->where('package_id', $package->id)
-                        ->count();
+                    $allProducts->push($product);
+                    $this->seedProductFormFieldsFromTemplate($product);
 
-                    for ($i = $existingCodeCount; $i < 15; $i++) {
+                    // Add some codes for each product
+                    for ($i = 0; $i < 10; $i++) {
                         ProductCode::query()->create([
                             'product_id' => $product->id,
-                            'package_id' => $package->id,
-                            'code' => strtoupper(Str::random(5)).'-'.strtoupper(Str::random(5)).'-'.strtoupper(Str::random(5)),
-                            'notes' => null,
+                            'package_id' => null, // No more packages
+                            'code' => strtoupper(Str::random(4)) . '-' . strtoupper(Str::random(4)) . '-' . strtoupper(Str::random(4)),
                             'status' => 'available',
                         ]);
                     }
@@ -302,238 +375,80 @@ class DemoDataSeeder extends Seeder
             }
         }
 
-        PaymentMethod::query()->updateOrCreate(
-            ['method' => 'omt'],
+        // ─── Banners ───
+        $banners = [
             [
-                'display_name_en' => 'OMT',
-                'display_name_ar' => 'OMT',
-                'account_identifier' => '70-123456',
-                'instructions_en' => 'Send payment then upload receipt.',
-                'instructions_ar' => 'Send payment then upload receipt.',
-                'is_active' => true,
-            ]
-        );
-
-        PaymentMethod::query()->updateOrCreate(
-            ['method' => 'wish'],
+                'title_en' => 'Summer Gaming Fest',
+                'title_ar' => 'مهرجان الصيف للألعاب',
+                'description_en' => 'Up to 50% discount on all gaming cards.',
+                'description_ar' => 'خصم يصل إلى 50٪ على جميع بطاقات الألعاب.',
+                'image_path' => 'banners/gaming.webp',
+                'link' => '/store?category=gaming',
+                'button_text_en' => 'Shop Now',
+                'button_text_ar' => 'تسوق الآن',
+            ],
             [
-                'display_name_en' => 'Wish Money',
-                'display_name_ar' => 'Wish Money',
-                'account_identifier' => '70-654321',
-                'instructions_en' => 'Transfer then submit screenshot.',
-                'instructions_ar' => 'Transfer then submit screenshot.',
-                'is_active' => true,
-            ]
-        );
+                'title_en' => 'Instant Crypto Topups',
+                'title_ar' => 'شحن فوري للعملات الرقمية',
+                'description_en' => 'Buy USDT and Perfect Money with zero fees.',
+                'description_ar' => 'اشترِ USDT و Perfect Money بدون رسوم.',
+                'image_path' => 'banners/crypto.webp',
+                'link' => '/store?category=payments',
+                'button_text_en' => 'Exchange Now',
+                'button_text_ar' => 'حول الآن',
+            ],
+        ];
+        foreach ($banners as $b) {
+            Banner::updateOrCreate(['title_en' => $b['title_en']], array_merge($b, ['is_active' => true]));
+        }
 
-        PaymentMethod::query()->updateOrCreate(
-            ['method' => 'usdt'],
+        // ─── FAQs ───
+        $faqs = [
             [
-                'display_name_en' => 'USDT TRC20',
-                'display_name_ar' => 'USDT TRC20',
-                'account_identifier' => 'TQ7QhFakeAddressDemoSeedOnly',
-                'instructions_en' => 'Send exact amount and submit txid.',
-                'instructions_ar' => 'Send exact amount and submit txid.',
-                'is_active' => true,
-            ]
-        );
+                'question_en' => 'How long does delivery take?',
+                'question_ar' => 'كم يستغرق التسليم؟',
+                'answer_en' => 'Most digital cards are delivered instantly to your account. Some manual services might take 15-30 minutes.',
+                'answer_ar' => 'يتم تسليم معظم البطاقات الرقمية فوراً إلى حسابك. قد تستغرق بعض الخدمات اليدوية من 15 إلى 30 دقيقة.',
+            ],
+            [
+                'question_en' => 'What payment methods do you accept?',
+                'question_ar' => 'ما هي طرق الدفع المقبولة؟',
+                'answer_en' => 'We accept OMT, Wish Money, and various cryptocurrencies like USDT.',
+                'answer_ar' => 'نحن نقبل OMT و Wish Money ومختلف العملات الرقمية مثل USDT.',
+            ],
+            [
+                'question_en' => 'Is my payment secure?',
+                'question_ar' => 'هل عملية الدفع آمنة؟',
+                'answer_en' => 'Yes, all transactions are encrypted and processed through secure local and global gateways.',
+                'answer_ar' => 'نعم، جميع المعاملات مشفرة وتتم عبر بوابات محلية وعالمية آمنة.',
+            ],
+        ];
+        foreach ($faqs as $f) {
+            Faq::updateOrCreate(['question_en' => $f['question_en']], array_merge($f, ['is_active' => true]));
+        }
 
-        $users = collect();
+        // ─── Payment Methods ───
+        PaymentMethod::query()->updateOrCreate(['method' => 'omt'], ['display_name_en' => 'OMT', 'is_active' => true]);
+        PaymentMethod::query()->updateOrCreate(['method' => 'wish'], ['display_name_en' => 'Wish Money', 'is_active' => true]);
+        PaymentMethod::query()->updateOrCreate(['method' => 'usdt'], ['display_name_en' => 'USDT (TRC20)', 'is_active' => true]);
 
-        for ($i = 1; $i <= 120; $i++) {
+        // ─── Users & Wallets ───
+        for ($i = 1; $i <= 50; $i++) {
             $user = User::query()->updateOrCreate(
-                ['email' => 'user'.$i.'@meacash.dev'],
+                ['email' => 'user' . $i . '@meacash.dev'],
                 [
                     'name' => $faker->name(),
-                    'phone' => '79'.str_pad((string) $i, 6, '0', STR_PAD_LEFT),
+                    'phone' => '70' . rand(100000, 999999),
                     'password' => Hash::make('password'),
-                    'preferred_language' => $faker->randomElement(['en', 'ar']),
                     'is_active' => true,
-                    'is_admin' => false,
                 ]
             );
-
-            $wallet = Wallet::query()->updateOrCreate(
-                ['user_id' => $user->id],
-                ['balance' => rand(20, 700), 'currency' => 'USD']
-            );
-
-            for ($t = 0; $t < rand(2, 8); $t++) {
-                $amount = rand(5, 120);
-                $before = (float) $wallet->balance;
-                $after = $before + $amount;
-                $wallet->update(['balance' => $after]);
-
-                WalletTransaction::query()->create([
-                    'wallet_id' => $wallet->id,
-                    'type' => 'topup',
-                    'amount' => $amount,
-                    'balance_before' => $before,
-                    'balance_after' => $after,
-                    'description_en' => 'Seed topup transaction',
-                    'description_ar' => 'Seed topup transaction',
-                    'created_at' => now()->subDays(rand(1, 60)),
-                ]);
-            }
-
-            $users->push($user);
+            Wallet::query()->updateOrCreate(['user_id' => $user->id], ['balance' => rand(10, 500)]);
         }
 
-        for ($t = 0; $t < 140; $t++) {
-            $user = $users->random();
-            TopupRequest::query()->create([
-                'user_id' => $user->id,
-                'payment_method' => collect(['omt', 'wish', 'usdt'])->random(),
-                'amount_requested' => rand(10, 250),
-                'receipt_image_path' => 'receipts/demo-'.$t.'.webp',
-                'status' => collect(['pending', 'approved', 'rejected'])->random(),
-                'admin_note' => rand(0, 1) ? 'Checked by finance team' : null,
-                'processed_by' => $admin->id,
-                'processed_at' => now()->subDays(rand(0, 45)),
-            ]);
-        }
-
-        $orderCounter = 1;
-
-        foreach ($users as $user) {
-            for ($o = 0; $o < rand(1, 7); $o++) {
-                $product = $allProducts->random();
-                $package = $product->packages()->inRandomOrder()->first();
-
-                $unitPrice = (float) ($package?->selling_price ?? $product->selling_price);
-                $costPrice = (float) ($package?->cost_price ?? $product->cost_price);
-                $quantity = rand(1, 3);
-                $total = round($unitPrice * $quantity, 2);
-
-                // Detect the user input fields based on template
-                $userInput = [];
-                $templateKey = $product->productTypeDefinition?->key;
-                
-                if ($templateKey === 'account-id-required') {
-                    $userInput['account_id'] = 'PLAYER-'.rand(10000, 99999);
-                } elseif ($templateKey === 'account-login-credentials') {
-                    $userInput['account_id'] = 'USER-'.rand(1000, 9999);
-                    $userInput['email'] = $user->email;
-                    $userInput['password'] = 'secret123';
-                } elseif ($templateKey === 'quantity-or-price') {
-                    $userInput['account_id'] = 'ID-'.rand(10000, 99999);
-                    $userInput['quantity'] = $quantity;
-                }
-
-                $status = collect(['pending', 'processing', 'completed', 'failed', 'refunded'])->random();
-                $fulfillmentObj = [];
-
-                if ($status === 'completed') {
-                    if ($product->product_type === 'fixed_package') {
-                        $fulfillmentObj = [
-                            'type' => 'key',
-                            'admin_note' => 'Thank you for your purchase!',
-                            'data' => ['keys' => strtoupper(Str::random(12))],
-                        ];
-                    } elseif ($product->product_type === 'account_topup') {
-                        $fulfillmentObj = [
-                            'type' => 'account',
-                            'admin_note' => 'Your account has been upgraded.',
-                            'data' => [
-                                'user' => $user->name,
-                                'pass' => 'NEW-PASS-'.rand(100, 999),
-                                'link' => 'https://login.example.com',
-                            ],
-                        ];
-                    } else {
-                        $fulfillmentObj = [
-                            'type' => 'topup',
-                            'admin_note' => 'Recharge successful.',
-                            'data' => ['transaction_id' => 'TXN-'.Str::random(8)],
-                        ];
-                    }
-                }
-
-                $orderNumber = 'MC-2026-'.str_pad((string) $orderCounter++, 6, '0', STR_PAD_LEFT);
-                $order = Order::query()->updateOrCreate(
-                    ['order_number' => $orderNumber],
-                    [
-                        'user_id' => $user->id,
-                        'product_id' => $product->id,
-                        'package_id' => $package?->id,
-                        'quantity' => $quantity,
-                        'unit_price' => $unitPrice,
-                        'total_price' => $total,
-                        'cost_price' => round($costPrice * $quantity, 2),
-                        'profit' => round(($unitPrice - $costPrice) * $quantity, 2),
-                        'status' => $status,
-                        'delivery_type' => $product->delivery_type,
-                        'fulfillment_data' => [
-                            'user_input' => $userInput,
-                            'fulfillment' => $fulfillmentObj,
-                        ],
-                        'delivery_notes' => null,
-                        'fulfilled_at' => $status === 'completed' ? now()->subDays(rand(0, 40)) : null,
-                        'confirmed_at' => rand(0, 1) ? now()->subDays(rand(0, 35)) : null,
-                        'created_at' => now()->subDays(rand(0, 60)),
-                        'updated_at' => now()->subDays(rand(0, 30)),
-                    ]
-                );
-
-                $availableCode = ProductCode::query()
-                    ->where('product_id', $product->id)
-                    ->where('status', 'available')
-                    ->inRandomOrder()
-                    ->first();
-
-                if ($availableCode) {
-                    $availableCode->update([
-                        'status' => 'sold',
-                        'order_id' => $order->id,
-                        'used_at' => now(),
-                    ]);
-                }
-
-                OrderItem::query()->updateOrCreate(
-                    ['order_id' => $order->id],
-                    [
-                        'code_id' => $availableCode?->id,
-                        'delivered_value' => $availableCode?->code ?? 'Manual fulfillment note',
-                        'type' => $availableCode ? 'code' : 'manual_note',
-                        'revealed_at' => now()->subDays(rand(0, 20)),
-                    ]
-                );
-
-                if ($order->status === 'completed' && rand(0, 100) < 55) {
-                    Feedback::query()->updateOrCreate(
-                        [
-                            'user_id' => $user->id,
-                            'order_id' => $order->id,
-                        ],
-                        [
-                            'rating' => rand(3, 5),
-                            'comment' => $faker->sentence(),
-                        ]
-                    );
-                }
-            }
-        }
-
-        for ($c = 0; $c < 90; $c++) {
-            ContactMessage::query()->create([
-                'name' => $faker->name(),
-                'email' => $faker->safeEmail(),
-                'subject' => $faker->sentence(3),
-                'message' => $faker->paragraph(),
-                'responded_at' => rand(0, 1) ? now()->subDays(rand(0, 20)) : null,
-            ]);
-        }
-
-        foreach ([
-            ['key' => 'site_name', 'value' => 'MeaCash', 'group' => 'general'],
-            ['key' => 'maintenance_mode', 'value' => 'off', 'group' => 'general'],
-            ['key' => 'support_email', 'value' => 'support@meacash.com', 'group' => 'general'],
-            ['key' => 'seo_default_title', 'value' => 'MeaCash | Digital Topups', 'group' => 'seo'],
-            ['key' => 'seo_default_description', 'value' => 'Fast digital topup and gift cards in Lebanon.', 'group' => 'seo'],
-            ['key' => 'payment_receipt_visibility', 'value' => 'private', 'group' => 'payment'],
-        ] as $setting) {
-            AdminSetting::query()->updateOrCreate(['key' => $setting['key']], $setting);
-        }
+        // ─── Settings ───
+        AdminSetting::query()->updateOrCreate(['key' => 'site_name'], ['value' => 'MeaCash', 'group' => 'general']);
+        AdminSetting::query()->updateOrCreate(['key' => 'support_email'], ['value' => 'support@meacash.com', 'group' => 'general']);
     }
 
     private function seedProductFormFieldsFromTemplate(Product $product): void
@@ -542,42 +457,23 @@ class DemoDataSeeder extends Seeder
         $schema = $product->productTypeDefinition?->schema;
         $fields = is_array($schema) && array_key_exists('fields', $schema) ? $schema['fields'] : $schema;
 
-        if (!is_array($fields)) {
+        if (!is_array($fields))
             return;
-        }
 
         ProductFormField::query()->where('product_id', $product->id)->delete();
 
         foreach ($fields as $index => $field) {
-            if (!is_array($field)) {
-                continue;
-            }
-
-            $fieldType = (string) ($field['type'] ?? 'text');
-            if (!in_array($fieldType, ['text', 'email', 'password', 'number', 'select'], true)) {
-                $fieldType = 'text';
-            }
-
-            $isRequired = (bool) ($field['required'] ?? false);
-            $rules = $field['rules'] ?? [];
-            if (!is_array($rules)) {
-                $rules = [];
-            }
-            if ($isRequired && !in_array('required', $rules, true)) {
-                $rules[] = 'required';
-            }
-
             ProductFormField::query()->create([
                 'product_id' => $product->id,
-                'field_key' => (string) ($field['key'] ?? 'field_'.$index),
-                'label_en' => (string) ($field['label_en'] ?? $field['label'] ?? Str::headline((string) ($field['key'] ?? 'Field '.$index))),
-                'label_ar' => (string) ($field['label_ar'] ?? $field['label'] ?? Str::headline((string) ($field['key'] ?? 'Field '.$index))),
-                'field_type' => $fieldType,
-                'placeholder_en' => (string) ($field['placeholder_en'] ?? $field['placeholder'] ?? ''),
-                'placeholder_ar' => (string) ($field['placeholder_ar'] ?? $field['placeholder'] ?? ''),
-                'is_required' => $isRequired,
-                'sort_order' => (int) ($field['sort_order'] ?? $index + 1),
-                'validation_rules' => $rules,
+                'field_key' => $field['key'] ?? 'field_' . $index,
+                'label_en' => $field['label'] ?? Str::headline($field['key']),
+                'label_ar' => $field['label'] ?? Str::headline($field['key']),
+                'field_type' => $field['type'] ?? 'text',
+                'placeholder_en' => $field['placeholder'] ?? '',
+                'placeholder_ar' => $field['placeholder'] ?? '',
+                'is_required' => $field['required'] ?? false,
+                'sort_order' => $field['sort_order'] ?? $index + 1,
+                'validation_rules' => $field['rules'] ?? [],
             ]);
         }
     }

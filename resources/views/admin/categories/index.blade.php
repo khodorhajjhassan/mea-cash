@@ -33,11 +33,13 @@
     <div class="table-wrap mt-4">
         <table class="admin-table">
             <thead>
-            <tr><th>ID</th><th>Image</th><th>Name</th><th>Slug</th><th>Status</th><th>Actions</th></tr>
+            <tr><th width="40"></th><th>ID</th><th>Image</th><th>Name</th><th>Slug</th><th>Status</th><th>Actions</th></tr>
             </thead>
             <tbody>
-            @forelse($categories as $category)
-                <tr>
+                <tr data-id="{{ $category->id }}">
+                    <td class="drag-handle cursor-move text-slate-400">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>
+                    </td>
                     <td>#{{ $category->id }}</td>
                     <td>
                         @if($category->image)
@@ -64,4 +66,45 @@
 
     <div class="mt-4">{{ $categories->links() }}</div>
 </section>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const el = document.querySelector('.admin-table tbody');
+        if (!el) return;
+
+        Sortable.create(el, {
+            handle: '.drag-handle',
+            animation: 150,
+            onEnd: function() {
+                const orders = [];
+                el.querySelectorAll('tr').forEach((tr, index) => {
+                    orders.push({
+                        id: tr.dataset.id,
+                        sort_order: index + 1
+                    });
+                });
+
+                fetch('{{ route("admin.categories.reorder") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ orders: orders })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Optional: Show a subtle success toast
+                    }
+                })
+                .catch(err => console.error('Reorder failed:', err));
+            }
+        });
+    });
+</script>
+@endpush
 @endsection

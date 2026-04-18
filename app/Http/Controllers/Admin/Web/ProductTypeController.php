@@ -232,6 +232,8 @@ class ProductTypeController extends Controller
             'required' => (bool) ($field['required'] ?? false),
             'placeholder_en' => (string) ($field['placeholder_en'] ?? $field['placeholder'] ?? ''),
             'placeholder_ar' => (string) ($field['placeholder_ar'] ?? ''),
+            'min' => isset($field['min']) && $field['min'] !== '' ? (int) $field['min'] : null,
+            'max' => isset($field['max']) && $field['max'] !== '' ? (int) $field['max'] : null,
             'rules' => $rules,
             'sort_order' => (int) ($field['sort_order'] ?? $index + 1),
         ];

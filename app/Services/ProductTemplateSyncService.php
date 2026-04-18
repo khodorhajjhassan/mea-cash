@@ -64,6 +64,8 @@ class ProductTemplateSyncService
                         'is_default_form' => false,
                         'raw_field_key' => $rawFieldKey,
                         'options' => is_array($field['options'] ?? null) ? $field['options'] : [],
+                        'min' => isset($field['min']) && $field['min'] !== '' ? (int) $field['min'] : null,
+                        'max' => isset($field['max']) && $field['max'] !== '' ? (int) $field['max'] : null,
                     ],
                 ]);
             }
@@ -108,6 +110,8 @@ class ProductTemplateSyncService
                             'is_default_form' => $isDefaultForm,
                             'raw_field_key' => $rawFieldKey,
                             'options' => is_array($field['options'] ?? null) ? $field['options'] : [],
+                            'min' => isset($field['min']) && $field['min'] !== '' ? (int) $field['min'] : null,
+                            'max' => isset($field['max']) && $field['max'] !== '' ? (int) $field['max'] : null,
                         ],
                     ]);
                 }

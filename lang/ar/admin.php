@@ -8,6 +8,8 @@ return [
         'subcategories' => 'التصنيفات الفرعية',
         'product_types' => 'أنواع المنتجات',
         'products' => 'المنتجات',
+        'banners' => 'البنرات الإعلانية',
+        'faqs' => 'الأسئلة الشائعة',
         'orders_group' => 'الطلبات',
         'all_orders' => 'كافة الطلبات',
         'pending_orders' => 'قيد التنفيذ',

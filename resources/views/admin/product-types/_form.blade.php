@@ -48,7 +48,7 @@
       "label_en": "Account ID",
       "label_ar": "معرف الحساب",
       "type": "text",
-      "required": true,
+      "required": false,
       "placeholder_en": "Enter your account ID",
       "placeholder_ar": "ادخل معرف الحساب",
       "rules": ["required"],
@@ -68,7 +68,7 @@
           "label_en": "Quantity",
           "label_ar": "الكمية",
           "type": "number",
-          "required": true,
+          "required": false,
           "placeholder_en": "Enter quantity",
           "placeholder_ar": "ادخل الكمية",
           "rules": ["required", "numeric"],
@@ -117,6 +117,10 @@
                     ${['text','email','password','number','select'].map(type => `<option value="${type}" ${((field.type ?? 'text')===type)?'selected':''}>${type}</option>`).join('')}
                 </select>
                 <label class="inline-flex items-center gap-2 text-sm"><input type="checkbox" class="field-required" ${(field.required ?? false) ? 'checked' : ''}> Required</label>
+                <div class="field-numeric-opts flex gap-2 ${field.type === 'number' ? '' : 'hidden'}">
+                    <input class="field-min w-24 rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Min (Opt)" type="number" value="${escapeAttr(field.min ?? '')}">
+                    <input class="field-max w-24 rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Max (Opt)" type="number" value="${escapeAttr(field.max ?? '')}">
+                </div>
                 <div></div>
             </div>
             <div class="mt-3 grid gap-3 md:grid-cols-2">
@@ -140,7 +144,14 @@
         });
 
         row.querySelectorAll('input,select').forEach((el) => {
-            el.addEventListener('input', rebuildJson);
+            el.addEventListener('input', (e) => {
+                if (el.classList.contains('field-type')) {
+                    const opts = row.querySelector('.field-numeric-opts');
+                    if (e.target.value === 'number') opts.classList.remove('hidden');
+                    else opts.classList.add('hidden');
+                }
+                rebuildJson();
+            });
             el.addEventListener('change', rebuildJson);
         });
 
@@ -211,6 +222,8 @@
             required,
             placeholder_en: row.querySelector('.field-placeholder-en')?.value || '',
             placeholder_ar: row.querySelector('.field-placeholder-ar')?.value || '',
+            min: row.querySelector('.field-min')?.value || null,
+            max: row.querySelector('.field-max')?.value || null,
             rules,
             sort_order: fieldIndex + 1
         };

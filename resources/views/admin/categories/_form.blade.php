@@ -12,9 +12,22 @@
         <label>Slug</label>
         <input type="text" name="slug" value="{{ old('slug', $category->slug ?? '') }}" placeholder="auto from name">
     </div>
-    <div class="field">
+    <div class="field" x-data="{ 
+        selectedIcon: '{{ old('icon', $category->icon ?? '✨') }}', 
+        icons: ['✨', '🎮', '📱', '📺', '🎁', '💳', '🛡️', '💻', '📞', '🌐', '🚀', '🔥', '⚡', '💎', '🎨', '🎧', '🕹️', '🎫', '⚽'] 
+    }">
         <label>Icon</label>
-        <input type="text" name="icon" value="{{ old('icon', $category->icon ?? '') }}">
+        <div class="flex flex-wrap gap-2 mt-2 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+            <template x-for="icon in icons" :key="icon">
+                <button type="button" 
+                        @click="selectedIcon = icon" 
+                        class="w-10 h-10 flex items-center justify-center rounded-lg border transition-all text-xl bg-white"
+                        :class="selectedIcon === icon ? 'border-indigo-500 ring-2 ring-indigo-500/20 shadow-sm' : 'border-slate-200 hover:border-slate-300'">
+                    <span x-text="icon"></span>
+                </button>
+            </template>
+            <input type="hidden" name="icon" x-model="selectedIcon">
+        </div>
     </div>
     <div class="field">
         <label>Sort Order</label>

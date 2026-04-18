@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\CategoryController as ApiCategoryController;
 use App\Http\Controllers\Admin\ProductController as ApiProductController;
 use App\Http\Controllers\Admin\ProductPackageController as ApiProductPackageController;
 use App\Http\Controllers\Admin\SubcategoryController as ApiSubcategoryController;
+use App\Http\Controllers\Admin\Web\BannerController;
+use App\Http\Controllers\Admin\Web\FaqController;
 use App\Http\Controllers\Admin\Web\CategoryController;
 use App\Http\Controllers\Admin\Web\CodeController;
 use App\Http\Controllers\Admin\Web\ContactController;
@@ -41,7 +43,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [StorefrontController::class, 'index'])->name('store.home');
 Route::get('/category/{slug}', [StorefrontController::class, 'category'])->name('store.category');
 Route::get('/search', [StorefrontController::class, 'search'])->name('store.search');
-Route::get('/api/product/{slug}', [StorefrontController::class, 'productJson'])->name('store.product.json');
+Route::get('/api/product/{slug}', [StorefrontController::class, 'subcategoryJson'])->name('store.product.json');
+Route::get('/api/subcategory/{slug}', [StorefrontController::class, 'subcategoryJson'])->name('store.subcategory.json');
+Route::get('/api/search', [StorefrontController::class, 'search'])->name('store.search.api');
 
 // Cart
 Route::post('/cart/add', [CartController::class, 'add'])->middleware(['auth', 'customer'])->name('store.cart.add');
@@ -142,6 +146,12 @@ Route::prefix('admin')
             Route::post('products/{product}/packages', [ProductController::class, 'storePackage'])->middleware('permission:products.edit')->name('products.packages.store');
             Route::put('products/packages/{package}', [ProductController::class, 'updatePackage'])->middleware('permission:products.edit')->name('products.packages.update');
             Route::post('products/{product}/fields', [ProductController::class, 'storeField'])->middleware('permission:products.edit')->name('products.fields.store');
+            Route::resource('banners', BannerController::class)->middleware('permission:categories.index');
+            Route::resource('faqs', FaqController::class)->middleware('permission:categories.index');
+
+            Route::post('categories/reorder', [CategoryController::class, 'reorder'])->middleware('permission:categories.index')->name('categories.reorder');
+            Route::post('products/reorder', [ProductController::class, 'reorder'])->middleware('permission:products.index')->name('products.reorder');
+
             Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->middleware('permission:products.create')->name('products.duplicate');
         });
     });

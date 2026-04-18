@@ -20,6 +20,8 @@ class Subcategory extends Model
         'image',
         'is_active',
         'is_featured',
+        'description_ar',
+        'description_en',
         'sort_order',
         'seo_title',
         'seo_description',

@@ -246,7 +246,12 @@ function renderFieldsArray(fields) {
         } else if (field.type === 'textarea') {
             html += `<textarea name="form_data[${escapeHtml(field.key)}]" id="sf-field-${escapeHtml(field.key)}" placeholder="${escapeHtml(field.placeholder)}" ${field.required ? 'required' : ''} rows="3"></textarea>`;
         } else {
-            html += `<input type="${field.type || 'text'}" name="form_data[${escapeHtml(field.key)}]" id="sf-field-${escapeHtml(field.key)}" placeholder="${escapeHtml(field.placeholder)}" ${field.required ? 'required' : ''}>`;
+            let extraAttrs = '';
+            if (field.type === 'number') {
+                if (field.min !== undefined && field.min !== null) extraAttrs += ` min="${field.min}"`;
+                if (field.max !== undefined && field.max !== null) extraAttrs += ` max="${field.max}"`;
+            }
+            html += `<input type="${field.type || 'text'}" name="form_data[${escapeHtml(field.key)}]" id="sf-field-${escapeHtml(field.key)}" placeholder="${escapeHtml(field.placeholder)}" ${field.required ? 'required' : ''}${extraAttrs}>`;
         }
         html += `<div class="sf-field-error" id="sf-err-${escapeHtml(field.key)}"></div>`;
         html += `</div>`;
@@ -405,10 +410,23 @@ function validateClientSide() {
             isValid = false;
             return;
         }
-        if (rules.includes('numeric') && value && isNaN(value)) {
-            errEl.textContent = isRtl() ? 'يجب أن يكون رقمًا' : 'Must be a number';
-            isValid = false;
-            return;
+        if (rules.includes('numeric') && value) {
+            const num = parseFloat(value);
+            if (isNaN(num)) {
+                errEl.textContent = isRtl() ? 'يجب أن يكون رقمًا' : 'Must be a number';
+                isValid = false;
+                return;
+            }
+            if (field.min !== undefined && field.min !== null && num < field.min) {
+                errEl.textContent = isRtl() ? `الحد الأدنى هو ${field.min}` : `Minimum value is ${field.min}`;
+                isValid = false;
+                return;
+            }
+            if (field.max !== undefined && field.max !== null && num > field.max) {
+                errEl.textContent = isRtl() ? `الحد الأقصى هو ${field.max}` : `Maximum value is ${field.max}`;
+                isValid = false;
+                return;
+            }
         }
     });
 

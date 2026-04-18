@@ -5,8 +5,9 @@
 @php($disk = config('media.disk', config('filesystems.default')))
 <section class="panel"><div class="panel-head"><h2 class="text-lg font-semibold text-slate-900">Product List</h2><a href="{{ route('admin.products.create') }}" class="btn-primary">Add Product</a></div>
 
-<form method="GET" action="{{ route('admin.products.index') }}" class="mt-4 grid gap-3 md:grid-cols-5">
+<form method="GET" action="{{ route('admin.products.index') }}" class="mt-4 grid gap-3 md:grid-cols-6">
 <div class="field md:col-span-2"><label>Search</label><input type="text" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="Name or slug"></div>
+<div class="field"><label>Subcategory</label><select name="subcategory_id"><option value="">All</option>@foreach($subcategories as $sub)<option value="{{ $sub->id }}" @selected(($filters['subcategory_id'] ?? '') == $sub->id)>{{ $sub->name_en }}</option>@endforeach</select></div>
 <div class="field"><label>Status</label><select name="status"><option value="">All</option><option value="active" @selected(($filters['status'] ?? '')==='active')>Active</option><option value="inactive" @selected(($filters['status'] ?? '')==='inactive')>Inactive</option></select></div>
 <div class="field"><label>Type</label><select name="type"><option value="">All</option><option value="top_up" @selected(($filters['type'] ?? '')==='top_up')>Top Up</option><option value="key" @selected(($filters['type'] ?? '')==='key')>Key</option><option value="account" @selected(($filters['type'] ?? '')==='account')>Account</option></select></div>
 <div class="flex items-end gap-2"><button class="btn-primary" type="submit">Filter</button><a class="btn-ghost" href="{{ route('admin.products.index') }}">Reset</a></div>

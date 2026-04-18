@@ -1,21 +1,24 @@
 /**
- * MeaCash Product Modal — DailyCard-style purchase flow
- *
- * Opens a glassmorphic modal when clicking a product card.
- * Adapts UI based on product_type: fixed_package | account_topup | custom_quantity
- * Supports multi-form tabs, AJAX add-to-cart, and live price calculation.
+ * MeaCash Storefront Modal — Simplified Product Grid (No Packages)
+ * 
+ * Flow:
+ * 1. Home card (Subcategory/Brand) clicked.
+ * 2. Modal opens, fetches all Products for that Subcategory.
+ * 3. Shows a grid of Products (Diamonds, UC, etc.).
+ * 4. User selects a Product -> Details and Form fields update below.
  */
 
 const CART_ADD_URL = '/cart/add';
-const API_BASE = '/api/product/';
+const API_BASE = '/api/subcategory/';
 
-let currentProduct = null;
-let selectedPackageId = null;
+/** @type {Object|null} */
+let currentSubcategory = null;
+/** @type {Object|null} */
+let selectedProduct = null; 
 let selectedFormKey = null;
 let currentQuantity = 1;
 
 // ─── DOM References ───
-function getModal() { return document.getElementById('sf-product-modal'); }
 function getBackdrop() { return document.getElementById('sf-modal-backdrop'); }
 function getBody() { return document.getElementById('sf-modal-body'); }
 
@@ -25,55 +28,53 @@ function escapeHtml(str) {
     div.textContent = str ?? '';
     return div.innerHTML;
 }
-
 function formatPrice(price) {
     return '$' + Number(price).toFixed(2);
 }
-
 function getCsrfToken() {
     return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 }
-
 function isRtl() {
     return document.documentElement.dir === 'rtl';
 }
 
-// ─── Modal Open/Close ───
+// ─── Modal State ───
 function openModal() {
     const backdrop = getBackdrop();
-    if (!backdrop) return;
-    backdrop.classList.add('sf-modal-active');
+    if (backdrop) backdrop.classList.add('sf-modal-active');
     document.body.style.overflow = 'hidden';
 }
-
 function closeModal() {
     const backdrop = getBackdrop();
-    if (!backdrop) return;
-    backdrop.classList.remove('sf-modal-active');
+    if (backdrop) backdrop.classList.remove('sf-modal-active');
     document.body.style.overflow = '';
-    currentProduct = null;
-    selectedPackageId = null;
+    currentSubcategory = null;
+    selectedProduct = null;
     selectedFormKey = null;
     currentQuantity = 1;
 }
 
-// ─── Loading State ───
+// ─── Loading / Error UI ───
 function showLoading() {
     const body = getBody();
     if (!body) return;
     body.innerHTML = `
-        <div class="sf-modal-loading">
-            <div class="sf-skeleton" style="height:10rem;border-radius:var(--sf-radius-md);"></div>
-            <div class="sf-skeleton" style="height:1.5rem;width:60%;margin-top:1rem;border-radius:8px;"></div>
-            <div class="sf-skeleton" style="height:1rem;width:40%;margin-top:0.5rem;border-radius:8px;"></div>
-            <div class="sf-skeleton" style="height:4rem;margin-top:1rem;border-radius:var(--sf-radius-sm);"></div>
-            <div class="sf-skeleton" style="height:3rem;margin-top:1rem;border-radius:1rem;"></div>
+        <div class="sf-modal-loading p-8">
+            <div class="sf-skeleton h-12 w-1/3 mb-6" style="border-radius:12px;"></div>
+            <div class="grid grid-cols-4 gap-4 mb-8">
+                <div class="sf-skeleton aspect-square rounded-2xl"></div>
+                <div class="sf-skeleton aspect-square rounded-2xl"></div>
+                <div class="sf-skeleton aspect-square rounded-2xl"></div>
+                <div class="sf-skeleton aspect-square rounded-2xl"></div>
+            </div>
+            <div class="sf-skeleton h-32 rounded-2xl mb-4"></div>
+            <div class="sf-skeleton h-14 rounded-2xl"></div>
         </div>
     `;
 }
 
-// ─── Fetch & Render ───
-async function loadProduct(slug) {
+// ─── Fetch Data ───
+async function loadSubcategory(slug) {
     showLoading();
     openModal();
 
@@ -81,508 +82,307 @@ async function loadProduct(slug) {
         const res = await fetch(API_BASE + slug, {
             headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
         });
-        if (!res.ok) throw new Error('Product not found');
-        currentProduct = await res.json();
+        if (!res.ok) throw new Error('Subcategory not found');
+        currentSubcategory = await res.json();
 
-        // Default selections
-        if (currentProduct.packages?.length > 0) {
-            selectedPackageId = currentProduct.packages[0].id;
-        }
-        if (currentProduct.forms?.length > 0) {
-            const defaultForm = currentProduct.forms.find(f => f.is_default) || currentProduct.forms[0];
-            selectedFormKey = defaultForm.key;
-        } else {
-            selectedFormKey = null;
-        }
-        currentQuantity = currentProduct.min_quantity || 1;
-
-        renderProduct();
+        // Default selection: First featured product, or just first product
+        const defaultProduct = currentSubcategory.products.find(p => p.is_featured) || currentSubcategory.products[0];
+        selectProduct(defaultProduct);
+        render();
     } catch (err) {
+        console.error(err);
         const body = getBody();
-        if (body) {
-            body.innerHTML = `<div class="sf-modal-error"><p>Failed to load product.</p><button onclick="window.__sfCloseModal()" class="sf-btn-outline" style="margin-top:1rem;">Close</button></div>`;
-        }
+        if (body) body.innerHTML = `<div class="p-8 text-center"><p class="text-white/60 mb-4">Failed to load brand data.</p><button onclick="window.__sfCloseModal()" class="sf-btn-outline">Close</button></div>`;
     }
 }
 
-function renderProduct() {
-    const p = currentProduct;
-    const body = getBody();
-    if (!body || !p) return;
+function selectProduct(product) {
+    selectedProduct = product;
+    if (!product) return;
+    
+    // Set default form
+    if (product.forms?.length > 0) {
+        const defaultForm = product.forms.find(f => f.is_default) || product.forms[0];
+        selectedFormKey = defaultForm.key;
+    } else {
+        selectedFormKey = null;
+    }
+    
+    currentQuantity = product.min_quantity || 1;
+}
 
-    const type = p.product_type;
-    const hasPackages = p.packages?.length > 0;
-    const hasGlobalFields = p.fields?.length > 0;
-    const hasFormTabs = p.forms?.length > 0;
-    const hasMultiForms = p.forms?.length > 1;
-    const hasAnyFields = hasGlobalFields || hasFormTabs;
+// ─── Main Render ───
+function render() {
+    const s = currentSubcategory;
+    const body = getBody();
+    if (!body || !s) return;
 
     let html = '';
 
-    // ── Header ──
-    html += `<div class="sf-modal-header">`;
-    if (p.image) {
-        html += `<div class="sf-modal-img"><img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}"></div>`;
-    } else {
-        html += `<div class="sf-modal-img sf-modal-img-placeholder"><span>🎮</span></div>`;
-    }
-    html += `<div class="sf-modal-info">`;
-    html += `<h2 class="sf-modal-title">${escapeHtml(p.name)}</h2>`;
-    if (p.category || p.subcategory) {
-        html += `<p class="sf-modal-meta">${escapeHtml(p.category?.name ?? '')}${p.subcategory ? ' › ' + escapeHtml(p.subcategory.name) : ''}</p>`;
-    }
-    if (p.delivery_type === 'instant') {
-        html += `<span class="sf-modal-delivery">⚡ ${isRtl() ? 'تسليم فوري' : 'Instant Delivery'}</span>`;
-    }
-    html += `</div></div>`;
+    // 1. Header
+    html += `
+        <div class="sf-modal-grid-header">
+            <div class="sf-modal-grid-title">${escapeHtml(s.name)}</div>
+            <button type="button" class="sf-modal-close text-slate-400 hover:text-white transition-colors" onclick="window.__sfCloseModal()">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+    `;
 
-    // ── Description ──
-    if (p.description) {
-        html += `<p class="sf-modal-desc">${escapeHtml(p.description)}</p>`;
-    }
+    // 2. Body (Scrollable)
+    html += `<div class="sf-modal-grid-body">`;
+    
+    // Grid Section
+    html += `<div class="sf-item-grid">`;
+    s.products.forEach(p => {
+        const isSelected = selectedProduct && selectedProduct.id === p.id;
+        html += renderProductCard(p, isSelected);
+    });
+    html += `</div>`; // End grid
 
-    // ── Packages (fixed_package & account_topup) ──
-    if (hasPackages && type !== 'custom_quantity') {
-        html += `<div class="sf-modal-section-label">${isRtl() ? 'اختر الباقة' : 'Select Package'}</div>`;
-        html += `<div class="sf-modal-packages">`;
-        p.packages.forEach((pkg, i) => {
-            const isSelected = pkg.id === selectedPackageId;
-            html += `<button type="button" class="sf-modal-pkg ${isSelected ? 'selected' : ''}" data-pkg-id="${pkg.id}" data-pkg-price="${pkg.selling_price}">`;
-            html += `<span class="sf-modal-pkg-name">${escapeHtml(pkg.name)}</span>`;
-            html += `<span class="sf-modal-pkg-price">${formatPrice(pkg.selling_price)}</span>`;
-            if (pkg.badge_text) {
-                html += `<span class="sf-modal-pkg-badge">${escapeHtml(pkg.badge_text)}</span>`;
-            }
-            html += `</button>`;
-        });
-        html += `</div>`;
+    // Detail Section (Forms)
+    if (selectedProduct) {
+        html += renderDetails(selectedProduct);
     }
 
-    // ── Quantity Selector (custom_quantity) ──
-    if (type === 'custom_quantity') {
-        const min = p.min_quantity || 1;
-        const max = p.max_quantity || 10000;
-        const price = p.price_per_unit || p.selling_price;
-        const total = (currentQuantity * price).toFixed(2);
+    html += `</div>`; // End total body
 
-        html += `<div class="sf-modal-section-label">${isRtl() ? 'اختر الكمية' : 'Select Quantity'}</div>`;
-        html += `<div class="sf-modal-quantity">`;
-
-        html += `<button type="button" id="sf-open-qty-input" class="sf-form-tab active">${isRtl() ? 'حسب الكمية' : 'By Quantity'}</button>`;
-        html += `<div id="sf-qty-input-wrap" style="display:none;margin-top:0.75rem;">`;
-        html += `<input type="number" id="sf-qty-input" class="sf-qty-number" min="${min}" max="${max}" value="${currentQuantity}" step="1" placeholder="${isRtl() ? 'ادخل الكمية' : 'Enter quantity'}">`;
-        html += `<p class="hint" style="margin-top:0.4rem;">${isRtl() ? `الحد الأدنى ${min} - الحد الأقصى ${max}` : `Min ${min} - Max ${max}`}</p>`;
-        html += `</div>`;
-
-        html += `<div class="sf-qty-info">`;
-        html += `<span>${isRtl() ? 'السعر لكل وحدة' : 'Price per unit'}: ${formatPrice(price)}</span>`;
-        html += `<span id="sf-qty-total" class="sf-qty-total">${isRtl() ? 'المجموع' : 'Total'}: ${formatPrice(total)}</span>`;
-        html += `</div>`;
-        html += `</div>`;
-    }
-
-    // ── Layer 1: Global Fields (always visible, above tabs) ──
-    if (hasGlobalFields) {
-        html += `<div id="sf-global-fields" class="sf-modal-fields">`;
-        html += renderFieldsArray(p.fields);
-        html += `</div>`;
-    }
-
-    // ── Layer 2: Tab Switcher (only if multiple forms) ──
-    if (hasMultiForms) {
-        html += `<div class="sf-form-tabs">`;
-        p.forms.forEach(form => {
-            const isActive = form.key === selectedFormKey;
-            html += `<button type="button" class="sf-form-tab ${isActive ? 'active' : ''}" data-form-key="${escapeHtml(form.key)}">${escapeHtml(form.label)}</button>`;
-        });
-        html += `</div>`;
-    }
-
-    // ── Layer 2: Active Tab Fields (toggled by tab selection) ──
-    if (hasFormTabs) {
-        html += `<div id="sf-modal-fields" class="sf-modal-fields">`;
-        html += renderActiveTabFields();
-        html += `</div>`;
-    }
-
-    // ── Price Summary ──
-    html += `<div class="sf-modal-summary">`;
-    html += `<span class="sf-modal-total-label">${isRtl() ? 'المجموع' : 'Total'}</span>`;
-    html += `<span id="sf-modal-total" class="sf-modal-total-price">${formatPrice(getCurrentPrice())}</span>`;
-    html += `</div>`;
-
-    // ── Add to Cart ──
-    html += `<button type="button" id="sf-modal-add-btn" class="sf-btn-gold sf-modal-add-btn">`;
-    html += `<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>`;
-    html += `${isRtl() ? 'أضف للسلة' : 'Add to Cart'}`;
-    html += `</button>`;
-
-    // ── Toast (hidden) ──
-    html += `<div id="sf-modal-toast" class="sf-modal-toast hidden"></div>`;
+    // 3. Footer (Fixed)
+    html += `
+        <div class="sf-modal-grid-footer">
+            <div class="flex gap-4">
+                <button type="button" class="sf-btn-grid-share" id="sf-btn-share">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                </button>
+                <button type="button" id="sf-modal-add-btn" class="sf-btn-grid-purchase">
+                    <span>${isRtl() ? 'تأكيد الشراء' : 'Purchase Now'}</span>
+                    <span class="text-white/40 font-normal">|</span>
+                    <span id="sf-footer-total">${formatPrice(calcCurrentPrice())}</span>
+                </button>
+            </div>
+        </div>
+    `;
 
     body.innerHTML = html;
-    bindModalEvents();
+    bindEvents();
 }
 
-/**
- * Render a flat array of field objects into HTML inputs.
- * Used for both global fields and active-tab fields.
- */
-function renderFieldsArray(fields) {
-    let html = '';
-    (fields || []).forEach(field => {
-        html += `<div class="sf-field">`;
-        html += `<label for="sf-field-${escapeHtml(field.key)}">${escapeHtml(field.label)}`;
-        if (field.required) html += ` <span style="color:var(--sf-hot-red);">*</span>`;
-        html += `</label>`;
+function renderProductCard(p, isSelected) {
+    const image = p.image || currentSubcategory.image;
+    const isFeatured = p.is_featured;
+    const isInstant = p.delivery_type === 'instant';
+    const isCustom = p.product_type === 'custom_quantity';
 
-        if (field.type === 'select') {
-            html += `<select name="form_data[${escapeHtml(field.key)}]" id="sf-field-${escapeHtml(field.key)}" ${field.required ? 'required' : ''}>`;
-            html += `<option value="">${escapeHtml(field.placeholder) || (isRtl() ? 'اختر...' : 'Select...')}</option>`;
-            (field.options || []).forEach(opt => {
-                html += `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`;
-            });
-            html += `</select>`;
-        } else if (field.type === 'textarea') {
-            html += `<textarea name="form_data[${escapeHtml(field.key)}]" id="sf-field-${escapeHtml(field.key)}" placeholder="${escapeHtml(field.placeholder)}" ${field.required ? 'required' : ''} rows="3"></textarea>`;
-        } else {
-            html += `<input type="${field.type || 'text'}" name="form_data[${escapeHtml(field.key)}]" id="sf-field-${escapeHtml(field.key)}" placeholder="${escapeHtml(field.placeholder)}" ${field.required ? 'required' : ''}>`;
-        }
-        html += `<div class="sf-field-error" id="sf-err-${escapeHtml(field.key)}"></div>`;
+    return `
+        <div class="sf-grid-item ${isSelected ? 'selected' : ''}" data-product-id="${p.id}">
+            <div class="sf-grid-check">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <div class="sf-grid-badge ${isFeatured ? 'badge-hot' : (isInstant ? 'badge-fast' : (isCustom ? 'badge-custom' : ''))}">
+               ${isFeatured ? `
+                   <div class="badge-inner">
+                      <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                      ${isRtl() ? 'مميز' : 'HOT'}
+                   </div>
+               ` : (isInstant ? `
+                   <div class="badge-inner">
+                      <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                      ${isRtl() ? 'سريع' : 'FAST'}
+                   </div>
+               ` : (isCustom ? `
+                   <div class="badge-inner">
+                      <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                      ${isRtl() ? 'مخصص' : 'SELECT'}
+                   </div>
+               ` : ''))}
+            </div>
+            <div class="sf-grid-img-wrap">
+                <img src="${escapeHtml(image)}" alt="">
+            </div>
+            <div class="sf-grid-item-name">${escapeHtml(p.name)}</div>
+            <div class="sf-grid-item-price">${formatPrice(p.selling_price)}</div>
+        </div>
+    `;
+}
+
+function renderDetails(p) {
+    const type = p.product_type;
+    const hasFormTabs = p.forms?.length > 0;
+    const hasMultiForms = p.forms?.length > 1;
+
+    let html = `<div class="sf-grid-form-wrap animate-fade-in">`;
+    
+    // Selection Summary Card (New)
+    html += `
+        <div class="sf-selection-summary">
+            <div class="sf-summary-img-wrap">
+                <img src="${escapeHtml(p.image || currentSubcategory.image)}" alt="">
+            </div>
+            <div class="sf-summary-info">
+                <div class="sf-summary-name">${escapeHtml(p.name)}</div>
+                <div class="sf-summary-price">${formatPrice(calcCurrentPrice())}</div>
+            </div>
+        </div>
+    `;
+
+    // Header label
+    html += `<div class="text-[0.65rem] text-blue-400 font-bold uppercase tracking-widest mb-4">${isRtl() ? 'تعبئة البيانات' : 'FILL THE DATA'}</div>`;
+
+    // Tabs
+    if (hasMultiForms) {
+        html += `<div class="flex gap-2 mb-4 bg-black/20 p-1 rounded-xl">`;
+        p.forms.forEach(form => {
+            const active = form.key === selectedFormKey;
+            html += `<button type="button" class="sf-form-tab-mini flex-1 py-2 rounded-lg text-xs font-bold transition-all ${active ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}" data-form-key="${escapeHtml(form.key)}">${escapeHtml(form.label)}</button>`;
+        });
         html += `</div>`;
+    }
+
+    // Custom Quantity
+    if (type === 'custom_quantity') {
+        const min = p.min_quantity || 1;
+        html += `
+            <div class="mb-4 bg-black/20 rounded-xl p-4 border border-white/5">
+               <label class="block text-xs text-slate-500 font-bold mb-2 uppercase">${isRtl() ? 'الكمية' : 'Quantity'}</label>
+               <input type="number" id="sf-qty-input" class="w-full bg-transparent text-2xl font-black text-white outline-none border-b-2 border-blue-500 pb-1" value="${currentQuantity}" min="${min}">
+            </div>
+        `;
+    }
+
+    // Form Fields
+    html += `<div id="sf-grid-fields-container">`;
+    html += renderFields(p.fields);
+    if (hasFormTabs) {
+        const activeForm = p.forms.find(f => f.key === selectedFormKey) || p.forms[0];
+        html += renderFields(activeForm.fields);
+    }
+    html += `</div>`;
+
+    html += `</div>`;
+    return html;
+}
+
+function renderFields(fields) {
+    if (!fields) return '';
+    let html = '';
+    fields.forEach(f => {
+        html += `
+            <div class="mb-4">
+                <label class="block text-[0.65rem] text-slate-500 font-bold mb-1.5 uppercase tracking-wider">${escapeHtml(f.label)} ${f.required ? '<span class="text-red-500">*</span>' : ''}</label>
+                <input type="${f.type || 'text'}" name="form_data[${escapeHtml(f.key)}]" id="sf-field-${escapeHtml(f.key)}" placeholder="${escapeHtml(f.placeholder)}" class="w-full bg-slate-900/50 border border-white/5 rounded-xl p-3.5 text-sm text-white focus:border-blue-500/50 outline-none transition-all">
+                <div class="text-[0.6rem] text-red-500 mt-1 hidden" id="sf-err-${escapeHtml(f.key)}"></div>
+            </div>
+        `;
     });
     return html;
 }
 
-/**
- * Render only the fields belonging to the currently active tab.
- */
-function renderActiveTabFields() {
-    const p = currentProduct;
-    if (!p?.forms?.length) return '';
-    const activeForm = p.forms.find(f => f.key === selectedFormKey) || p.forms[0];
-    return renderFieldsArray(activeForm.fields);
+function calcCurrentPrice() {
+    if (!selectedProduct) return 0;
+    if (selectedProduct.product_type === 'custom_quantity') {
+        return currentQuantity * (selectedProduct.price_per_unit || selectedProduct.selling_price);
+    }
+    return selectedProduct.selling_price || 0;
 }
 
-function getCurrentPrice() {
-    const p = currentProduct;
-    if (!p) return 0;
-    if (p.product_type === 'custom_quantity') {
-        return currentQuantity * (p.price_per_unit || p.selling_price);
-    }
-    if (selectedPackageId && p.packages?.length) {
-        const pkg = p.packages.find(pk => pk.id === selectedPackageId);
-        return pkg ? pkg.selling_price : p.selling_price;
-    }
-    return p.selling_price;
-}
-
-function getClampedQuantity(value) {
-    const p = currentProduct;
-    if (!p) return 1;
-
-    const min = p.min_quantity || 1;
-    const max = p.max_quantity || 10000;
-    const parsed = parseInt(value, 10);
-    const normalized = Number.isFinite(parsed) ? parsed : min;
-
-    return Math.max(min, Math.min(max, normalized));
-}
-
-function updatePriceDisplay() {
-    const totalEl = document.getElementById('sf-modal-total');
-    if (totalEl) {
-        totalEl.textContent = formatPrice(getCurrentPrice());
-        // Trigger price pulse animation
-        totalEl.classList.remove('sf-price-updated');
-        void totalEl.offsetWidth; // force reflow to restart animation
-        totalEl.classList.add('sf-price-updated');
-    }
-
-    const qtyTotalEl = document.getElementById('sf-qty-total');
-    if (qtyTotalEl) {
-        const label = isRtl() ? 'المجموع' : 'Total';
-        qtyTotalEl.textContent = `${label}: ${formatPrice(getCurrentPrice())}`;
-    }
-}
-
-// ─── Events ───
-function bindModalEvents() {
-    // Package selection with animation
-    document.querySelectorAll('.sf-modal-pkg').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.sf-modal-pkg').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            // Re-trigger selection animation
-            btn.style.animation = 'none';
-            void btn.offsetWidth;
-            btn.style.animation = '';
-            selectedPackageId = parseInt(btn.dataset.pkgId);
-            updatePriceDisplay();
+function bindEvents() {
+    // Grid Item selection
+    document.querySelectorAll('.sf-grid-item').forEach(el => {
+        el.addEventListener('click', () => {
+            const productId = parseInt(el.dataset.productId);
+            const found = currentSubcategory.products.find(p => p.id === productId);
+            selectProduct(found);
+            render();
         });
     });
 
-    // Form tab switching with crossfade + explicit data clearing
-    document.querySelectorAll('.sf-form-tab').forEach(tab => {
+    // Form Tab switching
+    document.querySelectorAll('.sf-form-tab-mini').forEach(tab => {
         tab.addEventListener('click', () => {
-            document.querySelectorAll('.sf-form-tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
             selectedFormKey = tab.dataset.formKey;
-            const fieldsContainer = document.getElementById('sf-modal-fields');
-            if (fieldsContainer) {
-                // Clear previous tab's field values explicitly before switching
-                fieldsContainer.querySelectorAll('input, select, textarea').forEach(el => { el.value = ''; });
-                fieldsContainer.classList.add('sf-switching');
-                setTimeout(() => {
-                    fieldsContainer.innerHTML = renderActiveTabFields();
-                    fieldsContainer.classList.remove('sf-switching');
-                }, 200);
-            }
+            render();
         });
     });
 
-    // Quantity direct input (opened by button)
-    const openQtyBtn = document.getElementById('sf-open-qty-input');
-    const qtyWrap = document.getElementById('sf-qty-input-wrap');
+    // Quantity update
     const qtyInput = document.getElementById('sf-qty-input');
-    if (openQtyBtn && qtyWrap && qtyInput) {
-        openQtyBtn.addEventListener('click', () => {
-            qtyWrap.style.display = 'block';
-            qtyInput.focus();
-            qtyInput.select();
+    if (qtyInput) {
+        qtyInput.addEventListener('input', () => {
+            currentQuantity = parseInt(qtyInput.value) || 1;
+            document.getElementById('sf-footer-total').textContent = formatPrice(calcCurrentPrice());
         });
-
-        const syncQuantity = () => {
-            currentQuantity = getClampedQuantity(qtyInput.value);
-            qtyInput.value = String(currentQuantity);
-            updatePriceDisplay();
-        };
-
-        qtyInput.addEventListener('input', syncQuantity);
-        qtyInput.addEventListener('blur', syncQuantity);
     }
 
-    // Add to cart
-    const addBtn = document.getElementById('sf-modal-add-btn');
-    if (addBtn) {
-        addBtn.addEventListener('click', handleAddToCart);
-    }
+    // Purchase hook
+    const buyBtn = document.getElementById('sf-modal-add-btn');
+    if (buyBtn) buyBtn.addEventListener('click', handlePurchase);
 }
 
-/**
- * Client-side validation: checks required, email, numeric rules
- * before hitting the server. Returns true if valid.
- */
-function validateClientSide() {
-    const p = currentProduct;
-    if (!p) return true;
-
-    let isValid = true;
-    // Collect all active fields: global + active tab
-    const activeFields = [...(p.fields || [])];
-    if (p.forms?.length > 0) {
-        const activeForm = p.forms.find(f => f.key === selectedFormKey) || p.forms[0];
-        activeFields.push(...(activeForm.fields || []));
-    }
-
-    activeFields.forEach(field => {
-        const el = document.getElementById('sf-field-' + field.key);
-        const errEl = document.getElementById('sf-err-' + field.key);
-        if (!el || !errEl) return;
-
-        const value = el.value.trim();
-        errEl.textContent = '';
-
-        const rules = field.rules || [];
-
-        if (rules.includes('required') && !value) {
-            errEl.textContent = isRtl() ? 'هذا الحقل مطلوب' : 'This field is required';
-            isValid = false;
-            return;
-        }
-        if (rules.includes('email') && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-            errEl.textContent = isRtl() ? 'بريد إلكتروني غير صالح' : 'Invalid email address';
-            isValid = false;
-            return;
-        }
-        if (rules.includes('numeric') && value && isNaN(value)) {
-            errEl.textContent = isRtl() ? 'يجب أن يكون رقمًا' : 'Must be a number';
-            isValid = false;
-            return;
-        }
-    });
-
-    return isValid;
-}
-
-async function handleAddToCart() {
+async function handlePurchase() {
+    if (!selectedProduct) return;
     const btn = document.getElementById('sf-modal-add-btn');
-    if (!btn || !currentProduct) return;
-
-    // Clear previous errors
-    document.querySelectorAll('.sf-field-error').forEach(el => el.textContent = '');
-
-    // Client-side validation (Gap 3 fix)
-    if (!validateClientSide()) return;
-
-    // Collect form data from BOTH global fields and active tab fields
+    
+    const fields = document.querySelectorAll('[name^="form_data"]');
     const formData = {};
-    document.querySelectorAll('#sf-global-fields input, #sf-global-fields select, #sf-global-fields textarea, #sf-modal-fields input, #sf-modal-fields select, #sf-modal-fields textarea').forEach(el => {
-        const name = el.name;
-        if (name && name.startsWith('form_data[')) {
-            const key = name.replace('form_data[', '').replace(']', '');
-            formData[key] = el.value;
-        }
+    fields.forEach(f => {
+        const key = f.name.match(/\[(.*?)\]/)[1];
+        formData[key] = f.value;
     });
 
     const payload = {
-        product_id: currentProduct.id,
-        package_id: selectedPackageId,
-        quantity: currentProduct.product_type === 'custom_quantity' ? currentQuantity : 1,
+        product_id: selectedProduct.id,
+        package_id: null,
+        quantity: selectedProduct.product_type === 'custom_quantity' ? currentQuantity : 1,
         form_data: formData,
-        selected_form: selectedFormKey,
+        selected_form: selectedFormKey
     };
 
     btn.disabled = true;
-    btn.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" class="opacity-75"></path></svg> ${isRtl() ? 'جاري الإضافة...' : 'Adding...'}`;
+    btn.innerHTML = `<span>Adding...</span>`;
 
     try {
         const res = await fetch(CART_ADD_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
                 'X-CSRF-TOKEN': getCsrfToken(),
-                'X-Requested-With': 'XMLHttpRequest',
+                'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify(payload),
+            body: JSON.stringify(payload)
         });
-
-        if (res.status === 401 || res.redirected) {
-            window.location.href = '/auth/login';
-            return;
-        }
-
-        const contentType = res.headers.get('content-type') || '';
-        if (!contentType.includes('application/json')) {
-            showToast(false);
-            return;
-        }
-
+        if (res.status === 401) return window.location.href = '/login';
+        
         const data = await res.json();
-
-        if (!res.ok) {
-            // Validation errors
-            if (data.errors) {
-                Object.entries(data.errors).forEach(([key, messages]) => {
-                    const cleanKey = key.replace('form_data.', '');
-                    const errEl = document.getElementById('sf-err-' + cleanKey);
-                    if (errEl) errEl.textContent = messages[0];
-                });
-            }
-            btn.disabled = false;
-            btn.innerHTML = `<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg> ${isRtl() ? 'أضف للسلة' : 'Add to Cart'}`;
-            return;
-        }
-
-        // Success — update badge
-        document.querySelectorAll('.sf-cart-badge').forEach(el => {
-            el.textContent = data.count;
-            el.style.display = 'flex';
-        });
-        // If no badge exists, create one
-        if (document.querySelectorAll('.sf-cart-badge').length === 0) {
-            // Navbar cart link
-            document.querySelectorAll('a[href*="/cart"]').forEach(link => {
-                if (!link.querySelector('.sf-cart-badge')) {
-                    const badge = document.createElement('span');
-                    badge.className = 'sf-cart-badge';
-                    badge.textContent = data.count;
-                    link.style.position = 'relative';
-                    link.appendChild(badge);
-                }
+        if (res.ok) {
+            document.querySelectorAll('.sf-cart-badge').forEach(el => {
+                el.textContent = data.count;
+                el.style.display = 'flex';
             });
+            closeModal();
         }
-
-        // Show toast
-        showToast(true);
-
-    } catch (err) {
-        showToast(false);
+    } catch (e) {
+        console.error(e);
     } finally {
         btn.disabled = false;
-        btn.innerHTML = `<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg> ${isRtl() ? 'أضف للسلة' : 'Add to Cart'}`;
+        render();
     }
 }
 
-function showToast(success) {
-    const toast = document.getElementById('sf-modal-toast');
-    if (!toast) return;
-
-    if (success) {
-        toast.className = 'sf-modal-toast sf-toast-success';
-        toast.innerHTML = `
-            <span>✓ ${isRtl() ? 'تمت الإضافة للسلة!' : 'Added to cart!'}</span>
-            <div class="sf-toast-actions">
-                <a href="/cart" class="sf-toast-link">${isRtl() ? 'عرض السلة' : 'View Cart'}</a>
-                <button type="button" data-sf-toast-action="continue" class="sf-toast-link">${isRtl() ? 'متابعة' : 'Continue'}</button>
-            </div>
-        `;
-    } else {
-        toast.className = 'sf-modal-toast sf-toast-error';
-        toast.innerHTML = `<span>✗ ${isRtl() ? 'حدث خطأ' : 'Something went wrong'}</span>`;
-    }
-    toast.classList.remove('hidden');
-
-    if (success) {
-        const continueBtn = toast.querySelector('[data-sf-toast-action="continue"]');
-        if (continueBtn) {
-            continueBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                toast.classList.add('hidden');
-                closeModal();
-            });
-        }
-    }
-
-    if (!success) {
-        setTimeout(() => toast.classList.add('hidden'), 3000);
-    }
-}
-
-// ─── Init ───
+// ─── Global Initializers ───
 function init() {
-    // Delegate click on product cards
-    document.addEventListener('click', (e) => {
-        const card = e.target.closest('[data-product-slug]');
+    document.addEventListener('click', e => {
+        const card = e.target.closest('[data-subcategory-slug]');
         if (card) {
             e.preventDefault();
-            e.stopPropagation();
-            const slug = card.dataset.productSlug;
-            if (slug) loadProduct(slug);
+            loadSubcategory(card.dataset.subcategorySlug);
         }
     });
 
-    // Close on backdrop click
-    document.addEventListener('click', (e) => {
-        if (e.target.id === 'sf-modal-backdrop') closeModal();
-    });
-
-    // Close on X button
-    document.addEventListener('click', (e) => {
-        if (e.target.closest('.sf-modal-close')) closeModal();
-    });
-
-    // Close on Escape
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeModal();
-    });
+    document.addEventListener('click', e => { if (e.target.id === 'sf-modal-backdrop') closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 }
 
-// Expose close globally for inline handlers
 window.__sfCloseModal = closeModal;
-
-// Auto-init when DOM ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {

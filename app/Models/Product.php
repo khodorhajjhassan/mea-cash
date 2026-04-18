@@ -114,6 +114,8 @@ class Product extends Model
                 'required' => $field->is_required,
                 'placeholder' => $field->{"placeholder_{$locale}"} ?? '',
                 'options' => $field->ui_meta['options'] ?? [],
+                'min' => $field->ui_meta['min'] ?? null,
+                'max' => $field->ui_meta['max'] ?? null,
                 'rules' => $field->validation_rules ?? [],
             ];
 

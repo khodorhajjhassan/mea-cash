@@ -8,6 +8,8 @@ return [
         'subcategories' => 'Subcategories',
         'product_types' => 'Product Types',
         'products' => 'Products',
+        'banners' => 'Banners',
+        'faqs' => 'FAQs',
         'orders_group' => 'Orders',
         'all_orders' => 'All Orders',
         'pending_orders' => 'Pending Fulfillment',
