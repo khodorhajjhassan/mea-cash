@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Subcategory;
 use App\Models\Banner;
 use App\Models\Faq;
+use App\Models\AdminSetting;
 use App\Services\HomepageSectionService;
 use App\Services\SeoService;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,6 +20,13 @@ use Illuminate\Support\Str;
  
 class StorefrontController extends Controller
 {
+    private const CMS_PAGES = [
+        'about' => ['key' => 'page_about', 'title_en' => 'About MeaCash', 'title_ar' => 'عن MeaCash'],
+        'privacy-policy' => ['key' => 'page_privacy', 'title_en' => 'Privacy Policy', 'title_ar' => 'سياسة الخصوصية'],
+        'terms-and-conditions' => ['key' => 'page_terms', 'title_en' => 'Terms and Conditions', 'title_ar' => 'الشروط والأحكام'],
+        'refund-terms' => ['key' => 'page_refunds', 'title_en' => 'Refund Terms', 'title_ar' => 'شروط الاسترداد'],
+    ];
+
     public function __construct(
         private readonly SeoService $seoService,
         private readonly HomepageSectionService $homepageSections,
@@ -165,6 +173,27 @@ class StorefrontController extends Controller
             'products',
             'seo',
         ));
+    }
+
+    public function page(string $slug)
+    {
+        abort_unless(array_key_exists($slug, self::CMS_PAGES), 404);
+
+        $page = self::CMS_PAGES[$slug];
+        $locale = app()->getLocale();
+        $title = $page["title_{$locale}"] ?? $page['title_en'];
+        $content = AdminSetting::query()
+            ->where('key', $page['key'])
+            ->value('value');
+
+        $seo = $this->seoService->forPage($title);
+
+        return view('storefront.page', compact('title', 'content', 'slug', 'seo'));
+    }
+
+    public function localizedPage(string $locale, string $slug)
+    {
+        return $this->page($slug);
     }
  
     /**

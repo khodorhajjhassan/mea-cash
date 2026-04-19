@@ -12,6 +12,7 @@ return [
         'homepage_sections' => 'Homepage Sections',
         'banners' => 'Banners',
         'faqs' => 'FAQs',
+        'pages' => 'Legal & Info Pages',
         'orders_group' => 'Orders',
         'all_orders' => 'All Orders',
         'pending_orders' => 'Pending Fulfillment',

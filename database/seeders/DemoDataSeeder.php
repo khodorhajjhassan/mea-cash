@@ -449,6 +449,22 @@ class DemoDataSeeder extends Seeder
         // ─── Settings ───
         AdminSetting::query()->updateOrCreate(['key' => 'site_name'], ['value' => 'MeaCash', 'group' => 'general']);
         AdminSetting::query()->updateOrCreate(['key' => 'support_email'], ['value' => 'support@meacash.com', 'group' => 'general']);
+        AdminSetting::query()->updateOrCreate(['key' => 'page_about'], [
+            'value' => '<p>MeaCash is a digital marketplace for game top-ups, gift cards, software, and online services with fast wallet-based checkout.</p>',
+            'group' => 'pages',
+        ]);
+        AdminSetting::query()->updateOrCreate(['key' => 'page_terms'], [
+            'value' => '<p>By using MeaCash, customers agree to provide accurate account details, keep their login information secure, and use purchased digital products according to platform rules.</p>',
+            'group' => 'pages',
+        ]);
+        AdminSetting::query()->updateOrCreate(['key' => 'page_privacy'], [
+            'value' => '<p>MeaCash collects the information needed to process orders, wallet top-ups, support requests, and account security. We do not sell customer data.</p>',
+            'group' => 'pages',
+        ]);
+        AdminSetting::query()->updateOrCreate(['key' => 'page_refunds'], [
+            'value' => '<p>Refunds are reviewed case by case. Completed digital deliveries may not be refundable unless there is a confirmed delivery issue or an admin-approved exception.</p>',
+            'group' => 'pages',
+        ]);
     }
 
     private function seedProductFormFieldsFromTemplate(Product $product): void

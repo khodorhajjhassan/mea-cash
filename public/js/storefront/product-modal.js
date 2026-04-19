@@ -226,7 +226,7 @@ function renderBody() {
     }
 
     body.innerHTML = `
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid grid-cols-3 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
             ${items.map(renderSelectionCard).join('')}
         </div>
     `;
@@ -238,15 +238,15 @@ function renderSelectionCard(item) {
 
     return `
         <button type="button" data-select-product="${item.product.id}" data-select-package="${item.package?.id || ''}"
-            class="group relative flex min-h-[150px] flex-col rounded-2xl border p-3 text-start transition-all duration-300 sm:min-h-[178px] ${active ? 'border-primary-container bg-surface-container-high shadow-[0_0_22px_rgba(0,240,255,0.2)] ring-1 ring-primary-container/70' : 'border-transparent bg-surface-container-low hover:-translate-y-1 hover:border-primary-container/30 hover:bg-surface-container-high'}">
+            class="group relative flex min-h-[132px] flex-col rounded-xl border p-2 text-start transition-all duration-300 sm:min-h-[178px] sm:rounded-2xl sm:p-3 ${active ? 'border-primary-container bg-surface-container-high shadow-[0_0_22px_rgba(0,240,255,0.2)] ring-1 ring-primary-container/70' : 'border-transparent bg-surface-container-low hover:-translate-y-1 hover:border-primary-container/30 hover:bg-surface-container-high'}">
             ${badge}
             ${active ? `<span class="material-symbols-outlined absolute top-2 ${isRtl() ? 'left-2' : 'right-2'} text-lg text-primary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>` : ''}
-            <div class="mb-3 flex h-16 items-center justify-center rounded-xl bg-surface-container-lowest/60 p-2">
+            <div class="mb-2 flex h-12 items-center justify-center rounded-xl bg-surface-container-lowest/60 p-1.5 sm:mb-3 sm:h-16 sm:p-2">
                 <img src="${escapeHtml(imageUrl({ image: item.image }))}" alt="${escapeHtml(item.title)}" class="h-full w-full object-contain" onerror="this.src='/meacash-logo.png'">
             </div>
-            <div class="min-h-[42px] font-headline text-[13px] font-black uppercase leading-tight text-on-surface">${escapeHtml(item.title)}</div>
-            <div class="mt-2 truncate font-label text-[9px] font-bold uppercase tracking-widest text-outline">${escapeHtml(item.subtitle)}</div>
-            <div class="mt-auto pt-3 font-headline text-base font-black text-primary-container">${money(item.price)}</div>
+            <div class="line-clamp-2 min-h-[30px] font-headline text-[10px] font-black uppercase leading-tight text-on-surface sm:min-h-[42px] sm:text-[13px]">${escapeHtml(item.title)}</div>
+            <div class="mt-1 truncate font-label text-[8px] font-bold uppercase tracking-widest text-outline sm:mt-2 sm:text-[9px]">${escapeHtml(item.subtitle)}</div>
+            <div class="mt-auto pt-2 font-headline text-sm font-black text-primary-container sm:pt-3 sm:text-base">${money(item.price)}</div>
         </button>
     `;
 }

@@ -50,7 +50,7 @@
                 <div class="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/40 p-4">
                     <div class="font-label text-[9px] font-black uppercase tracking-widest text-outline">{{ $locale === 'ar' ? 'البريد الإلكتروني' : 'Email' }}</div>
                     <div class="mt-1 truncate text-sm font-bold text-on-surface">{{ $user->email }}</div>
-                    <p class="mt-1 text-xs text-on-surface-variant">{{ $locale === 'ar' ? 'لا يمكن تغييره حالياً.' : 'Email changes are currently locked.' }}</p>
+                    <p class="mt-1 text-xs text-on-surface-variant">{{ $locale === 'ar' ? 'لا يمكن تغييره حاليا.' : 'Email changes are currently locked.' }}</p>
                 </div>
             </div>
         </aside>
@@ -68,7 +68,7 @@
 
                 <div class="grid gap-5 md:grid-cols-2">
                     <div class="sf-field">
-                        <label for="name">{{ $locale === 'ar' ? 'الاسم' : 'Full Name' }}</label>
+                        <label for="name">{{ $locale === 'ar' ? 'الاسم الكامل' : 'Full Name' }}</label>
                         <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" required>
                         @error('name') <p class="mt-1 text-xs text-error">{{ $message }}</p> @enderror
                     </div>

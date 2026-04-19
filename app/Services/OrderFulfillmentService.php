@@ -8,6 +8,7 @@ use App\Exceptions\OutOfStockException;
 use App\Mail\OrderFulfilledMail;
 use App\Models\Order;
 use App\Models\ProductCode;
+use App\Notifications\UserNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 class OrderFulfillmentService
@@ -73,6 +74,14 @@ class OrderFulfillmentService
                 Mail::to($order->user->email)->send(new OrderFulfilledMail($order));
             }
 
+            $order->loadMissing('user');
+            $order->user?->notify(new UserNotification([
+                'type' => 'Order Completed',
+                'message' => "Order #{$order->order_number} is completed. Your delivery details are ready.",
+                'link' => route('store.orders.detail', $order->order_number),
+                'icon' => 'verified',
+            ]));
+
             return $order;
         });
     }
@@ -137,6 +146,13 @@ class OrderFulfillmentService
                 if ($notifyEmail) {
                     \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderRefundedMail($order));
                 }
+
+                $order->user->notify(new UserNotification([
+                    'type' => 'Order Refunded',
+                    'message' => "Order #{$order->order_number} was refunded to your wallet.",
+                    'link' => route('store.orders.detail', $order->order_number),
+                    'icon' => 'currency_exchange',
+                ]));
             }
 
             return $order;

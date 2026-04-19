@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductPackage;
 use App\Services\CartService;
 use App\Services\WalletService;
+use App\Notifications\UserNotification;
 use App\Exceptions\InsufficientBalanceException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -107,6 +108,13 @@ class CheckoutController extends Controller
                         description: $description,
                         reference: $order,
                     );
+
+                    $user->notify(new UserNotification([
+                        'type' => 'Order Created',
+                        'message' => "Your order #{$orderNumber} was created and is now pending.",
+                        'link' => route('store.orders.detail', $orderNumber),
+                        'icon' => 'receipt_long',
+                    ]));
 
                     $createdOrders[] = $order;
                 }

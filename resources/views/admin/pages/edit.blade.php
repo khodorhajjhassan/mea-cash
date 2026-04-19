@@ -39,6 +39,19 @@
 
             <hr class="border-slate-100">
 
+            <!-- Refund Terms Section -->
+            <div class="space-y-3">
+                <div class="flex items-center gap-2">
+                    <div class="h-8 w-1 bg-rose-500 rounded-full"></div>
+                    <label class="text-base font-bold text-slate-900">Terms of Refunds</label>
+                </div>
+                <div class="editor-container">
+                    <textarea name="page_refunds" id="editor-refunds" class="hidden">{{ $settings['page_refunds'] ?? '' }}</textarea>
+                </div>
+            </div>
+
+            <hr class="border-slate-100">
+
             <!-- Privacy Policy Section -->
             <div class="space-y-3">
                 <div class="flex items-center gap-2">

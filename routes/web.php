@@ -32,8 +32,10 @@ use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\Storefront\StorefrontController;
 use App\Http\Controllers\Storefront\CartController;
 use App\Http\Controllers\Storefront\CheckoutController;
+use App\Http\Controllers\Storefront\ContactController as StorefrontContactController;
 use App\Http\Controllers\Storefront\CustomerDashboardController;
 use App\Http\Controllers\Storefront\CustomerAuthController;
+use App\Http\Controllers\Storefront\NotificationController as StorefrontNotificationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -52,6 +54,17 @@ Route::get('/{locale}', [StorefrontController::class, 'index'])
 */
 Route::get('/', [StorefrontController::class, 'index'])->name('store.home');
 Route::get('/category/{slug}', [StorefrontController::class, 'category'])->name('store.category');
+Route::get('/pages/{slug}', [StorefrontController::class, 'page'])->name('store.page');
+Route::get('/{locale}/pages/{slug}', [StorefrontController::class, 'localizedPage'])
+    ->whereIn('locale', ['en', 'ar'])
+    ->name('store.page.locale');
+Route::get('/contact', [StorefrontContactController::class, 'create'])->name('store.contact');
+Route::get('/{locale}/contact', [StorefrontContactController::class, 'create'])
+    ->whereIn('locale', ['en', 'ar'])
+    ->name('store.contact.locale');
+Route::post('/contact', [StorefrontContactController::class, 'store'])
+    ->middleware('throttle:3,10')
+    ->name('store.contact.store');
 Route::get('/search', [StorefrontController::class, 'search'])->name('store.search');
 Route::get('/api/product/{slug}', [StorefrontController::class, 'subcategoryJson'])->name('store.product.json');
 Route::get('/api/subcategory/{slug}', [StorefrontController::class, 'subcategoryJson'])->name('store.subcategory.json');
@@ -90,6 +103,8 @@ Route::prefix('dashboard')
         Route::post('/wallet/topup', [CustomerDashboardController::class, 'submitTopup'])->name('wallet.topup');
         Route::get('/profile', [CustomerDashboardController::class, 'profile'])->name('profile');
         Route::put('/profile', [CustomerDashboardController::class, 'updateProfile'])->name('profile.update');
+        Route::get('/notifications/{id}/read', [StorefrontNotificationController::class, 'read'])->name('notifications.read');
+        Route::post('/notifications/read-all', [StorefrontNotificationController::class, 'readAll'])->name('notifications.read-all');
     });
 
 Route::prefix('auth')
@@ -148,8 +163,10 @@ Route::prefix('admin')
             Route::post('pages', [PageController::class, 'update'])->middleware('permission:settings.general')->name('pages.update');
             
             Route::get('settings', [SettingController::class, 'index'])->middleware('permission:settings.general')->name('settings.index');
+            Route::get('settings/general', [SettingController::class, 'general'])->middleware('permission:settings.general')->name('settings.general');
+            Route::get('settings/seo', [SettingController::class, 'seo'])->middleware('permission:settings.general')->name('settings.seo');
             Route::post('settings', [SettingController::class, 'update'])->middleware('permission:settings.general')->name('settings.update');
-            Route::post('settings/seo', [SettingController::class, 'updateSeo'])->middleware('permission:settings.general')->name('settings.seo');
+            Route::post('settings/seo', [SettingController::class, 'updateSeo'])->middleware('permission:settings.general')->name('settings.seo.update');
 
             Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
             Route::get('notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Web;
 use App\Http\Controllers\Controller;
 use App\Models\TopupRequest;
 use App\Services\WalletService;
+use App\Notifications\UserNotification;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -107,6 +108,12 @@ class TopupController extends Controller
             ]);
 
             $this->walletService->credit($topup->user, $amount, 'Top-up request approved: #'.$topup->id, $topup, auth()->id());
+            $topup->user?->notify(new UserNotification([
+                'type' => 'Top-Up Approved',
+                'message' => "Your top-up request #{$topup->id} was approved and \${$amount} was added to your wallet.",
+                'link' => route('store.wallet'),
+                'icon' => 'account_balance_wallet',
+            ]));
 
             if (!empty($data['notify_email'])) {
                 \Illuminate\Support\Facades\Mail::to($topup->user->email)->send(new \App\Mail\TopupApprovedMail($topup, $amount));
@@ -146,6 +153,13 @@ class TopupController extends Controller
                 'processed_by' => null,
                 'processed_at' => now(),
             ]);
+
+            $topup->user?->notify(new UserNotification([
+                'type' => 'Top-Up Rejected',
+                'message' => "Your top-up request #{$topup->id} was rejected. Note: {$data['admin_note']}",
+                'link' => route('store.wallet'),
+                'icon' => 'report',
+            ]));
 
             return back()->with('success', 'Top-up request rejected.');
         } catch (Exception $exception) {

@@ -23,6 +23,7 @@ class SettingController extends Controller
         $request = request();
 
         $settings = AdminSetting::query()
+            ->where('group', '!=', 'pages')
             ->when($request->filled('q'), function ($query) use ($request): void {
                 $q = trim((string) $request->string('q'));
                 $query->where(function ($inner) use ($q): void {
@@ -79,8 +80,9 @@ class SettingController extends Controller
         // Filter keys in PHP for speed since we have the cached list
         $settings = array_intersect_key($all, array_flip(['site_name', 'site_email', 'site_phone']));
         $social = array_filter($all, fn($k) => str_starts_with($k, 'social_'), ARRAY_FILTER_USE_KEY);
+        $seo = array_intersect_key($all, array_flip(['meta_title', 'meta_description', 'meta_keywords']));
 
-        return view('admin.settings.general', compact('settings', 'social'));
+        return view('admin.settings.general', compact('settings', 'social', 'seo'));
     }
 
     public function seo()

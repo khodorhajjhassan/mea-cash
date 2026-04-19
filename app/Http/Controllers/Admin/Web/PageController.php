@@ -13,7 +13,7 @@ class PageController extends Controller
      */
     public function edit()
     {
-        $keys = ['page_about', 'page_terms', 'page_privacy'];
+        $keys = ['page_about', 'page_terms', 'page_privacy', 'page_refunds'];
         $settings = AdminSetting::whereIn('key', $keys)->get()->pluck('value', 'key');
 
         return view('admin.pages.edit', compact('settings'));
@@ -28,6 +28,7 @@ class PageController extends Controller
             'page_about' => ['nullable', 'string'],
             'page_terms' => ['nullable', 'string'],
             'page_privacy' => ['nullable', 'string'],
+            'page_refunds' => ['nullable', 'string'],
         ]);
 
         foreach ($data as $key => $value) {

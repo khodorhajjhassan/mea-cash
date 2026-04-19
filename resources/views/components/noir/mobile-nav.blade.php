@@ -1,5 +1,19 @@
 @php
     $locale = app()->getLocale();
+    $targetLocale = $locale === 'ar' ? 'en' : 'ar';
+    $segments = request()->segments();
+    $query = request()->except('lang');
+    $languageSwitchUrl = request()->fullUrlWithQuery(['lang' => $targetLocale]);
+
+    if (isset($segments[0]) && in_array($segments[0], ['en', 'ar'], true)) {
+        $segments[0] = $targetLocale;
+        $languageSwitchUrl = url(implode('/', $segments));
+
+        if ($query !== []) {
+            $languageSwitchUrl .= '?' . http_build_query($query);
+        }
+    }
+
     $isAuth = auth()->check();
     $walletBalance = $isAuth ? (float) (auth()->user()->wallet?->balance ?? 0) : 0;
 
@@ -28,6 +42,16 @@
             str_contains($name, 'console') => 'videogame_asset',
             default => $category->icon && mb_strlen($category->icon) > 2 ? $category->icon : 'category',
         };
+    };
+
+    $catalogImageUrl = static function (?string $path): string {
+        if (! $path) {
+            return asset('meacash-logo.png');
+        }
+
+        return str_starts_with($path, 'http')
+            ? $path
+            : \Illuminate\Support\Facades\Storage::url($path);
     };
 @endphp
 
@@ -58,8 +82,8 @@
         </div>
 
         @foreach($mobileCategories as $category)
-            <section class="rounded-3xl border border-outline-variant/12 bg-surface-container-low/70 p-4">
-                <a href="{{ route('store.home.locale', ['locale' => $locale, 'category' => $category->slug]) }}#products-section" class="mb-3 flex items-center gap-3">
+            <details class="group rounded-3xl border border-outline-variant/12 bg-surface-container-low/70 p-4" {{ $loop->first ? 'open' : '' }}>
+                <summary class="flex cursor-pointer list-none items-center gap-3">
                     <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-primary-container/20 bg-primary-container/10 text-primary-container">
                         @if($category->icon && mb_strlen($category->icon) <= 2)
                             <span class="text-2xl">{{ $category->icon }}</span>
@@ -67,24 +91,31 @@
                             <span class="material-symbols-outlined">{{ $categoryIcon($category) }}</span>
                         @endif
                     </div>
-                    <div class="min-w-0">
+                    <div class="min-w-0 flex-1">
                         <h3 class="truncate font-headline text-sm font-black uppercase text-on-surface">{{ $category->{"name_{$locale}"} ?: $category->name_en }}</h3>
                         <p class="font-label text-[9px] uppercase tracking-widest text-outline">{{ $category->subcategories->count() }} {{ __('vaults') }}</p>
                     </div>
-                </a>
+                    <span class="material-symbols-outlined text-outline transition group-open:rotate-180">expand_more</span>
+                </summary>
 
-                @if($category->subcategories->isNotEmpty())
-                    <div class="grid grid-cols-1 gap-2">
-                        @foreach($category->subcategories as $subcategory)
-                            <button type="button" class="flex items-center justify-between rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/45 px-3 py-3 text-start transition hover:border-primary-container/40 hover:bg-primary-container/10"
-                                data-mobile-open-subcategory="{{ $subcategory->slug }}">
-                                <span class="min-w-0 truncate font-label text-[10px] font-black uppercase tracking-widest text-on-surface-variant">{{ $subcategory->{"name_{$locale}"} ?: $subcategory->name_en }}</span>
-                                <span class="material-symbols-outlined text-base text-primary-container">arrow_forward</span>
-                            </button>
-                        @endforeach
-                    </div>
-                @endif
-            </section>
+                <div class="mt-3 grid grid-cols-1 gap-2">
+                    <a href="{{ route('store.home.locale', ['locale' => $locale, 'category' => $category->slug]) }}#products-section" class="flex items-center justify-between rounded-2xl border border-primary-container/15 bg-primary-container/10 px-3 py-3 text-start transition hover:border-primary-container/50">
+                        <span class="font-label text-[10px] font-black uppercase tracking-widest text-primary-container">{{ __('View all') }}</span>
+                        <span class="material-symbols-outlined text-base text-primary-container">arrow_forward</span>
+                    </a>
+
+                    @foreach($category->subcategories as $subcategory)
+                        <button type="button" class="flex items-center justify-between gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/45 px-3 py-2.5 text-start transition hover:border-primary-container/40 hover:bg-primary-container/10"
+                            data-mobile-open-subcategory="{{ $subcategory->slug }}">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-outline-variant/15 bg-surface-container-low p-1">
+                                <img src="{{ $catalogImageUrl($subcategory->image) }}" alt="{{ $subcategory->{"name_{$locale}"} ?: $subcategory->name_en }}" class="h-full w-full object-contain" loading="lazy" onerror="this.src='{{ asset('meacash-logo.png') }}'">
+                            </span>
+                            <span class="min-w-0 flex-1 truncate font-label text-[10px] font-black uppercase tracking-widest text-on-surface-variant">{{ $subcategory->{"name_{$locale}"} ?: $subcategory->name_en }}</span>
+                            <span class="material-symbols-outlined text-base text-primary-container">arrow_forward</span>
+                        </button>
+                    @endforeach
+                </div>
+            </details>
         @endforeach
     </div>
 </div>
@@ -146,11 +177,11 @@
         </a>
 
         <div class="space-y-2">
+            <a href="{{ route('store.dashboard') }}" class="mobile-profile-link"><span class="material-symbols-outlined">dashboard</span><span>{{ __('Dashboard') }}</span></a>
             <a href="{{ route('store.orders') }}" class="mobile-profile-link"><span class="material-symbols-outlined">inventory_2</span><span>{{ __('Orders') }}</span></a>
             <a href="{{ route('store.wallet') }}" class="mobile-profile-link"><span class="material-symbols-outlined">account_balance_wallet</span><span>{{ __('Wallet') }}</span></a>
-            <a href="{{ route('store.wallet') }}#topup-form" class="mobile-profile-link"><span class="material-symbols-outlined">payments</span><span>{{ __('Top Up') }}</span></a>
             <a href="{{ route('store.profile') }}" class="mobile-profile-link"><span class="material-symbols-outlined">manage_accounts</span><span>{{ __('User Profile') }}</span></a>
-            <a href="{{ route('store.home.locale', ['locale' => $locale === 'en' ? 'ar' : 'en']) }}" class="mobile-profile-link"><span class="material-symbols-outlined">language</span><span>{{ $locale === 'en' ? 'العربية' : 'English' }}</span></a>
+            <a href="{{ $languageSwitchUrl }}" class="mobile-profile-link"><span class="material-symbols-outlined">language</span><span>{{ $targetLocale === 'ar' ? 'العربية' : 'English' }}</span></a>
         </div>
     @else
         <div class="space-y-3">
@@ -159,13 +190,13 @@
                 <span>{{ __('Login First') }}</span>
             </a>
             <a href="{{ route('store.register') }}" class="mobile-profile-link"><span class="material-symbols-outlined">person_add</span><span>{{ __('Create Account') }}</span></a>
-            <a href="{{ route('store.home.locale', ['locale' => $locale === 'en' ? 'ar' : 'en']) }}" class="mobile-profile-link"><span class="material-symbols-outlined">language</span><span>{{ $locale === 'en' ? 'العربية' : 'English' }}</span></a>
+            <a href="{{ $languageSwitchUrl }}" class="mobile-profile-link"><span class="material-symbols-outlined">language</span><span>{{ $targetLocale === 'ar' ? 'العربية' : 'English' }}</span></a>
         </div>
     @endauth
 </div>
 
 <nav class="fixed inset-x-0 bottom-0 z-[95] border-t border-outline-variant/15 bg-[#0f131c]/95 px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-3 shadow-[0_-18px_60px_rgba(0,0,0,0.45)] backdrop-blur-2xl md:hidden" aria-label="{{ __('Mobile navigation') }}">
-    <div class="mx-auto grid max-w-md grid-cols-4 items-end gap-2">
+    <div class="mx-auto grid max-w-md grid-cols-4 items-end gap-1">
         <a href="{{ route('store.home.locale', ['locale' => $locale]) }}" class="mobile-nav-item {{ request()->routeIs('store.home', 'store.home.locale') ? 'text-primary-container' : 'text-on-surface-variant' }}">
             <span class="material-symbols-outlined">home</span>
             <span>{{ __('Home') }}</span>

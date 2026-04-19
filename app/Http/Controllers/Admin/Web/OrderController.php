@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Requests\FulfillOrderRequest;
 use App\Services\OrderFulfillmentService;
 use App\Enums\OrderStatus;
+use App\Notifications\UserNotification;
 
 class OrderController extends Controller
 {
@@ -94,6 +95,15 @@ class OrderController extends Controller
 
         try {
             $order->update(['status' => $data['status']]);
+            $order->loadMissing('user');
+
+            $status = $order->status->value ?? (string) $order->status;
+            $order->user?->notify(new UserNotification([
+                'type' => 'Order Status',
+                'message' => "Order #{$order->order_number} status changed to {$status}.",
+                'link' => route('store.orders.detail', $order->order_number),
+                'icon' => 'inventory_2',
+            ]));
 
             return back()->with('success', 'Order status updated.');
         } catch (Exception $exception) {
@@ -134,6 +144,13 @@ class OrderController extends Controller
     {
         try {
             $this->fulfillmentService->markAsFailed($order);
+            $order->loadMissing('user');
+            $order->user?->notify(new UserNotification([
+                'type' => 'Order Failed',
+                'message' => "Order #{$order->order_number} was marked as failed.",
+                'link' => route('store.orders.detail', $order->order_number),
+                'icon' => 'error',
+            ]));
 
             return back()->with('success', 'Order marked as failed.');
         } catch (Exception $exception) {

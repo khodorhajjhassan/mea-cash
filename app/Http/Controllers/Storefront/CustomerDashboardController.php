@@ -8,6 +8,7 @@ use App\Models\Feedback;
 use App\Models\Order;
 use App\Models\TopupRequest;
 use App\Models\PaymentMethod;
+use App\Notifications\UserNotification;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -176,12 +177,19 @@ class CustomerDashboardController extends Controller
         // Store receipts on private disk so admin can access them through temporary signed URLs.
         $path = $request->file('receipt_image')->store('topup-receipts', 'private');
 
-        TopupRequest::create([
+        $topup = TopupRequest::create([
             'user_id' => auth()->id(),
             'payment_method' => $validated['payment_method'],
             'amount_requested' => $validated['amount_requested'],
             'receipt_image_path' => $path,
         ]);
+
+        auth()->user()->notify(new UserNotification([
+            'type' => 'Top-Up Submitted',
+            'message' => "Your top-up request #{$topup->id} was submitted and is pending review.",
+            'link' => route('store.wallet'),
+            'icon' => 'payments',
+        ]));
 
         return back()->with('success', __('storefront.wallet.topup_submitted'));
     }
