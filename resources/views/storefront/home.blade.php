@@ -123,45 +123,28 @@
     </section>
 
     {{-- High-Fidelity Infinite Brand Image Strip --}}
-    <section class="relative px-4 md:px-8 py-10 z-10 overflow-hidden sf-reveal-section">
         @php
-            $brandList = [
-                ['name' => 'Spotify', 'icon' => 'https://cdn.simpleicons.org/spotify/1DB954'],
-                ['name' => 'PlayStation', 'icon' => 'https://cdn.simpleicons.org/playstation/0070CC'],
-                ['name' => 'Xbox', 'icon' => 'https://cdn.simpleicons.org/xbox/107C10'],
-                ['name' => 'Steam', 'icon' => 'https://cdn.simpleicons.org/steam/66C0F4'],
-                ['name' => 'Discord', 'icon' => 'https://cdn.simpleicons.org/discord/5865F2'],
-                ['name' => 'Amazon', 'icon' => 'https://cdn.simpleicons.org/amazon/FF9900'],
-                ['name' => 'Netflix', 'icon' => 'https://cdn.simpleicons.org/netflix/E50914'],
-                ['name' => 'YouTube', 'icon' => 'https://cdn.simpleicons.org/youtube/FF0000'],
-                ['name' => 'Apple', 'icon' => 'https://cdn.simpleicons.org/apple/A2AAAD'],
-                ['name' => 'Google', 'icon' => 'https://cdn.simpleicons.org/google/4285F4'],
-                ['name' => 'Roblox', 'icon' => 'https://cdn.simpleicons.org/roblox/64748B'],
-                ['name' => 'Fortnite', 'icon' => 'https://cdn.simpleicons.org/fortnite/64748B'],
-                ['name' => 'PUBG', 'icon' => 'https://cdn.simpleicons.org/pubg/F2A900'],
-                ['name' => 'Razer', 'icon' => 'https://cdn.simpleicons.org/razer/44D62C'],
-                ['name' => 'Nintendo', 'icon' => 'https://cdn.simpleicons.org/nintendo/E60012'],
-                ['name' => 'Epic Games', 'icon' => 'https://cdn.simpleicons.org/epicgames/334155'],
-                ['name' => 'Valorant', 'icon' => 'https://cdn.simpleicons.org/valorant/FA4454'],
-                ['name' => 'Free Fire', 'icon' => 'https://upload.wikimedia.org/wikipedia/fr/b/b3/Garena_Free_Fire_Logo.png'],
-                ['name' => 'League of Legends', 'icon' => 'https://cdn.simpleicons.org/leagueoflegends/C89B3C'],
-                ['name' => 'Twitch', 'icon' => 'https://cdn.simpleicons.org/twitch/9146FF'],
-            ];
-            $brandTiles = array_merge($brandList, $brandList);
+            $brandTiles = $featuredSubcategories->count() > 0 
+                ? ($featuredSubcategories->count() < 10 ? $featuredSubcategories->merge($featuredSubcategories) : $featuredSubcategories) 
+                : collect();
         @endphp
         <div class="overflow-hidden py-3">
             <div class="{{ $locale === 'ar' ? 'animate-marquee-rtl' : 'animate-marquee' }} flex w-max items-center gap-3 md:gap-4 py-2" dir="ltr">
-                @foreach($brandTiles as $brand)
-                    <div
-                        class="sf-brand-card group flex h-28 w-28 md:h-32 md:w-32 shrink-0 flex-col items-center justify-center rounded-2xl border border-outline-variant/10 bg-surface-container/55 p-4 transition-all duration-300 hover:border-primary-container/70 hover:bg-surface-container-high hover:shadow-[0_0_30px_rgba(0,240,255,0.12)]">
+                @foreach($brandTiles as $sub)
+                    @php
+                        $subImage = $sub->image ? (str_starts_with($sub->image, 'http') ? $sub->image : \Illuminate\Support\Facades\Storage::url($sub->image)) : asset('meacash-logo.png');
+                        $subName = $sub->{"name_$locale"} ?: $sub->name_en;
+                    @endphp
+                    <div onclick="window.openSubcategoryModal('{{ $sub->slug }}')"
+                        class="sf-brand-card group flex h-28 w-28 md:h-32 md:w-32 shrink-0 flex-col items-center justify-center rounded-2xl border border-outline-variant/10 bg-surface-container/55 p-4 transition-all duration-300 hover:border-primary-container/70 hover:bg-surface-container-high hover:shadow-[0_0_30px_rgba(0,240,255,0.12)] cursor-pointer">
                         <div class="sf-brand-card-icon-shell mb-3 flex h-12 w-12 items-center justify-center rounded-2xl">
-                            <img src="{{ $brand['icon'] }}" alt="{{ $brand['name'] }}" loading="lazy"
+                            <img src="{{ $subImage }}" alt="{{ $subName }}" loading="lazy"
                                 class="sf-brand-card-icon h-9 w-9 object-contain opacity-90 transition-all duration-300 group-hover:scale-110 group-hover:opacity-100"
-                                onerror="this.style.visibility='hidden';">
+                                onerror="this.src='{{ asset('meacash-logo.png') }}';">
                         </div>
                         <span
                             class="sf-brand-card-label w-full truncate text-center font-headline text-[9px] font-black uppercase tracking-widest text-on-surface/45 transition-colors group-hover:text-primary-container">
-                            {{ $brand['name'] }}
+                            {{ $subName }}
                         </span>
                     </div>
                 @endforeach
@@ -174,30 +157,23 @@
         class="sf-brand-marquee w-full py-8 border-y border-outline-variant/10 bg-surface-container-lowest/50 backdrop-blur-sm overflow-hidden z-10 relative sf-reveal-section">
         <div class="flex items-center gap-16 md:gap-32 w-max {{ $locale === 'ar' ? 'animate-marquee-rtl' : 'animate-marquee' }}" dir="ltr">
             @php
-                $brands = [
-                    ['name' => 'PLAYSTATION', 'icon' => 'https://cdn.simpleicons.org/playstation/0070CC'],
-                    ['name' => 'STEAM', 'icon' => 'https://cdn.simpleicons.org/steam/66C0F4'],
-                    ['name' => 'XBOX', 'icon' => 'https://cdn.simpleicons.org/xbox/107C10'],
-                    ['name' => 'RAZER', 'icon' => 'https://cdn.simpleicons.org/razer/44D62C'],
-                    ['name' => 'NINTENDO', 'icon' => 'https://cdn.simpleicons.org/nintendo/E60012'],
-                    ['name' => 'AMAZON', 'icon' => 'https://cdn.simpleicons.org/amazon/FF9900'],
-                    ['name' => 'NETFLIX', 'icon' => 'https://cdn.simpleicons.org/netflix/E50914'],
-                    ['name' => 'SPOTIFY', 'icon' => 'https://cdn.simpleicons.org/spotify/1DB954'],
-                    ['name' => 'DISCORD', 'icon' => 'https://cdn.simpleicons.org/discord/5865F2'],
-                    ['name' => 'ROBLOX', 'icon' => 'https://cdn.simpleicons.org/roblox/64748B'],
-                ];
-                // Quadruple for ultra-long seamless loop without whitespace gaps
-                $marqueeItems = array_merge($brands, $brands, $brands, $brands); 
+                $marqueeItems = $featuredSubcategories->count() > 0 
+                    ? ($featuredSubcategories->count() < 10 ? $featuredSubcategories->merge($featuredSubcategories)->merge($featuredSubcategories) : $featuredSubcategories) 
+                    : collect();
             @endphp
-            @foreach($marqueeItems as $brand)
-                <div
+            @foreach($marqueeItems as $sub)
+                @php
+                    $subImage = $sub->image ? (str_starts_with($sub->image, 'http') ? $sub->image : \Illuminate\Support\Facades\Storage::url($sub->image)) : asset('meacash-logo.png');
+                    $subName = $sub->{"name_$locale"} ?: $sub->name_en;
+                @endphp
+                <div onclick="window.openSubcategoryModal('{{ $sub->slug }}')"
                     class="sf-brand-marquee-item flex items-center gap-3 group/brand cursor-pointer opacity-70 hover:opacity-100 transition-all duration-500 shrink-0">
-                    <img src="{{ $brand['icon'] }}" alt="{{ $brand['name'] }}"
+                    <img src="{{ $subImage }}" alt="{{ $subName }}"
                         class="sf-brand-marquee-icon h-7 w-7 object-contain transition-transform group-hover/brand:scale-110"
-                        onerror="this.style.visibility='hidden';">
+                        onerror="this.src='{{ asset('meacash-logo.png') }}';">
                     <span
                         class="sf-brand-marquee-label font-headline font-black text-xl tracking-widest uppercase italic text-on-surface/50 group-hover/brand:text-primary-container">
-                        {{ $brand['name'] }}
+                        {{ $subName }}
                     </span>
                 </div>
             @endforeach

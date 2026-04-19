@@ -59,7 +59,7 @@ class StorefrontController extends Controller
             ->where('is_featured', true)
             ->whereHas('products', fn ($query) => $query->where('is_active', true))
             ->orderBy('sort_order')
-            ->limit(10)
+            ->limit(24) // Increased limit for better brand marquee and grid display
             ->get();
  
         $subcategoriesQuery = Subcategory::query()

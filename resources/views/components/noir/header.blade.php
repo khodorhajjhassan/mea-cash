@@ -226,7 +226,7 @@
                 </button>
 
                 {{-- Language Switcher --}}
-                <div class="hidden items-center border-s border-outline-variant/20 ps-4 ms-2 md:ms-0 sm:flex">
+                <div class="flex items-center border-s border-outline-variant/20 ps-4 ms-2 md:ms-0">
                     <a href="{{ $languageSwitchUrl }}"
                         class="mc-icon-button mc-language-switch flex items-center rounded-full border transition-all hover:text-primary-container"
                         aria-label="{{ $targetLocale === 'ar' ? __('Switch to Arabic') : __('Switch to English') }}"
