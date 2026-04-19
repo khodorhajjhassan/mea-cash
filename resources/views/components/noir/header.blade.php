@@ -20,28 +20,28 @@
 @endphp
 
 <header
-    class="bg-[#111319]/60 backdrop-blur-xl sticky top-0 z-50 border-b border-[#3b494b]/15 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+    class="mc-store-header backdrop-blur-xl sticky top-0 z-50 border-b">
     <nav class="flex justify-between items-center w-full max-w-[1440px] mx-auto px-4 md:px-8 h-20">
         <div class="flex items-center gap-4 md:gap-8">
             <a href="{{ route('store.home') }}" class="flex items-center gap-3 group">
                 <img src="{{ asset('meacash-logo.png') }}" alt="MeaCash"
                     class="h-10 w-auto group-hover:scale-105 transition-transform">
                 <span
-                    class="inline-block px-2 text-xl md:text-2xl font-black italic tracking-tighter text-transparent text-white">
+                    class="mc-gradient-text inline-block px-2 text-xl md:text-2xl font-black italic tracking-tighter">
                     {{ config('app.name', 'MEACASH') }}
                 </span>
             </a>
 
             <div class="hidden md:flex items-center gap-8 font-headline uppercase tracking-widest text-sm">
-                <a class="font-bold pb-1 transition-all duration-300 hover:scale-105 {{ request()->routeIs('store.home', 'store.home.locale') ? 'border-b-2 border-[#00f0ff] text-[#00f0ff]' : 'text-slate-400 hover:text-[#fe00fe]' }}"
+                <a class="font-bold pb-1 transition-all duration-300 hover:scale-105 {{ request()->routeIs('store.home', 'store.home.locale') ? 'mc-nav-link-active border-b-2' : 'mc-nav-link hover:text-secondary-container' }}"
                     href="{{ route('store.home.locale', ['locale' => $locale]) }}">
                     {{ __('Store') }}
                 </a>
-                <a class="text-slate-400 transition-all duration-300 hover:scale-105 hover:text-[#fe00fe]"
+                <a class="mc-nav-link transition-all duration-300 hover:scale-105 hover:text-secondary-container"
                     href="{{ route('store.home.locale', ['locale' => $locale, 'featured' => 1]) }}#products-section">
                     {{ __('Hot Deals') }}
                 </a>
-                <a class="text-slate-400 transition-all duration-300 hover:scale-105 hover:text-[#fe00fe]"
+                <a class="mc-nav-link transition-all duration-300 hover:scale-105 hover:text-secondary-container"
                     href="{{ route('store.contact.locale', ['locale' => $locale]) }}">
                     {{ __('Support') }}
                 </a>
@@ -166,7 +166,7 @@
                 @auth
                     <div class="relative">
                         <button id="store-notification-bell" type="button"
-                            class="relative flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant/25 bg-surface-container-highest/80 text-primary-container transition hover:border-primary-container/60 hover:shadow-[0_0_18px_rgba(0,240,255,0.16)]"
+                            class="mc-icon-button relative flex h-10 w-10 items-center justify-center rounded-full border transition"
                             aria-label="{{ __('Notifications') }}">
                             <span class="material-symbols-outlined text-xl">notifications</span>
                             @if($storeUnreadCount > 0)
@@ -218,13 +218,20 @@
                     </div>
                 @endauth
 
+                <button id="theme-toggle" type="button"
+                    class="mc-icon-button mc-theme-toggle flex h-10 w-10 items-center justify-center rounded-full border transition"
+                    aria-label="{{ __('Toggle theme') }}" aria-pressed="false">
+                    <span class="material-symbols-outlined mc-theme-icon mc-theme-icon-sun text-xl" aria-hidden="true">light_mode</span>
+                    <span class="material-symbols-outlined mc-theme-icon mc-theme-icon-moon text-xl" aria-hidden="true">dark_mode</span>
+                </button>
+
                 {{-- Language Switcher --}}
                 <div class="hidden items-center border-s border-outline-variant/20 ps-4 ms-2 md:ms-0 sm:flex">
                     <a href="{{ $languageSwitchUrl }}"
-                        class="flex items-center gap-1.5 rounded-full border border-outline-variant/30 bg-surface-container-highest px-2.5 py-1.5 font-headline text-[10px] font-black transition-all hover:border-primary-container/60 hover:text-primary-container hover:shadow-[0_0_15px_rgba(0,240,255,0.2)] sm:px-3 sm:text-xs">
-                        <span class="material-symbols-outlined text-[16px]">language</span>
-                        <span class="sm:hidden">{{ $targetLocale === 'ar' ? 'AR' : 'EN' }}</span>
-                        <span class="hidden sm:inline">{{ $targetLocale === 'ar' ? 'العربية' : 'ENGLISH' }}</span>
+                        class="mc-icon-button mc-language-switch flex items-center rounded-full border transition-all hover:text-primary-container"
+                        aria-label="{{ $targetLocale === 'ar' ? __('Switch to Arabic') : __('Switch to English') }}"
+                        title="{{ $targetLocale === 'ar' ? __('Switch to Arabic') : __('Switch to English') }}">
+                        <span class="mc-language-flag" aria-hidden="true">{{ $targetLocale === 'ar' ? '🇱🇧' : '🇬🇧' }}</span>
                     </a>
                 </div>
 
@@ -250,6 +257,22 @@
             document.addEventListener('DOMContentLoaded', () => {
                 const bell = document.getElementById('store-notification-bell');
                 const dropdown = document.getElementById('store-notification-dropdown');
+                const themeToggle = document.getElementById('theme-toggle');
+
+                const syncThemeToggle = () => {
+                    const isDark = document.documentElement.dataset.theme === 'dark';
+                    themeToggle?.setAttribute('aria-pressed', String(!isDark));
+                    themeToggle?.setAttribute('title', isDark ? @js(__('Switch to light mode')) : @js(__('Switch to dark mode')));
+                };
+
+                themeToggle?.addEventListener('click', () => {
+                    const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+                    document.documentElement.dataset.theme = nextTheme;
+                    localStorage.setItem('meacash-theme', nextTheme);
+                    syncThemeToggle();
+                });
+
+                syncThemeToggle();
 
                 if (!bell || !dropdown) return;
 

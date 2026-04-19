@@ -19,76 +19,106 @@
 
     {{-- Hero Banner Carousel Section --}}
     <section class="relative px-4 md:px-8 pt-6 pb-6 z-10 sf-reveal-section">
-        <div id="hero-carousel"
-            class="relative h-[425px] w-full overflow-hidden rounded-[24px] shadow-2xl sm:h-[500px] md:h-[750px] md:rounded-[32px] group">
-            <div class="carousel-inner h-full w-full flex transition-transform duration-700 ease-in-out" dir="ltr">
-                @forelse($banners as $banner)
-                    <div class="carousel-item min-w-full h-full relative sf-skeleton">
-                        <img class="w-full h-full object-cover sf-img-loading"
-                            src="{{ \Illuminate\Support\Facades\Storage::disk(config('media.disk'))->url($banner->image_path) }}"
-                            alt="{{ $banner->{"title_$locale"} }}"
-                            onload="this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');">
-                        <div
-                            class="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-s from-background via-background/20 to-transparent">
-                        </div>
+        <div class="mc-hero-shell mx-auto grid w-full max-w-[1440px] overflow-hidden rounded-[24px] shadow-2xl lg:grid-cols-[0.9fr_1.65fr_0.9fr] lg:rounded-[32px]">
+            <aside class="mc-hero-side-panel mc-hero-side-shop hidden min-h-[420px] flex-col justify-between p-8 lg:flex">
+                <div>
+                    <p class="font-headline text-3xl font-light text-on-surface">{{ __('Shop') }}</p>
+                    <h2 class="mt-2 max-w-xs font-headline text-4xl font-black leading-tight text-on-surface">{{ __('Digital Products') }}</h2>
+                    <p class="mt-4 text-sm text-on-surface-variant">{{ __('Fast delivery · Secure checkout · Best deals') }}</p>
+                    <a href="#products-section" class="mt-6 inline-flex rounded-full bg-primary-container px-7 py-3 font-headline text-xs font-black uppercase tracking-widest text-on-primary-container shadow-lg transition hover:scale-105">
+                        {{ __('Explore Store') }}
+                    </a>
+                </div>
+                <div class="mc-hero-product-stage" aria-hidden="true">
+                    <img src="{{ asset('meacash-logo.png') }}" alt="" loading="lazy" decoding="async">
+                    <span class="material-symbols-outlined">sports_esports</span>
+                    <span class="material-symbols-outlined">redeem</span>
+                    <span class="material-symbols-outlined">bolt</span>
+                </div>
+            </aside>
 
-                        <div class="absolute inset-0 flex items-center p-6 sm:p-10 md:p-16">
-                            <div class="max-w-2xl">
-                                <h1
-                                    class="font-headline px-2 text-4xl font-black italic leading-[1.1] tracking-tighter sm:text-5xl md:text-8xl mb-4 animate-fade-in-up sf-text-gradient">
-                                    {{ $banner->{"title_$locale"} }}
-                                </h1>
-                                <p
-                                    class="text-on-surface-variant text-base md:text-xl max-w-lg leading-relaxed animate-fade-in-up-delay">
-                                    {{ $banner->{"description_$locale"} }}
-                                </p>
+            <div id="hero-carousel"
+                class="group relative h-[425px] w-full overflow-hidden rounded-[24px] shadow-2xl sm:h-[500px] lg:h-[420px] lg:rounded-none lg:shadow-none xl:h-[460px]">
+                <div class="carousel-inner h-full w-full flex transition-transform duration-700 ease-in-out" dir="ltr">
+                    @forelse($banners as $banner)
+                        <div class="carousel-item min-w-full h-full relative sf-skeleton">
+                            <img class="w-full h-full object-cover sf-img-loading"
+                                src="{{ \Illuminate\Support\Facades\Storage::disk(config('media.disk'))->url($banner->image_path) }}"
+                                alt="{{ $banner->{"title_$locale"} }}"
+                                onload="this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');">
+                            <div
+                                class="mc-carousel-overlay absolute inset-0 bg-gradient-to-t md:bg-gradient-to-s from-background via-background/20 to-transparent">
+                            </div>
+
+                            <div class="absolute inset-0 flex items-center p-6 sm:p-10 md:p-16 lg:p-10 xl:p-14">
+                                <div class="max-w-2xl">
+                                    <h1
+                                        class="font-headline px-2 text-4xl font-black italic leading-[1.1] tracking-tighter sm:text-5xl lg:text-5xl xl:text-6xl mb-4 animate-fade-in-up sf-text-gradient">
+                                        {{ $banner->{"title_$locale"} }}
+                                    </h1>
+                                    <p
+                                        class="text-on-surface-variant text-base md:text-xl lg:text-base xl:text-lg max-w-lg leading-relaxed animate-fade-in-up-delay">
+                                        {{ $banner->{"description_$locale"} }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
+                    @empty
+                        <div class="carousel-item min-w-full h-full relative">
+                            <img class="w-full h-full object-cover"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDrlznlKgHHa63HOhVKSNWE8C5o6YWGzqxbSrsVKR6imUOq2BDzZoRlqJg_aBtStZO89zUqnzPz4cUR1Ar_9KPYAsyplUSUhl7Cu69sWYscBbkmZv8_Z23wFHRJUsaHoWrCgTg_AZAPtY_FpHMiau3uk0SCMp2vwzAl9Sk5ydgPkW2up5bhPyu8FmcOIpMoaTLYNwC-ofII6e2sndmu9_tc47MTiFoRRkToqSy-lC4CowcwR89nZBqQxnz4mrEdSPnNMxpTJO40tQ"
+                                alt="Default Hero Image">
+                            <div class="mc-carousel-overlay absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+                        </div>
+                    @endforelse
+                </div>
+
+                {{-- Carousel Hub: Indicators & Global CTA --}}
+                @if($banners->count() > 0)
+                    <div
+                        class="absolute bottom-6 sm:bottom-10 right-6 sm:right-10 flex flex-col-reverse sm:flex-row items-center gap-4 sm:gap-8 z-30">
+                        <div class="flex gap-2.5">
+                            @foreach($banners as $index => $banner)
+                                <button
+                                    class="carousel-indicator w-2 h-2 rounded-full border border-white/20 transition-all hover:scale-125 {{ $index === 0 ? 'bg-primary-container border-primary-container w-6' : '' }}"
+                                    data-index="{{ $index }}"></button>
+                            @endforeach
+                        </div>
+
+                        <div id="banner-cta-container">
+                            @foreach($banners as $index => $banner)
+                                <div class="banner-cta-item {{ $index === 0 ? '' : 'hidden' }}" data-index="{{ $index }}">
+                                    <x-noir.button variant="primary" href="{{ $banner->link }}" icon="bolt"
+                                        class="px-4 py-2.5 sm:px-7 sm:py-3.5 text-[9px] sm:text-xs min-w-[120px]">
+                                        {{ $banner->{"button_text_$locale"} ?? __('noir.claim_now') }}
+                                    </x-noir.button>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
-                @empty
-                    <div class="carousel-item min-w-full h-full relative">
-                        <img class="w-full h-full object-cover"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDrlznlKgHHa63HOhVKSNWE8C5o6YWGzqxbSrsVKR6imUOq2BDzZoRlqJg_aBtStZO89zUqnzPz4cUR1Ar_9KPYAsyplUSUhl7Cu69sWYscBbkmZv8_Z23wFHRJUsaHoWrCgTg_AZAPtY_FpHMiau3uk0SCMp2vwzAl9Sk5ydgPkW2up5bhPyu8FmcOIpMoaTLYNwC-ofII6e2sndmu9_tc47MTiFoRRkToqSy-lC4CowcwR89nZBqQxnz4mrEdSPnNMxpTJO40tQ"
-                            alt="Default Hero Image">
-                        <div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
-                    </div>
-                @endforelse
+                    <button
+                        class="absolute top-1/2 left-6 -translate-y-1/2 w-12 h-12 rounded-full glass-panel hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10"
+                        onclick="prevSlide()">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                    <button
+                        class="absolute top-1/2 right-6 -translate-y-1/2 w-12 h-12 rounded-full glass-panel hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10"
+                        onclick="nextSlide()">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                @endif
             </div>
 
-            {{-- Carousel Hub: Indicators & Global CTA --}}
-            @if($banners->count() > 0)
-                <div
-                    class="absolute bottom-6 sm:bottom-10 right-6 sm:right-10 flex flex-col-reverse sm:flex-row items-center gap-4 sm:gap-8 z-30">
-                    <div class="flex gap-2.5">
-                        @foreach($banners as $index => $banner)
-                            <button
-                                class="carousel-indicator w-2 h-2 rounded-full border border-white/20 transition-all hover:scale-125 {{ $index === 0 ? 'bg-primary-container border-primary-container w-6' : '' }}"
-                                data-index="{{ $index }}"></button>
-                        @endforeach
-                    </div>
-
-                    <div id="banner-cta-container">
-                        @foreach($banners as $index => $banner)
-                            <div class="banner-cta-item {{ $index === 0 ? '' : 'hidden' }}" data-index="{{ $index }}">
-                                <x-noir.button variant="primary" href="{{ $banner->link }}" icon="bolt"
-                                    class="px-4 py-2.5 sm:px-7 sm:py-3.5 text-[9px] sm:text-xs min-w-[120px]">
-                                    {{ $banner->{"button_text_$locale"} ?? __('noir.claim_now') }}
-                                </x-noir.button>
-                            </div>
-                        @endforeach
-                    </div>
+            <aside class="mc-hero-side-panel mc-hero-side-social hidden min-h-[420px] flex-col items-center justify-center p-8 text-center lg:flex">
+                <p class="font-label text-[10px] font-black uppercase tracking-[0.32em] text-on-surface-variant">{{ __('Join us on') }}</p>
+                <div class="my-8 flex h-36 w-36 items-center justify-center rounded-[2rem] border border-outline-variant/20 bg-surface-container-low/45">
+                    <span class="font-headline text-8xl font-black leading-none text-on-surface">X</span>
                 </div>
-                <button
-                    class="absolute top-1/2 left-6 -translate-y-1/2 w-12 h-12 rounded-full glass-panel hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10"
-                    onclick="prevSlide()">
-                    <span class="material-symbols-outlined">chevron_left</span>
-                </button>
-                <button
-                    class="absolute top-1/2 right-6 -translate-y-1/2 w-12 h-12 rounded-full glass-panel hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10"
-                    onclick="nextSlide()">
-                    <span class="material-symbols-outlined">chevron_right</span>
-                </button>
-            @endif
+                <p class="max-w-xs text-sm leading-relaxed text-on-surface-variant">{{ __('Follow the latest products, offers, and updates.') }}</p>
+                <a href="{{ $contactUrl ?? route('store.contact.locale', ['locale' => $locale]) }}" class="mt-6 font-label text-[10px] font-black uppercase tracking-[0.24em] text-primary-container">
+                    @MEACASH
+                </a>
+            </aside>
         </div>
     </section>
 
@@ -106,12 +136,12 @@
                 ['name' => 'YouTube', 'icon' => 'https://cdn.simpleicons.org/youtube/FF0000'],
                 ['name' => 'Apple', 'icon' => 'https://cdn.simpleicons.org/apple/A2AAAD'],
                 ['name' => 'Google', 'icon' => 'https://cdn.simpleicons.org/google/4285F4'],
-                ['name' => 'Roblox', 'icon' => 'https://cdn.simpleicons.org/roblox/FFFFFF'],
-                ['name' => 'Fortnite', 'icon' => 'https://cdn.simpleicons.org/fortnite/FFFFFF'],
+                ['name' => 'Roblox', 'icon' => 'https://cdn.simpleicons.org/roblox/64748B'],
+                ['name' => 'Fortnite', 'icon' => 'https://cdn.simpleicons.org/fortnite/64748B'],
                 ['name' => 'PUBG', 'icon' => 'https://cdn.simpleicons.org/pubg/F2A900'],
                 ['name' => 'Razer', 'icon' => 'https://cdn.simpleicons.org/razer/44D62C'],
                 ['name' => 'Nintendo', 'icon' => 'https://cdn.simpleicons.org/nintendo/E60012'],
-                ['name' => 'Epic Games', 'icon' => 'https://cdn.simpleicons.org/epicgames/FFFFFF'],
+                ['name' => 'Epic Games', 'icon' => 'https://cdn.simpleicons.org/epicgames/334155'],
                 ['name' => 'Valorant', 'icon' => 'https://cdn.simpleicons.org/valorant/FA4454'],
                 ['name' => 'Free Fire', 'icon' => 'https://upload.wikimedia.org/wikipedia/fr/b/b3/Garena_Free_Fire_Logo.png'],
                 ['name' => 'League of Legends', 'icon' => 'https://cdn.simpleicons.org/leagueoflegends/C89B3C'],
@@ -123,12 +153,14 @@
             <div class="{{ $locale === 'ar' ? 'animate-marquee-rtl' : 'animate-marquee' }} flex w-max items-center gap-3 md:gap-4 py-2" dir="ltr">
                 @foreach($brandTiles as $brand)
                     <div
-                        class="group flex h-28 w-28 md:h-32 md:w-32 shrink-0 flex-col items-center justify-center rounded-2xl border border-outline-variant/10 bg-surface-container/55 p-4 transition-all duration-300 hover:border-primary-container/70 hover:bg-surface-container-high hover:shadow-[0_0_30px_rgba(0,240,255,0.12)]">
-                        <img src="{{ $brand['icon'] }}" alt="{{ $brand['name'] }}" loading="lazy"
-                            class="mb-3 h-10 w-10 object-contain opacity-90 transition-all duration-300 group-hover:scale-110 group-hover:opacity-100"
-                            onerror="this.style.visibility='hidden';">
+                        class="sf-brand-card group flex h-28 w-28 md:h-32 md:w-32 shrink-0 flex-col items-center justify-center rounded-2xl border border-outline-variant/10 bg-surface-container/55 p-4 transition-all duration-300 hover:border-primary-container/70 hover:bg-surface-container-high hover:shadow-[0_0_30px_rgba(0,240,255,0.12)]">
+                        <div class="sf-brand-card-icon-shell mb-3 flex h-12 w-12 items-center justify-center rounded-2xl">
+                            <img src="{{ $brand['icon'] }}" alt="{{ $brand['name'] }}" loading="lazy"
+                                class="sf-brand-card-icon h-9 w-9 object-contain opacity-90 transition-all duration-300 group-hover:scale-110 group-hover:opacity-100"
+                                onerror="this.style.visibility='hidden';">
+                        </div>
                         <span
-                            class="w-full truncate text-center font-headline text-[9px] font-black uppercase tracking-widest text-on-surface/45 transition-colors group-hover:text-primary-container">
+                            class="sf-brand-card-label w-full truncate text-center font-headline text-[9px] font-black uppercase tracking-widest text-on-surface/45 transition-colors group-hover:text-primary-container">
                             {{ $brand['name'] }}
                         </span>
                     </div>
@@ -139,7 +171,7 @@
 
     {{-- Unified Infinite Brand Marquee --}}
     <section
-        class="w-full py-8 border-y border-outline-variant/10 bg-surface-container-lowest/50 backdrop-blur-sm overflow-hidden z-10 relative sf-reveal-section">
+        class="sf-brand-marquee w-full py-8 border-y border-outline-variant/10 bg-surface-container-lowest/50 backdrop-blur-sm overflow-hidden z-10 relative sf-reveal-section">
         <div class="flex items-center gap-16 md:gap-32 w-max {{ $locale === 'ar' ? 'animate-marquee-rtl' : 'animate-marquee' }}" dir="ltr">
             @php
                 $brands = [
@@ -152,19 +184,19 @@
                     ['name' => 'NETFLIX', 'icon' => 'https://cdn.simpleicons.org/netflix/E50914'],
                     ['name' => 'SPOTIFY', 'icon' => 'https://cdn.simpleicons.org/spotify/1DB954'],
                     ['name' => 'DISCORD', 'icon' => 'https://cdn.simpleicons.org/discord/5865F2'],
-                    ['name' => 'ROBLOX', 'icon' => 'https://cdn.simpleicons.org/roblox/FFFFFF'],
+                    ['name' => 'ROBLOX', 'icon' => 'https://cdn.simpleicons.org/roblox/64748B'],
                 ];
                 // Quadruple for ultra-long seamless loop without whitespace gaps
                 $marqueeItems = array_merge($brands, $brands, $brands, $brands); 
             @endphp
             @foreach($marqueeItems as $brand)
                 <div
-                    class="flex items-center gap-3 group/brand cursor-pointer opacity-70 hover:opacity-100 transition-all duration-500 shrink-0">
+                    class="sf-brand-marquee-item flex items-center gap-3 group/brand cursor-pointer opacity-70 hover:opacity-100 transition-all duration-500 shrink-0">
                     <img src="{{ $brand['icon'] }}" alt="{{ $brand['name'] }}"
-                        class="h-7 w-7 object-contain transition-transform group-hover/brand:scale-110"
+                        class="sf-brand-marquee-icon h-7 w-7 object-contain transition-transform group-hover/brand:scale-110"
                         onerror="this.style.visibility='hidden';">
                     <span
-                        class="font-headline font-black text-xl tracking-widest uppercase italic text-on-surface/50 group-hover/brand:text-primary-container">
+                        class="sf-brand-marquee-label font-headline font-black text-xl tracking-widest uppercase italic text-on-surface/50 group-hover/brand:text-primary-container">
                         {{ $brand['name'] }}
                     </span>
                 </div>
@@ -175,10 +207,10 @@
     {{-- High-Fidelity Circular Category Bar --}}
     @if($categories->isNotEmpty())
         <section
-            class="sticky top-20 z-40 hidden px-4 py-8 bg-background/90 backdrop-blur-xl border-b border-outline-variant/5 sf-reveal-section md:block md:px-8">
+            class="sf-category-strip sticky top-20 z-40 hidden px-4 py-8 bg-background/90 backdrop-blur-xl border-b border-outline-variant/5 sf-reveal-section md:block md:px-8">
             <div class="flex justify-center">
                 <div
-                    class="flex items-center gap-6 md:gap-10 overflow-x-auto no-scrollbar pb-2 w-full max-w-[1440px] justify-start md:justify-center">
+                    class="flex items-center gap-6 md:gap-10 overflow-x-auto no-scrollbar pb-2 w-full max-w-[1440px] justify-start">
                     @php
                         $allAssetsIcon = 'apps';
                         $hotActive = request()->boolean('featured');
@@ -186,7 +218,7 @@
                     @endphp
                     <a href="{{ route('store.home.locale', ['locale' => $locale, 'featured' => 1]) }}#products-section"
                         data-category-link="hot" data-category-color="#fe00fe"
-                        class="flex flex-col items-center gap-4 shrink-0 group">
+                        class="sf-category-item flex flex-col items-center gap-4 shrink-0 group">
                         <div data-category-circle
                             class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center transition-all duration-300 bg-surface-container-highest text-on-surface-variant border {{ $hotActive ? 'border-[#fe00fe] ring-2 ring-[#fe00fe]/40 shadow-[0_0_22px_rgba(254,0,254,0.24)]' : 'border-outline-variant/20 group-hover:border-[#fe00fe]/70 group-hover:text-[#fe00fe]' }} shadow-lg"
                             style="border-radius: 9999px !important;">
@@ -196,12 +228,12 @@
                         <span data-category-label
                             class="text-[10px] md:text-xs font-headline font-black uppercase tracking-[0.2em] text-center {{ $hotActive ? 'text-[#fe00fe] drop-shadow-md' : 'text-on-surface-variant/70 group-hover:text-[#fe00fe]' }}"
                             style="min-height: 28px;">
-                            {{ __('Hot') }}
+                            {{ __('Hot Deals') }}
                         </span>
                     </a>
 
                     <a href="{{ route('store.home.locale', ['locale' => $locale]) }}#products-section" data-category-link="all"
-                        data-category-color="#fbbf24" class="flex flex-col items-center gap-4 shrink-0 group">
+                        data-category-color="#fbbf24" class="sf-category-item flex flex-col items-center gap-4 shrink-0 group">
                         <div data-category-circle
                             class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center transition-all duration-300 bg-surface-container-highest text-on-surface-variant border {{ $allActive ? 'border-[#fbbf24] ring-2 ring-[#fbbf24]/40 shadow-[0_0_22px_rgba(251,191,36,0.22)]' : 'border-outline-variant/20 group-hover:border-[#fbbf24]/70 group-hover:text-[#fbbf24]' }} shadow-lg"
                             style="border-radius: 9999px !important;">
@@ -240,7 +272,7 @@
                         @endphp
                         <a href="{{ route('store.home.locale', ['locale' => $locale, 'category' => $cat->slug]) }}#products-section"
                             data-category-link="{{ $cat->slug }}" data-category-color="#00f0ff"
-                            class="flex flex-col items-center gap-4 shrink-0 group">
+                            class="sf-category-item flex flex-col items-center gap-4 shrink-0 group">
                             <div data-category-circle
                                 class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center transition-all duration-300 bg-surface-container-highest text-on-surface-variant border {{ request('category') == $cat->slug ? 'border-primary-container ring-2 ring-primary-container/40 shadow-[0_0_22px_rgba(0,240,255,0.22)]' : 'border-outline-variant/20 group-hover:border-primary-container/70 group-hover:text-primary-container' }} shadow-lg"
                                 style="border-radius: 9999px !important;">

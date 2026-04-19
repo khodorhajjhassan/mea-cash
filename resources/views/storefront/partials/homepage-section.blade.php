@@ -6,10 +6,10 @@
     $badge = $section->settings["badge_{$locale}"] ?? $section->settings['badge_en'] ?? null;
 
     $accent = match ($section->type) {
-        \App\Models\HomepageSection::TYPE_FLASH_SALE => '#fe00fe',
-        \App\Models\HomepageSection::TYPE_TOP_DEAL => '#fbbf24',
-        \App\Models\HomepageSection::TYPE_BEST_SELLER => '#00f0ff',
-        default => '#7df4ff',
+        \App\Models\HomepageSection::TYPE_FLASH_SALE => 'var(--color-secondary-container)',
+        \App\Models\HomepageSection::TYPE_TOP_DEAL => 'var(--mc-gold)',
+        \App\Models\HomepageSection::TYPE_BEST_SELLER => 'var(--color-primary-container)',
+        default => 'var(--color-primary-fixed)',
     };
 @endphp
 
@@ -17,7 +17,7 @@
     <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
             @if($badge)
-                <span class="mb-3 inline-flex rounded-full border px-3 py-1 font-label text-[10px] font-black uppercase tracking-[0.24em]" style="border-color: {{ $accent }}55; color: {{ $accent }};">
+                <span class="mb-3 inline-flex rounded-full border px-3 py-1 font-label text-[10px] font-black uppercase tracking-[0.24em]" style="border-color: color-mix(in srgb, {{ $accent }} 35%, transparent); color: {{ $accent }};">
                     {{ $badge }}
                 </span>
             @endif

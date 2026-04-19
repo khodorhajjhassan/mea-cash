@@ -8,7 +8,7 @@
             <span class="material-symbols-outlined text-xl">close</span>
         </button>
 
-        <section class="flex min-h-0 flex-1 flex-col border-b border-outline-variant/10 p-4 md:border-b-0 md:border-e md:p-7">
+        <section class="sf-modal-product-pane flex min-h-0 flex-1 flex-col border-b border-outline-variant/10 p-4 md:border-b-0 md:border-e md:p-7">
             <div id="sf-modal-header-content" class="mb-5 flex items-center gap-3 pe-10">
                 <div class="h-11 w-1.5 rounded-full bg-primary-container shadow-[0_0_30px_rgba(0,240,255,0.35)]"></div>
                 <div>
@@ -25,7 +25,7 @@
             </div>
         </section>
 
-        <aside id="sf-modal-summary" class="flex max-h-[42vh] min-h-0 w-full flex-col justify-between overflow-y-auto overflow-x-hidden bg-surface-container-low/55 p-4 md:max-h-none md:w-[340px] md:p-6">
+        <aside id="sf-modal-summary" class="sf-modal-summary-pane flex max-h-[42vh] min-h-0 w-full flex-col justify-between overflow-y-auto overflow-x-hidden bg-surface-container-low/55 p-4 md:max-h-none md:w-[340px] md:p-6">
             <div id="sf-modal-summary-content"></div>
             <div id="sf-modal-footer" class="mt-6"></div>
         </aside>

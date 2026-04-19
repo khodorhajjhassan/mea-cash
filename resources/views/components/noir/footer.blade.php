@@ -20,7 +20,7 @@
             class="mx-auto max-w-md rounded-[1.75rem] border border-outline-variant/10 bg-surface-container-low/55 p-5 text-center">
             <div class="flex items-center justify-center gap-3">
                 <img src="{{ asset('meacash-logo.png') }}" alt="MeaCash" class="h-8 w-auto">
-                <span class="font-headline text-2xl font-black italic tracking-tighter text-[#00f0ff]">MEACASH</span>
+                <span class="font-headline text-2xl font-black italic tracking-tighter text-primary-container">MEACASH</span>
             </div>
 
             <nav class="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-3 font-label text-[10px] font-black uppercase tracking-widest text-on-surface-variant"

@@ -60,8 +60,8 @@
 
     <div class="max-h-[62vh] space-y-4 overflow-y-auto pe-1 no-scrollbar">
         <div class="grid grid-cols-2 gap-3">
-            <a href="{{ route('store.home.locale', ['locale' => $locale]) }}#products-section" class="rounded-2xl border border-[#fbbf24]/35 bg-[#fbbf24]/10 p-4">
-                <span class="material-symbols-outlined text-3xl text-[#fbbf24]">apps</span>
+            <a href="{{ route('store.home.locale', ['locale' => $locale]) }}#products-section" class="rounded-2xl border p-4" style="border-color: color-mix(in srgb, var(--mc-gold) 35%, transparent); background-color: color-mix(in srgb, var(--mc-gold) 10%, transparent);">
+                <span class="material-symbols-outlined text-3xl" style="color: var(--mc-gold);">apps</span>
                 <span class="mt-3 block font-headline text-xs font-black uppercase tracking-widest text-on-surface">{{ __('All Assets') }}</span>
             </a>
             <a href="{{ route('store.home.locale', ['locale' => $locale, 'featured' => 1]) }}#products-section" class="rounded-2xl border border-secondary-container/35 bg-secondary-container/10 p-4">
@@ -203,7 +203,7 @@
     @endauth
 </div>
 
-<nav class="fixed inset-x-0 bottom-0 z-[95] border-t border-outline-variant/15 bg-[#0f131c]/95 px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-3 shadow-[0_-18px_60px_rgba(0,0,0,0.45)] backdrop-blur-2xl md:hidden" aria-label="{{ __('Mobile navigation') }}">
+<nav class="mc-mobile-nav fixed inset-x-0 bottom-0 z-[95] border-t border-outline-variant/15 px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-3 backdrop-blur-2xl md:hidden" aria-label="{{ __('Mobile navigation') }}">
     <div class="mx-auto grid max-w-md grid-cols-4 items-end gap-1">
         <a href="{{ route('store.home.locale', ['locale' => $locale]) }}" class="mobile-nav-item {{ request()->routeIs('store.home', 'store.home.locale') ? 'active' : 'text-on-surface-variant' }}">
             <span class="material-symbols-outlined">home</span>

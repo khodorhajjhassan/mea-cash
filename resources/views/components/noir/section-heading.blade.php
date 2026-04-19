@@ -16,7 +16,7 @@
                 $firstPart = implode(' ', $parts);
             @endphp
             {{ $firstPart }} <span
-                class="text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#fe00fe] px-2">{{ $lastWord }}</span>
+                class="mc-gradient-text px-2">{{ $lastWord }}</span>
         @else
             {{ $title }}
         @endif
