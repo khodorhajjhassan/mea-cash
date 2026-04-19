@@ -366,7 +366,7 @@ function renderFooter() {
     if (!footer || !selectedProduct) return;
 
     const shareBtn = `
-        <button type="button" class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-outline-variant/30 bg-surface-container-lowest/50 text-outline transition-all hover:border-secondary-container hover:bg-secondary-container/10 hover:text-secondary-container">
+        <button id="share-btn" type="button" class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-outline-variant/30 bg-surface-container-lowest/50 text-outline transition-all hover:border-secondary-container hover:bg-secondary-container/10 hover:text-secondary-container">
             <span class="material-symbols-outlined text-xl">share</span>
         </button>
     `;
@@ -436,6 +436,31 @@ function bindEvents() {
     }
 
     document.getElementById('purchase-now-btn')?.addEventListener('click', handlePurchaseNow);
+    document.getElementById('share-btn')?.addEventListener('click', handleShare);
+}
+
+async function handleShare() {
+    if (!currentSubcategory) return;
+
+    const url = window.location.origin + (isRtl() ? '/ar' : '/en') + '/subcategory/' + currentSubcategory.slug;
+    const title = localized(currentSubcategory);
+    const text = descriptionOf(currentSubcategory) || title;
+
+    try {
+        if (navigator.share) {
+            await navigator.share({ title, text, url });
+        } else {
+            await navigator.clipboard.writeText(url);
+            currentToast = `<div class="mt-5 rounded-xl border border-primary-container/30 bg-primary-container/10 p-3 font-label text-xs uppercase tracking-widest text-primary-container">${isRtl() ? 'تم نسخ الرابط إلى الحافظة!' : 'Link copied to clipboard!'}</div>`;
+            renderSummary();
+            renderFooter();
+            bindEvents();
+        }
+    } catch (err) {
+        if (err.name !== 'AbortError') {
+            console.error('Share failed:', err);
+        }
+    }
 }
 
 function clearErrors() {
