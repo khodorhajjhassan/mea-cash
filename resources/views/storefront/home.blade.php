@@ -22,15 +22,16 @@
     <div id="hero-carousel" class="relative h-[425px] w-full overflow-hidden rounded-[24px] shadow-2xl sm:h-[500px] md:h-[750px] md:rounded-[32px] group">
         <div class="carousel-inner h-full w-full flex transition-transform duration-700 ease-in-out">
             @forelse($banners as $banner)
-                <div class="carousel-item min-w-full h-full relative">
-                    <img class="w-full h-full object-cover" 
+                <div class="carousel-item min-w-full h-full relative sf-skeleton">
+                    <img class="w-full h-full object-cover sf-img-loading" 
                          src="{{ \Illuminate\Support\Facades\Storage::disk(config('media.disk'))->url($banner->image_path) }}" 
-                         alt="{{ $banner->{"title_$locale"} }}">
+                         alt="{{ $banner->{"title_$locale"} }}"
+                         onload="this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');">
                     <div class="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-s from-background via-background/20 to-transparent"></div>
                     
                     <div class="absolute inset-0 flex items-center p-6 sm:p-10 md:p-16">
                         <div class="max-w-2xl">
-                            <h1 class="font-headline text-4xl font-black italic leading-[1.1] tracking-tighter sm:text-5xl md:text-8xl mb-4 animate-fade-in-up">
+                            <h1 class="font-headline text-4xl font-black italic leading-[1.1] tracking-tighter sm:text-5xl md:text-8xl mb-4 animate-fade-in-up sf-text-gradient">
                                 {{ $banner->{"title_$locale"} }}
                             </h1>
                             <p class="text-on-surface-variant text-base md:text-xl max-w-lg leading-relaxed animate-fade-in-up-delay">

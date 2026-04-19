@@ -33,9 +33,11 @@
 <div {{ $attributes->merge(['class' => 'group overflow-hidden cursor-pointer rounded-xl border border-transparent bg-surface-container-low transition-all duration-300 hover:-translate-y-1 hover:border-primary-container/30 hover:shadow-[0_0_40px_rgba(0,240,255,0.15)] sm:rounded-2xl']) }} data-slug="{{ $model->slug }}" @if($modalSlug)
 onclick="openSubcategoryModal(@js($modalSlug), @js($modalProductId))" @endif>
 
-    <div class="relative aspect-square overflow-hidden bg-surface-container-lowest">
-        <img class="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-110 sm:p-6"
-            src="{{ $image }}" alt="{{ $name }}" onerror="this.onerror=null;this.src=@js($fallbackImage);">
+    <div class="relative aspect-square overflow-hidden bg-surface-container-lowest sf-skeleton">
+        <img class="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-110 sm:p-6 sf-img-loading"
+            src="{{ $image }}" alt="{{ $name }}" 
+            onload="this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');"
+            onerror="this.onerror=null;this.src=@js($fallbackImage); this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');">
 
         @if($model->is_featured)
             <div

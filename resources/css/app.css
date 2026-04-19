@@ -130,6 +130,42 @@
         @apply mt-4;
     }
 
+    /* --- Skeleton Shimmer & Image Loaders --- */
+    .sf-skeleton {
+        position: relative;
+        overflow: hidden;
+        background-color: var(--color-surface-container-high);
+    }
+
+    .sf-skeleton::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.05),
+            transparent
+        );
+        animation: sf-shimmer 1.8s infinite;
+    }
+
+    @keyframes sf-shimmer {
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    .sf-img-loading {
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+    }
+
+    .sf-img-loaded {
+        opacity: 1 !important;
+    }
+
     /* --- Brand High-Fidelity Utilities --- */
     .sf-text-gradient {
         @apply text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#fe00fe];

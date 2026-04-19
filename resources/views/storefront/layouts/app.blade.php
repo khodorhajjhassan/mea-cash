@@ -68,6 +68,42 @@
     @include('storefront.partials.product-modal')
 
     <script src="{{ asset('js/storefront/product-modal.js') }}" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const handleImage = (img) => {
+                if (img.complete) {
+                    img.classList.add('sf-img-loaded');
+                    img.parentElement?.classList.remove('sf-skeleton');
+                } else {
+                    img.classList.add('sf-img-loading');
+                    img.addEventListener('load', () => {
+                        img.classList.add('sf-img-loaded');
+                        img.parentElement?.classList.remove('sf-skeleton');
+                    }, { once: true });
+                    img.addEventListener('error', () => {
+                        img.classList.add('sf-img-loaded');
+                        img.parentElement?.classList.remove('sf-skeleton');
+                    }, { once: true });
+                }
+            };
+
+            document.querySelectorAll('img').forEach(handleImage);
+
+            // Observer for dynamic content
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === 1) {
+                            if (node.tagName === 'IMG') handleImage(node);
+                            node.querySelectorAll('img').forEach(handleImage);
+                        }
+                    });
+                });
+            });
+
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>

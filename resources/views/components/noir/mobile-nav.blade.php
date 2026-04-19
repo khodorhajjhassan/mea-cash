@@ -107,8 +107,12 @@
                     @foreach($category->subcategories as $subcategory)
                         <button type="button" class="flex items-center justify-between gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/45 px-3 py-2.5 text-start transition hover:border-primary-container/40 hover:bg-primary-container/10"
                             data-mobile-open-subcategory="{{ $subcategory->slug }}">
-                            <span class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-outline-variant/15 bg-surface-container-low p-1">
-                                <img src="{{ $catalogImageUrl($subcategory->image) }}" alt="{{ $subcategory->{"name_{$locale}"} ?: $subcategory->name_en }}" class="h-full w-full object-contain" loading="lazy" onerror="this.src='{{ asset('meacash-logo.png') }}'">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-outline-variant/15 bg-surface-container-low p-1 sf-skeleton">
+                                <img src="{{ $catalogImageUrl($subcategory->image) }}" alt="{{ $subcategory->{"name_{$locale}"} ?: $subcategory->name_en }}" 
+                                    class="h-full w-full object-contain sf-img-loading" 
+                                    loading="lazy" 
+                                    onerror="this.src='{{ asset('meacash-logo.png') }}'; this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');"
+                                    onload="this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');">
                             </span>
                             <span class="min-w-0 flex-1 truncate font-label text-[10px] font-black uppercase tracking-widest text-on-surface-variant">{{ $subcategory->{"name_{$locale}"} ?: $subcategory->name_en }}</span>
                             <span class="material-symbols-outlined text-base text-primary-container">arrow_forward</span>
@@ -247,6 +251,7 @@
                 const searchResults = document.getElementById('mobile-search-results');
                 let previousBodyOverflow = '';
                 let searchTimer = null;
+                let originalActiveItem = null;
                 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
                     '&': '&amp;',
                     '<': '&lt;',
@@ -258,6 +263,11 @@
                 const openDrawer = (name) => {
                     const drawer = drawers[name];
                     if (!drawer || !backdrop) return;
+
+                    // Remember original active state
+                    if (!originalActiveItem) {
+                        originalActiveItem = document.querySelector('.mobile-nav-item.active');
+                    }
 
                     previousBodyOverflow = document.body.style.overflow;
                     document.body.style.overflow = 'hidden';
@@ -272,6 +282,13 @@
                     if (name === 'search') {
                         setTimeout(() => searchInput?.focus(), 180);
                     }
+
+                    // Sync bottom nav active state
+                    document.querySelectorAll('[data-mobile-drawer-trigger], .mobile-nav-item').forEach(btn => {
+                        const isTrigger = btn.dataset.mobileDrawerTrigger === name;
+                        btn.classList.toggle('active', isTrigger);
+                        btn.classList.toggle('text-on-surface-variant', !isTrigger);
+                    });
                 };
 
                 const closeDrawers = () => {
@@ -281,6 +298,14 @@
                         item?.setAttribute('aria-hidden', 'true');
                     });
                     document.body.style.overflow = previousBodyOverflow;
+
+                    // Restore original active states
+                    document.querySelectorAll('[data-mobile-drawer-trigger], .mobile-nav-item').forEach(btn => {
+                        const isOriginal = btn === originalActiveItem;
+                        btn.classList.toggle('active', isOriginal);
+                        btn.classList.toggle('text-on-surface-variant', !isOriginal);
+                    });
+                    originalActiveItem = null;
                 };
 
                 document.querySelectorAll('[data-mobile-drawer-trigger]').forEach((trigger) => {
@@ -341,8 +366,10 @@
                             <button type="button" class="flex w-full items-center gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-low/70 p-3 text-start transition hover:border-primary-container/45 hover:bg-primary-container/10"
                                 data-mobile-search-open="${escapeHtml(item.slug || '')}"
                                 data-mobile-search-product="${Number(item.id || item.product_id || 0)}">
-                                <span class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-outline-variant/15 bg-surface-container-lowest p-1">
-                                    <img src="${escapeHtml(item.image || '/meacash-logo.png')}" alt="" class="h-full w-full object-contain" onerror="this.src='/meacash-logo.png'">
+                                <span class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-outline-variant/15 bg-surface-container-lowest p-1 sf-skeleton">
+                                    <img src="${escapeHtml(item.image || '/meacash-logo.png')}" alt="" class="h-full w-full object-contain sf-img-loading" 
+                                        onerror="this.src='/meacash-logo.png'; this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');"
+                                        onload="this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');">
                                 </span>
                                 <span class="min-w-0 flex-1">
                                     <span class="block truncate font-headline text-sm font-black uppercase text-on-surface">${escapeHtml(item.name || '')}</span>
