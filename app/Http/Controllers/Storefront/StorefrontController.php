@@ -279,6 +279,7 @@ class StorefrontController extends Controller
 
         return response()->json([
             'id' => $subcategory->id,
+            'slug' => $subcategory->slug,
             'name' => $subcategory->{"name_{$locale}"},
             'name_en' => $subcategory->name_en,
             'name_ar' => $subcategory->name_ar,
