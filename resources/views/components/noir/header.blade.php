@@ -15,10 +15,8 @@
         $languageSwitchUrl .= '?' . http_build_query($query);
     }
 
-    $storeNotifications = auth()->check()
-        ? auth()->user()->notifications()->latest()->limit(6)->get()
-        : collect();
-    $storeUnreadCount = auth()->check() ? auth()->user()->unreadNotifications()->count() : 0;
+    $storeNotifications = $storeNotifications ?? collect();
+    $storeUnreadCount = $storeUnreadCount ?? 0;
 @endphp
 
 <header

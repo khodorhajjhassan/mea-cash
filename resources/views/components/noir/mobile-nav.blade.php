@@ -17,18 +17,7 @@
     $isAuth = auth()->check();
     $walletBalance = $isAuth ? (float) (auth()->user()->wallet?->balance ?? 0) : 0;
 
-    $mobileCategories = \Illuminate\Support\Facades\Schema::hasTable('categories')
-        && \Illuminate\Support\Facades\Schema::hasTable('subcategories')
-        && \Illuminate\Support\Facades\Schema::hasTable('products')
-            ? \App\Models\Category::query()
-                ->where('is_active', true)
-                ->with(['subcategories' => fn ($query) => $query
-                    ->where('is_active', true)
-                    ->whereHas('products', fn ($productQuery) => $productQuery->where('is_active', true))
-                    ->orderBy('sort_order')])
-                ->orderBy('sort_order')
-                ->get()
-            : collect();
+    $mobileCategories = $mobileCategories ?? collect();
 
     $categoryIcon = static function ($category): string {
         $name = strtolower((string) $category->name_en);
@@ -224,11 +213,9 @@
             <span class="material-symbols-outlined">grid_view</span>
             <span>{{ __('Category') }}</span>
         </button>
-        <button type="button" class="-mt-8 flex flex-col items-center gap-1 text-primary-container" data-mobile-drawer-trigger="search">
-            <span class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#00f0ff] to-[#fe00fe] text-background shadow-[0_0_35px_rgba(0,240,255,0.3)] border-4 border-background">
-                <span class="material-symbols-outlined text-3xl font-black">search</span>
-            </span>
-            <span class="font-label text-[10px] font-black uppercase tracking-widest">{{ __('Search') }}</span>
+        <button type="button" class="mobile-nav-item mobile-nav-search text-primary-container" data-mobile-drawer-trigger="search">
+            <span class="material-symbols-outlined">search</span>
+            <span>{{ __('Search') }}</span>
         </button>
         <button type="button" class="mobile-nav-item text-on-surface-variant" data-mobile-drawer-trigger="profile">
             <span class="material-symbols-outlined">{{ $isAuth ? 'account_circle' : 'login' }}</span>

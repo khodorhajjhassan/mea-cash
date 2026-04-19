@@ -21,7 +21,7 @@
     <section class="relative px-4 md:px-8 pt-6 pb-6 z-10 sf-reveal-section">
         <div id="hero-carousel"
             class="relative h-[425px] w-full overflow-hidden rounded-[24px] shadow-2xl sm:h-[500px] md:h-[750px] md:rounded-[32px] group">
-            <div class="carousel-inner h-full w-full flex transition-transform duration-700 ease-in-out">
+            <div class="carousel-inner h-full w-full flex transition-transform duration-700 ease-in-out" dir="ltr">
                 @forelse($banners as $banner)
                     <div class="carousel-item min-w-full h-full relative sf-skeleton">
                         <img class="w-full h-full object-cover sf-img-loading"
@@ -120,7 +120,7 @@
             $brandTiles = array_merge($brandList, $brandList);
         @endphp
         <div class="overflow-hidden py-3">
-            <div class="animate-marquee flex w-max items-center gap-3 md:gap-4 py-2">
+            <div class="{{ $locale === 'ar' ? 'animate-marquee-rtl' : 'animate-marquee' }} flex w-max items-center gap-3 md:gap-4 py-2" dir="ltr">
                 @foreach($brandTiles as $brand)
                     <div
                         class="group flex h-28 w-28 md:h-32 md:w-32 shrink-0 flex-col items-center justify-center rounded-2xl border border-outline-variant/10 bg-surface-container/55 p-4 transition-all duration-300 hover:border-primary-container/70 hover:bg-surface-container-high hover:shadow-[0_0_30px_rgba(0,240,255,0.12)]">
@@ -140,7 +140,7 @@
     {{-- Unified Infinite Brand Marquee --}}
     <section
         class="w-full py-8 border-y border-outline-variant/10 bg-surface-container-lowest/50 backdrop-blur-sm overflow-hidden z-10 relative sf-reveal-section">
-        <div class="flex items-center gap-16 md:gap-32 w-max animate-marquee">
+        <div class="flex items-center gap-16 md:gap-32 w-max {{ $locale === 'ar' ? 'animate-marquee-rtl' : 'animate-marquee' }}" dir="ltr">
             @php
                 $brands = [
                     ['name' => 'PLAYSTATION', 'icon' => 'https://cdn.simpleicons.org/playstation/0070CC'],
@@ -595,6 +595,13 @@
 
                 attachLoadMoreEvent();
 
+                const sharedParams = new URLSearchParams(window.location.search);
+                const sharedSubcategory = sharedParams.get('subcategory');
+                const sharedProduct = sharedParams.get('product');
+                if (sharedSubcategory && window.openSubcategoryModal) {
+                    window.openSubcategoryModal(sharedSubcategory, sharedProduct ? Number(sharedProduct) : null);
+                }
+
                 // Carousel Logic
                 const carousel = document.getElementById('hero-carousel');
                 if (carousel) {
@@ -605,9 +612,7 @@
                     const totalSlides = items.length;
 
                     function updateCarousel() {
-                        const isRtl = document.documentElement.dir === 'rtl';
-                        const moveX = isRtl ? (currentIndex * 100) : -(currentIndex * 100);
-                        inner.style.transform = `translateX(${moveX}%)`;
+                        inner.style.transform = `translateX(-${currentIndex * 100}%)`;
                         indicators.forEach((ind, i) => {
                             const isActive = i === currentIndex;
                             ind.classList.toggle('bg-primary-container', isActive);
@@ -624,12 +629,18 @@
                     }
 
                     window.nextSlide = function () {
-                        currentIndex = (currentIndex + 1) % totalSlides;
+                        const isRtl = document.documentElement.dir === 'rtl';
+                        currentIndex = isRtl
+                            ? (currentIndex - 1 + totalSlides) % totalSlides
+                            : (currentIndex + 1) % totalSlides;
                         updateCarousel();
                     };
 
                     window.prevSlide = function () {
-                        currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                        const isRtl = document.documentElement.dir === 'rtl';
+                        currentIndex = isRtl
+                            ? (currentIndex + 1) % totalSlides
+                            : (currentIndex - 1 + totalSlides) % totalSlides;
                         updateCarousel();
                     };
 

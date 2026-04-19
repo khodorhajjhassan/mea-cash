@@ -428,9 +428,30 @@ class DemoDataSeeder extends Seeder
         }
 
         // ─── Payment Methods ───
-        PaymentMethod::query()->updateOrCreate(['method' => 'omt'], ['display_name_en' => 'OMT', 'is_active' => true]);
-        PaymentMethod::query()->updateOrCreate(['method' => 'wish'], ['display_name_en' => 'Wish Money', 'is_active' => true]);
-        PaymentMethod::query()->updateOrCreate(['method' => 'usdt'], ['display_name_en' => 'USDT (TRC20)', 'is_active' => true]);
+        PaymentMethod::query()->updateOrCreate(['method' => 'omt'], [
+            'display_name_ar' => 'OMT',
+            'display_name_en' => 'OMT',
+            'account_identifier' => '70-123456',
+            'instructions_ar' => 'أرسل المبلغ المطلوب ثم أرفق صورة الإيصال أو رقم العملية.',
+            'instructions_en' => 'Send the exact amount, then submit the receipt image or transaction ID.',
+            'is_active' => true,
+        ]);
+        PaymentMethod::query()->updateOrCreate(['method' => 'wish'], [
+            'display_name_ar' => 'ويش موني',
+            'display_name_en' => 'Wish Money',
+            'account_identifier' => '70-654321',
+            'instructions_ar' => 'أرسل المبلغ المطلوب ثم أرفق صورة الإيصال أو رقم العملية.',
+            'instructions_en' => 'Send the exact amount, then submit the receipt image or transaction ID.',
+            'is_active' => true,
+        ]);
+        PaymentMethod::query()->updateOrCreate(['method' => 'usdt'], [
+            'display_name_ar' => 'USDT (TRC20)',
+            'display_name_en' => 'USDT (TRC20)',
+            'account_identifier' => 'TQ7QhFakeAddressDemoSeedOnly',
+            'instructions_ar' => 'أرسل USDT على شبكة TRC20 فقط ثم أرفق رقم العملية.',
+            'instructions_en' => 'Send USDT on TRC20 only, then submit the transaction ID.',
+            'is_active' => true,
+        ]);
 
         // ─── Users & Wallets ───
         for ($i = 1; $i <= 50; $i++) {

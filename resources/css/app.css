@@ -408,6 +408,10 @@
         @apply text-2xl;
     }
 
+    .mobile-nav-search .material-symbols-outlined {
+        @apply text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#fe00fe];
+    }
+
     .mobile-profile-link {
         @apply flex items-center justify-between gap-3 rounded-2xl border border-outline-variant/12 bg-surface-container-low/70 px-4 py-4 font-headline text-sm font-black text-on-surface transition hover:border-primary-container/40 hover:bg-primary-container/10;
     }
@@ -472,7 +476,15 @@
         width: fit-content;
         animation: marquee 30s linear infinite;
     }
+    .animate-marquee-rtl {
+        display: flex;
+        width: fit-content;
+        animation: marquee-rtl 30s linear infinite;
+    }
     .animate-marquee:hover {
+        animation-play-state: paused;
+    }
+    .animate-marquee-rtl:hover {
         animation-play-state: paused;
     }
 
@@ -1698,10 +1710,6 @@
     0% { transform: translateX(-50%); }
     100% { transform: translateX(0); }
 }
-@keyframes sf-shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-}
 @keyframes sf-pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.5; transform: scale(1.2); }
@@ -1739,7 +1747,6 @@
 .sf-skeleton {
     background: linear-gradient(90deg, #0f1923 25%, #1e293b 50%, #0f1923 75%);
     background-size: 200% 100%;
-    animation: sf-shimmer 1.5s ease-in-out infinite;
 }
 .sf-live-pulse { animation: sf-pulse 2s ease-in-out infinite; }
 .sf-brand-float { animation: sf-float 4.8s ease-in-out infinite; }
@@ -1991,13 +1998,15 @@
 
 .sf-home-dot-field {
     position: absolute;
-    inset: 0;
+    inset: -120px;
     background-image:
         radial-gradient(circle, rgba(0, 240, 255, 0.2) 1px, transparent 1.5px),
         radial-gradient(circle, rgba(254, 0, 254, 0.13) 1px, transparent 1.5px);
     background-size: 48px 48px, 86px 86px;
     background-position: 0 0, 20px 30px;
     mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 82%, transparent);
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
     animation: sf-home-grid-drift 28s linear infinite;
 }
 
@@ -2026,8 +2035,8 @@
 }
 
 @keyframes sf-home-grid-drift {
-    from { background-position: 0 0, 20px 30px; }
-    to { background-position: 160px 120px, -100px 180px; }
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(80px, 60px, 0); }
 }
 
 @keyframes sf-home-square-float {

@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Hash;
 
 class RolePermissionSeeder extends Seeder
 {
+    private const GUARD = 'web';
+
     /**
      * Run the database seeds.
      */
@@ -55,17 +57,17 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::findOrCreate($permission);
+            Permission::findOrCreate($permission, self::GUARD);
         }
 
         // 2. Create Roles and Assign Permissions
 
         // Super Admin
-        Role::findOrCreate('super-admin');
+        Role::findOrCreate('super-admin', self::GUARD);
         // Note: Super Admin permissions are handled via Gate::before in AppServiceProvider
 
         // Admin
-        $admin = Role::findOrCreate('admin');
+        $admin = Role::findOrCreate('admin', self::GUARD);
         $adminPermissions = collect($permissions)->filter(fn($p) => !in_array($p, [
             'settings.security',
             'roles.delete',
@@ -74,7 +76,7 @@ class RolePermissionSeeder extends Seeder
         $admin->syncPermissions($adminPermissions);
 
         // Accountant
-        $accountant = Role::findOrCreate('accountant');
+        $accountant = Role::findOrCreate('accountant', self::GUARD);
         $accountant->syncPermissions([
             'orders.index',
             'orders.show',

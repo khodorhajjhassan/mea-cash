@@ -18,7 +18,7 @@ class SeoService
      */
     public function forPage(string $title, ?string $description = null, ?string $image = null, string $type = 'website'): array
     {
-        $template = $this->settingsService->get('seo_title_template', '{page_title} — MeaCash');
+        $template = $this->settingsService->get('seo_title_template', '{page_title} - MeaCash');
         $resolvedTitle = str_replace('{page_title}', $title, $template);
         
         $data = [
@@ -100,6 +100,9 @@ class SeoService
         }
 
         $path = Request::getPathInfo();
+        $path = preg_replace('#^/(en|ar)(/|$)#', '/', $path) ?: '/';
+        $path = $path === '/' ? '' : $path;
+
         return [
             'ar' => url('/ar' . $path),
             'en' => url('/en' . $path),
