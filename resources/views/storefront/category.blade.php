@@ -36,7 +36,7 @@
 
     {{-- Products Grid --}}
     @if($products->isNotEmpty())
-    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-5 xl:gap-4">
+    <div class="grid grid-cols-3 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 xl:gap-4">
         @foreach($products as $product)
         @php
             $name = $product->{"name_{$locale}"};

@@ -189,6 +189,7 @@ class StorefrontController extends Controller
             return response()->json([
                 'results' => $products->map(fn (Product $product) => [
                     'id' => $product->id,
+                    'product_id' => $product->id,
                     'slug' => $product->subcategory?->slug ?? $product->slug,
                     'name' => $product->{"name_{$locale}"} ?? $product->name_en,
                     'category_name' => $product->subcategory?->category?->{"name_{$locale}"} ?? 'Uncategorized',

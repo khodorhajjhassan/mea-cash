@@ -226,7 +226,7 @@ function renderBody() {
     }
 
     body.innerHTML = `
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             ${items.map(renderSelectionCard).join('')}
         </div>
     `;
@@ -238,7 +238,7 @@ function renderSelectionCard(item) {
 
     return `
         <button type="button" data-select-product="${item.product.id}" data-select-package="${item.package?.id || ''}"
-            class="group relative flex min-h-[178px] flex-col rounded-2xl border p-3 text-start transition-all duration-300 ${active ? 'border-primary-container bg-surface-container-high shadow-[0_0_22px_rgba(0,240,255,0.2)] ring-1 ring-primary-container/70' : 'border-transparent bg-surface-container-low hover:-translate-y-1 hover:border-primary-container/30 hover:bg-surface-container-high'}">
+            class="group relative flex min-h-[150px] flex-col rounded-2xl border p-3 text-start transition-all duration-300 sm:min-h-[178px] ${active ? 'border-primary-container bg-surface-container-high shadow-[0_0_22px_rgba(0,240,255,0.2)] ring-1 ring-primary-container/70' : 'border-transparent bg-surface-container-low hover:-translate-y-1 hover:border-primary-container/30 hover:bg-surface-container-high'}">
             ${badge}
             ${active ? `<span class="material-symbols-outlined absolute top-2 ${isRtl() ? 'left-2' : 'right-2'} text-lg text-primary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>` : ''}
             <div class="mb-3 flex h-16 items-center justify-center rounded-xl bg-surface-container-lowest/60 p-2">
@@ -267,7 +267,7 @@ function renderSummary() {
     summary.innerHTML = `
         <div>
             <h2 class="mb-4 font-label text-xs font-bold uppercase tracking-widest text-outline">Selected Product</h2>
-            <div class="mb-5 flex items-center gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-highest/50 p-3">
+            <div class="mb-5 flex flex-wrap items-center gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-highest/50 p-3 sm:flex-nowrap">
                 <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-outline-variant/20 bg-surface">
                     <img src="${escapeHtml(selectedImage())}" alt="${escapeHtml(title)}" class="h-full w-full object-contain p-2" onerror="this.src='/meacash-logo.png'">
                 </div>
@@ -275,7 +275,7 @@ function renderSummary() {
                     <div class="font-headline text-sm font-black uppercase leading-tight text-on-surface">${escapeHtml(title)}</div>
                     <div class="mt-1 font-label text-[9px] uppercase tracking-widest text-primary-container">${escapeHtml(type)}</div>
                 </div>
-                <div class="text-end">
+                <div class="w-full text-start sm:w-auto sm:text-end">
                     <div id="modal-live-price" class="font-headline text-base font-black text-primary-container">${money(selectedUnitPrice())}</div>
                     <div class="font-label text-[10px] uppercase tracking-tight text-outline">Total Price</div>
                 </div>

@@ -19,7 +19,7 @@
  
 {{-- Hero Banner Carousel Section --}}
 <section class="relative px-4 md:px-8 pt-6 pb-6 z-10 sf-reveal-section">
-    <div id="hero-carousel" class="relative w-full h-[400px] md:h-[600px] rounded-[32px] overflow-hidden group shadow-2xl">
+    <div id="hero-carousel" class="relative h-[340px] w-full overflow-hidden rounded-[24px] shadow-2xl sm:h-[400px] md:h-[600px] md:rounded-[32px] group">
         <div class="carousel-inner h-full w-full flex transition-transform duration-700 ease-in-out">
             @forelse($banners as $banner)
                 <div class="carousel-item min-w-full h-full relative">
@@ -28,12 +28,12 @@
                          alt="{{ $banner->{"title_$locale"} }}">
                     <div class="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-s from-background via-background/20 to-transparent"></div>
                     
-                    <div class="absolute inset-0 flex items-center p-8 md:p-16">
+                    <div class="absolute inset-0 flex items-center p-5 sm:p-8 md:p-16">
                         <div class="max-w-2xl">
                             <span class="font-label text-primary-container tracking-[0.3em] uppercase text-xs md:text-sm mb-4 block animate-fade-in-up">
                                 {{ $banner->{"subtitle_$locale"} ?? __('noir.hero_eyebrow') }}
                             </span>
-                            <h1 class="font-headline text-4xl md:text-7xl font-black italic tracking-tighter leading-none mb-6">
+                            <h1 class="font-headline text-3xl font-black italic leading-none tracking-tighter sm:text-4xl md:text-7xl mb-6">
                                 {{ $banner->{"title_$locale"} }}
                             </h1>
                             <p class="text-on-surface-variant text-base md:text-lg mb-8 max-w-lg leading-relaxed hidden sm:block">
@@ -143,7 +143,7 @@
 
 {{-- High-Fidelity Circular Category Bar --}}
 @if($categories->isNotEmpty())
-<section class="sticky top-20 z-40 px-4 md:px-8 py-8 bg-background/90 backdrop-blur-xl border-b border-outline-variant/5 sf-reveal-section">
+<section class="sticky top-20 z-40 hidden px-4 py-8 bg-background/90 backdrop-blur-xl border-b border-outline-variant/5 sf-reveal-section md:block md:px-8">
     <div class="flex justify-center">
         <div class="flex items-center gap-6 md:gap-10 overflow-x-auto no-scrollbar pb-2 w-full max-w-[1440px] justify-start md:justify-center">
             @php
@@ -218,7 +218,7 @@
         :gradient="true"
     />
 
-    <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+    <div id="product-grid" class="grid grid-cols-3 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 md:gap-6">
         @include('storefront.partials.product-grid-items', ['products' => $products])
     </div>
 
@@ -240,10 +240,10 @@
 @endif
 
 {{-- Featured Section --}}
-<section class="px-4 md:px-8 py-20 relative sf-reveal-section">
+<section class="px-4 md:px-8 py-16 md:py-20 relative sf-reveal-section">
     <div class="grid grid-cols-12 gap-8 items-center max-w-7xl mx-auto">
         <div class="col-span-12 lg:col-span-5 order-2 lg:order-1 text-start">
-            <h2 class="font-headline text-4xl md:text-5xl font-bold tracking-tight mb-8 uppercase">
+            <h2 class="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-8 uppercase">
                 {{ __('noir.secure_assets_title') }} <br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00f0ff] to-[#fe00fe]">{{ __('noir.secure_assets_subtitle') }}</span>
             </h2>
             <p class="text-on-surface-variant text-base md:text-lg leading-relaxed mb-10">
@@ -280,7 +280,7 @@
 </section>
 
 {{-- How It Works Section --}}
-<section class="px-4 md:px-8 py-24 relative z-10 sf-reveal-section">
+<section class="px-4 md:px-8 py-16 md:py-24 relative z-10 sf-reveal-section">
     <x-noir.section-heading 
         :title="__('noir.how_it_works')" 
         :centered="true"
@@ -289,8 +289,8 @@
     
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
         {{-- Step 1 --}}
-        <div class="glass-panel p-8 md:p-10 rounded-3xl group relative overflow-hidden hover:border-[#00f0ff]/50 transition-all duration-500">
-            <div class="absolute top-0 {{ $locale == 'ar' ? 'left-0' : 'right-0' }} p-6 font-headline font-black text-6xl text-on-surface-variant/5">01</div>
+        <div class="glass-panel p-6 md:p-10 rounded-3xl group relative overflow-hidden hover:border-[#00f0ff]/50 transition-all duration-500">
+            <div class="absolute top-0 {{ $locale == 'ar' ? 'left-0' : 'right-0' }} p-5 md:p-6 font-headline font-black text-5xl md:text-6xl text-on-surface-variant/5">01</div>
             <div class="w-16 h-16 rounded-2xl bg-primary-container/10 flex items-center justify-center mb-8 border border-primary-container/30 group-hover:scale-110 transition-transform duration-500">
                 <span class="material-symbols-outlined text-4xl text-primary-container shadow-[0_0_15px_rgba(0,240,255,0.5)]">search_insights</span>
             </div>
@@ -298,8 +298,8 @@
             <p class="text-on-surface-variant text-sm leading-relaxed">{{ __('noir.step_1_desc') }}</p>
         </div>
         {{-- Step 2 --}}
-        <div class="glass-panel p-8 md:p-10 rounded-3xl group relative overflow-hidden hover:border-[#fe00fe]/50 transition-all duration-500">
-            <div class="absolute top-0 {{ $locale == 'ar' ? 'left-0' : 'right-0' }} p-6 font-headline font-black text-6xl text-on-surface-variant/5">02</div>
+        <div class="glass-panel p-6 md:p-10 rounded-3xl group relative overflow-hidden hover:border-[#fe00fe]/50 transition-all duration-500">
+            <div class="absolute top-0 {{ $locale == 'ar' ? 'left-0' : 'right-0' }} p-5 md:p-6 font-headline font-black text-5xl md:text-6xl text-on-surface-variant/5">02</div>
             <div class="w-16 h-16 rounded-2xl bg-secondary-container/10 flex items-center justify-center mb-8 border border-secondary-container/30 group-hover:scale-110 transition-transform duration-500">
                 <span class="material-symbols-outlined text-4xl text-secondary-container shadow-[0_0_15px_rgba(254,0,254,0.5)]">bolt</span>
             </div>
@@ -307,8 +307,8 @@
             <p class="text-on-surface-variant text-sm leading-relaxed">{{ __('noir.step_2_desc') }}</p>
         </div>
         {{-- Step 3 --}}
-        <div class="glass-panel p-8 md:p-10 rounded-3xl group relative overflow-hidden hover:border-[#00f0ff]/50 transition-all duration-500">
-            <div class="absolute top-0 {{ $locale == 'ar' ? 'left-0' : 'right-0' }} p-6 font-headline font-black text-6xl text-on-surface-variant/5">03</div>
+        <div class="glass-panel p-6 md:p-10 rounded-3xl group relative overflow-hidden hover:border-[#00f0ff]/50 transition-all duration-500">
+            <div class="absolute top-0 {{ $locale == 'ar' ? 'left-0' : 'right-0' }} p-5 md:p-6 font-headline font-black text-5xl md:text-6xl text-on-surface-variant/5">03</div>
             <div class="w-16 h-16 rounded-2xl bg-primary-container/10 flex items-center justify-center mb-8 border border-primary-container/30 group-hover:scale-110 transition-transform duration-500">
                 <span class="material-symbols-outlined text-4xl text-primary-container shadow-[0_0_15px_rgba(0,240,255,0.5)]">videogame_asset</span>
             </div>

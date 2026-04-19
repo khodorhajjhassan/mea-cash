@@ -14,7 +14,7 @@
             <span class="mb-2 block font-label text-[10px] uppercase tracking-[0.3em] text-primary-container">
                 {{ $locale === 'ar' ? 'تاريخ المشتريات' : 'Purchase History' }}
             </span>
-            <h1 class="font-headline text-4xl font-black italic uppercase leading-none tracking-tighter md:text-5xl">
+            <h1 class="font-headline text-3xl font-black italic uppercase leading-none tracking-tighter sm:text-4xl md:text-5xl">
                 {{ $locale === 'ar' ? 'طلباتي' : 'My Orders' }}
             </h1>
         </div>
@@ -124,7 +124,7 @@
             {{ $orders->links('pagination::tailwind') }}
         </div>
     @else
-        <div class="glass-panel flex flex-col items-center justify-center gap-6 rounded-[40px] border-outline-variant/10 p-24 text-center shadow-2xl">
+        <div class="glass-panel flex flex-col items-center justify-center gap-6 rounded-[32px] border-outline-variant/10 p-10 text-center shadow-2xl md:rounded-[40px] md:p-24">
             <div class="flex h-24 w-24 items-center justify-center rounded-full bg-surface-container-highest/50 border border-outline-variant/10">
                 <span class="material-symbols-outlined text-5xl text-outline/30">inventory_2</span>
             </div>

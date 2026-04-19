@@ -129,10 +129,11 @@
             <div class="flex items-center gap-2 md:gap-4 text-primary-container">
                 {{-- Language Switcher --}}
                 <div class="flex items-center border-s border-outline-variant/20 ps-4 ms-2 md:ms-0">
-                    <a href="{{ route('store.home.locale', ['locale' => app()->getLocale() == 'en' ? 'ar' : 'en']) }}" 
-                       class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black font-headline px-3 py-1.5 bg-surface-container-highest rounded-full border border-outline-variant/30 hover:border-primary-container/60 hover:text-primary-container hover:shadow-[0_0_15px_rgba(0,240,255,0.2)] transition-all">
+                    <a href="{{ route('store.home.locale', ['locale' => app()->getLocale() == 'en' ? 'ar' : 'en']) }}"
+                       class="flex items-center gap-1.5 rounded-full border border-outline-variant/30 bg-surface-container-highest px-2.5 py-1.5 font-headline text-[10px] font-black transition-all hover:border-primary-container/60 hover:text-primary-container hover:shadow-[0_0_15px_rgba(0,240,255,0.2)] sm:px-3 sm:text-xs">
                         <span class="material-symbols-outlined text-[16px]">language</span>
-                        <span>{{ app()->getLocale() == 'en' ? 'ARABIC' : 'ENGLISH' }}</span>
+                        <span class="sm:hidden">{{ app()->getLocale() == 'en' ? 'AR' : 'EN' }}</span>
+                        <span class="hidden sm:inline">{{ app()->getLocale() == 'en' ? 'ARABIC' : 'ENGLISH' }}</span>
                     </a>
                 </div>
 

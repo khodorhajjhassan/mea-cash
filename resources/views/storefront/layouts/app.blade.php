@@ -29,7 +29,7 @@
     </script>
     @stack('styles')
 </head>
-<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col antialiased">
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col antialiased pb-24 md:pb-0">
     
     <x-noir.header />
 
@@ -62,6 +62,7 @@
     </main>
 
     <x-noir.footer />
+    <x-noir.mobile-nav />
 
     {{-- Product Modal (Placeholder for now, will redesign next) --}}
     @include('storefront.partials.product-modal')

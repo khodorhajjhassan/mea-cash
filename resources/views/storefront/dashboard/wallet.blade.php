@@ -21,7 +21,7 @@
             <p class="font-label text-[10px] font-black uppercase tracking-[0.28em] text-primary-container">
                 {{ $locale === 'ar' ? 'إدارة الرصيد' : 'Balance Control' }}
             </p>
-            <h1 class="mt-2 font-headline text-4xl font-black uppercase tracking-tight text-on-surface md:text-5xl">
+            <h1 class="mt-2 font-headline text-3xl font-black uppercase tracking-tight text-on-surface sm:text-4xl md:text-5xl">
                 {{ $locale === 'ar' ? 'محفظتي' : 'Wallet' }}
             </h1>
             <p class="mt-3 max-w-2xl text-sm leading-relaxed text-on-surface-variant">
@@ -41,7 +41,7 @@
                 <div class="font-label text-[10px] font-black uppercase tracking-[0.24em] text-outline">
                     {{ $locale === 'ar' ? 'الرصيد الحالي' : 'Current Balance' }}
                 </div>
-                <div class="mt-3 font-headline text-5xl font-black tracking-tight text-primary-container">${{ number_format($balance, 2) }}</div>
+                <div class="mt-3 break-words font-headline text-4xl font-black tracking-tight text-primary-container sm:text-5xl">${{ number_format($balance, 2) }}</div>
                 <p class="mt-3 text-sm text-on-surface-variant">{{ $locale === 'ar' ? 'يتم استخدام الرصيد مباشرة عند الشراء.' : 'Your wallet is used instantly during checkout.' }}</p>
             </div>
 
@@ -180,8 +180,8 @@
                     <div class="mt-4 flex justify-center">{{ $transactions->links() }}</div>
                 @endif
             @else
-                <div class="flex flex-col items-center justify-center rounded-3xl border border-outline-variant/10 bg-surface-container-lowest/30 p-16 text-center">
-                    <span class="material-symbols-outlined text-6xl text-outline/30">history</span>
+                <div class="flex flex-col items-center justify-center rounded-3xl border border-outline-variant/10 bg-surface-container-lowest/30 p-10 text-center md:p-16">
+                    <span class="material-symbols-outlined text-5xl text-outline/30 md:text-6xl">history</span>
                     <p class="mt-4 font-label text-[10px] font-black uppercase tracking-[0.24em] text-outline">{{ $locale === 'ar' ? 'لا توجد معاملات بعد' : 'No transactions yet' }}</p>
                 </div>
             @endif

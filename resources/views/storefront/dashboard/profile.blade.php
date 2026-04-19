@@ -16,7 +16,7 @@
             <p class="font-label text-[10px] font-black uppercase tracking-[0.28em] text-primary-container">
                 {{ $locale === 'ar' ? 'إعدادات الحساب' : 'Account Settings' }}
             </p>
-            <h1 class="mt-2 font-headline text-4xl font-black uppercase tracking-tight text-on-surface md:text-5xl">
+            <h1 class="mt-2 font-headline text-3xl font-black uppercase tracking-tight text-on-surface sm:text-4xl md:text-5xl">
                 {{ $locale === 'ar' ? 'الملف الشخصي' : 'Profile' }}
             </h1>
             <p class="mt-3 max-w-2xl text-sm leading-relaxed text-on-surface-variant">

@@ -14,7 +14,7 @@
         <span class="mb-2 block font-label text-[10px] uppercase tracking-[0.3em] text-primary-container">
             {{ $locale === 'ar' ? 'مساحة المستخدم' : 'Account Dashboard' }}
         </span>
-        <h1 class="mb-2 font-headline text-4xl font-black italic uppercase leading-none tracking-tighter md:text-5xl">
+        <h1 class="mb-2 break-words font-headline text-3xl font-black italic uppercase leading-none tracking-tighter sm:text-4xl md:text-5xl">
             {{ $locale === 'ar' ? 'مرحباً، ' . auth()->user()->name : 'Welcome, ' . auth()->user()->name }}
         </h1>
         <p class="text-sm text-on-surface-variant opacity-70">
@@ -23,7 +23,7 @@
         </p>
     </div>
 
-    <div class="mb-12 grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="mb-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div class="glass-panel rounded-[24px] border-primary-container/10 p-6 transition-all duration-300 hover:border-primary-container/30">
             <div class="mb-4 flex items-start justify-between">
                 <span class="material-symbols-outlined text-3xl text-primary-container/40">account_balance_wallet</span>
@@ -57,7 +57,7 @@
         </a>
     </div>
 
-    <div class="mb-10 grid grid-cols-2 gap-6 md:grid-cols-3">
+    <div class="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
         @php
             $navLinks = [
                 ['name' => 'My Orders', 'ar' => 'طلباتي', 'route' => 'store.orders', 'icon' => 'box', 'bg' => 'bg-primary-container/5'],
@@ -107,7 +107,7 @@
             </form>
         </div>
 
-        <div class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <div class="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/30 p-4">
                 <div class="font-label text-[9px] font-black uppercase tracking-widest text-outline">{{ $locale === 'ar' ? 'الطلبات' : 'Orders' }}</div>
                 <div class="mt-2 font-headline text-2xl font-black text-on-surface">{{ $marketplaceStats['orders'] }}</div>
@@ -186,8 +186,8 @@
                     </tbody>
                 </table>
             @else
-                <div class="flex flex-col items-center justify-center gap-4 p-20 text-center">
-                    <span class="material-symbols-outlined text-6xl text-outline/20">history</span>
+                <div class="flex flex-col items-center justify-center gap-4 p-10 text-center md:p-20">
+                    <span class="material-symbols-outlined text-5xl text-outline/20 md:text-6xl">history</span>
                     <p class="font-label text-[10px] font-bold uppercase tracking-[0.2em] text-outline">{{ $locale === 'ar' ? 'لا توجد طلبات حالياً' : 'No orders found' }}</p>
                 </div>
             @endif

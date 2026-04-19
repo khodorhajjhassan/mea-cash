@@ -10,13 +10,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen overflow-hidden bg-background text-on-surface antialiased">
+<body class="min-h-screen overflow-x-hidden bg-background text-on-surface antialiased">
     <main class="relative flex min-h-screen items-center justify-center px-4 py-12">
         <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(0,240,255,0.18),transparent_30%),radial-gradient(circle_at_80%_20%,rgba(254,0,254,0.14),transparent_28%),linear-gradient(135deg,rgba(17,19,25,1),rgba(12,14,20,1))]"></div>
         <div class="pointer-events-none absolute left-[10%] top-[18%] h-24 w-24 rounded-full border border-primary-container/15"></div>
         <div class="pointer-events-none absolute bottom-[16%] right-[12%] h-32 w-32 rotate-12 rounded-[2rem] border border-secondary-container/15"></div>
 
-        <section class="relative w-full max-w-2xl overflow-hidden rounded-[36px] border border-outline-variant/20 bg-surface-container/80 p-8 text-center shadow-[0_35px_120px_rgba(0,0,0,0.65)] backdrop-blur-2xl md:p-12">
+        <section class="relative w-full max-w-2xl overflow-hidden rounded-[28px] border border-outline-variant/20 bg-surface-container/80 p-6 text-center shadow-[0_35px_120px_rgba(0,0,0,0.65)] backdrop-blur-2xl sm:rounded-[36px] md:p-12">
             <div class="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl border border-yellow-400/20 bg-yellow-400/10 text-yellow-300 shadow-[0_0_45px_rgba(250,204,21,0.15)]">
                 <span class="material-symbols-outlined text-4xl">lock</span>
             </div>
@@ -24,7 +24,7 @@
             <p class="mb-3 font-label text-[11px] font-black uppercase tracking-[0.35em] text-primary-container">
                 {{ app()->getLocale() === 'ar' ? 'رمز الخطأ 403' : 'Error Code 403' }}
             </p>
-            <h1 class="font-headline text-4xl font-black uppercase tracking-tight text-on-surface md:text-6xl">
+            <h1 class="font-headline text-3xl font-black uppercase tracking-tight text-on-surface sm:text-4xl md:text-6xl">
                 {{ app()->getLocale() === 'ar' ? 'الدخول مرفوض' : 'Access Denied' }}
             </h1>
             <p class="mx-auto mt-5 max-w-lg text-sm leading-7 text-on-surface-variant">

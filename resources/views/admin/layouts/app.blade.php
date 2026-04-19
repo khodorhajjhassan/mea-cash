@@ -28,9 +28,7 @@
                     <h1 class="text-lg font-semibold text-slate-900">@yield('header', __('admin.sidebar.dashboard'))</h1>
                 </div>
             </div>
-            <div class="flex items-center gap-4">
-                <!-- Notifications -->
-            <div class="flex items-center gap-4">
+            <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-4">
                 <!-- Notifications -->
                 <div class="relative">
                     <button id="notification-bell" class="relative p-2 text-slate-400 hover:text-indigo-600 transition-colors">
@@ -45,7 +43,7 @@
                         @endif
                     </button>
 
-                    <div id="notification-dropdown" class="absolute {{ app()->getLocale() == 'ar' ? 'left-0' : 'right-0' }} mt-3 w-80 rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200 z-[100] overflow-hidden hidden">
+                    <div id="notification-dropdown" class="absolute {{ app()->getLocale() == 'ar' ? 'left-0' : 'right-0' }} mt-3 w-[calc(100vw-2rem)] max-w-80 rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200 z-[100] overflow-hidden hidden">
                         <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                             <h3 class="text-sm font-bold text-slate-800">{{ __('admin.notifications.title') }}</h3>
                             <form method="POST" action="{{ route('admin.notifications.read-all') }}">

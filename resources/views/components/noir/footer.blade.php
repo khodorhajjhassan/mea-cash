@@ -1,10 +1,10 @@
 <footer class="bg-surface-container-lowest border-t border-outline-variant/20 pt-20 pb-10 relative overflow-hidden">
     {{-- Floating Back to Top FAB --}}
-    <button class="fixed bottom-8 end-8 z-50 w-12 h-12 bg-primary-container text-on-primary-container rounded-full shadow-[0_0_20px_rgba(0,240,255,0.4)] flex items-center justify-center hover:scale-110 transition-transform group" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+    <button class="fixed bottom-24 end-5 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary-container text-on-primary-container shadow-[0_0_20px_rgba(0,240,255,0.4)] transition-transform hover:scale-110 md:bottom-8 md:end-8" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
         <span class="material-symbols-outlined font-bold">arrow_upward</span>
     </button>
 
-    <div class="max-w-[1440px] mx-auto px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
+    <div class="max-w-[1440px] mx-auto grid grid-cols-1 gap-10 px-4 md:grid-cols-2 md:px-8 lg:grid-cols-5 lg:gap-8">
         <div class="lg:col-span-2">
             <div class="flex items-center gap-3 mb-6">
                 <img src="{{ asset('meacash-logo.png') }}" alt="MeaCash" class="h-10 w-auto">
@@ -57,11 +57,11 @@
         </div>
     </div>
 
-    <div class="max-w-[1440px] mx-auto px-8 mt-20 pt-8 border-t border-outline-variant/10 flex flex-col md:flex-row justify-between items-center gap-6">
-        <p class="font-headline text-[10px] tracking-[0.3em] text-on-surface-variant uppercase">
+    <div class="max-w-[1440px] mx-auto mt-16 flex flex-col items-center justify-between gap-6 border-t border-outline-variant/10 px-4 pt-8 md:mt-20 md:flex-row md:px-8">
+        <p class="text-center font-headline text-[10px] uppercase tracking-[0.24em] text-on-surface-variant md:text-start md:tracking-[0.3em]">
             © {{ date('Y') }} MEACASH. HIGH-FIDELITY DIGITAL ASSETS. ALL RIGHTS RESERVED.
         </p>
-        <div class="flex gap-8">
+        <div class="flex flex-col gap-3 sm:flex-row sm:gap-8">
             <div class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span class="font-headline text-[10px] tracking-widest uppercase text-on-surface-variant">
