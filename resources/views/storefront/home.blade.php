@@ -358,7 +358,8 @@
                 </div>
                 <h3
                     class="font-headline text-xl font-bold tracking-wider uppercase mb-4 text-on-surface group-hover:text-primary-container transition-colors">
-                    {{ __('noir.step_1_title') }}</h3>
+                    {{ __('noir.step_1_title') }}
+                </h3>
                 <p class="text-on-surface-variant text-sm leading-relaxed">{{ __('noir.step_1_desc') }}</p>
             </div>
             {{-- Step 2 --}}
@@ -374,7 +375,8 @@
                 </div>
                 <h3
                     class="font-headline text-xl font-bold tracking-wider uppercase mb-4 text-on-surface group-hover:text-secondary-container transition-colors">
-                    {{ __('noir.step_2_title') }}</h3>
+                    {{ __('noir.step_2_title') }}
+                </h3>
                 <p class="text-on-surface-variant text-sm leading-relaxed">{{ __('noir.step_2_desc') }}</p>
             </div>
             {{-- Step 3 --}}
@@ -390,7 +392,8 @@
                 </div>
                 <h3
                     class="font-headline text-xl font-bold tracking-wider uppercase mb-4 text-on-surface group-hover:text-primary-container transition-colors">
-                    {{ __('noir.step_3_title') }}</h3>
+                    {{ __('noir.step_3_title') }}
+                </h3>
                 <p class="text-on-surface-variant text-sm leading-relaxed">{{ __('noir.step_3_desc') }}</p>
             </div>
         </div>
