@@ -19,7 +19,7 @@
  
 {{-- Hero Banner Carousel Section --}}
 <section class="relative px-4 md:px-8 pt-6 pb-6 z-10 sf-reveal-section">
-    <div id="hero-carousel" class="relative h-[340px] w-full overflow-hidden rounded-[24px] shadow-2xl sm:h-[400px] md:h-[600px] md:rounded-[32px] group">
+    <div id="hero-carousel" class="relative h-[425px] w-full overflow-hidden rounded-[24px] shadow-2xl sm:h-[500px] md:h-[750px] md:rounded-[32px] group">
         <div class="carousel-inner h-full w-full flex transition-transform duration-700 ease-in-out">
             @forelse($banners as $banner)
                 <div class="carousel-item min-w-full h-full relative">
@@ -28,20 +28,14 @@
                          alt="{{ $banner->{"title_$locale"} }}">
                     <div class="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-s from-background via-background/20 to-transparent"></div>
                     
-                    <div class="absolute inset-0 flex items-center p-5 sm:p-8 md:p-16">
+                    <div class="absolute inset-0 flex items-center p-6 sm:p-10 md:p-16">
                         <div class="max-w-2xl">
-                            <span class="font-label text-primary-container tracking-[0.3em] uppercase text-xs md:text-sm mb-4 block animate-fade-in-up">
-                                {{ $banner->{"subtitle_$locale"} ?? __('noir.hero_eyebrow') }}
-                            </span>
-                            <h1 class="font-headline text-3xl font-black italic leading-none tracking-tighter sm:text-4xl md:text-7xl mb-6">
+                            <h1 class="font-headline text-4xl font-black italic leading-[1.1] tracking-tighter sm:text-5xl md:text-8xl mb-4 animate-fade-in-up">
                                 {{ $banner->{"title_$locale"} }}
                             </h1>
-                            <p class="text-on-surface-variant text-base md:text-lg mb-8 max-w-lg leading-relaxed hidden sm:block">
-                                {{ $banner->{"description_$locale"} ?? __('noir.hero_description') }}
+                            <p class="text-on-surface-variant text-base md:text-xl max-w-lg leading-relaxed animate-fade-in-up-delay">
+                                {{ $banner->{"description_$locale"} }}
                             </p>
-                            <div class="flex gap-4">
-                                <x-noir.button variant="primary" href="{{ $banner->link }}" icon="bolt">{{ __('noir.claim_now') }}</x-noir.button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -53,17 +47,34 @@
             @endforelse
         </div>
 
-        {{-- Carousel Navigation --}}
-        @if($banners->count() > 1)
-            <div class="absolute bottom-8 right-8 flex gap-2 z-20">
-                @foreach($banners as $index => $banner)
-                    <button class="carousel-indicator w-3 h-3 rounded-full border border-white/30 transition-all hover:scale-110" data-index="{{ $index }}"></button>
-                @endforeach
+        {{-- Carousel Hub: Indicators & Global CTA --}}
+        @if($banners->count() > 0)
+            <div class="absolute bottom-6 sm:bottom-10 right-6 sm:right-10 flex flex-col-reverse sm:flex-row items-center gap-4 sm:gap-8 z-30">
+                <div class="flex gap-2.5">
+                    @foreach($banners as $index => $banner)
+                        <button class="carousel-indicator w-2 h-2 rounded-full border border-white/20 transition-all hover:scale-125 {{ $index === 0 ? 'bg-primary-container border-primary-container w-6' : '' }}" data-index="{{ $index }}"></button>
+                    @endforeach
+                </div>
+                
+                <div id="banner-cta-container">
+                    @foreach($banners as $index => $banner)
+                        <div class="banner-cta-item {{ $index === 0 ? '' : 'hidden' }}" data-index="{{ $index }}">
+                            <x-noir.button 
+                                variant="primary" 
+                                href="{{ $banner->link }}" 
+                                icon="bolt" 
+                                class="px-4 py-2.5 sm:px-7 sm:py-3.5 text-[9px] sm:text-xs min-w-[120px]"
+                            >
+                                {{ $banner->{"button_text_$locale"} ?? __('noir.claim_now') }}
+                            </x-noir.button>
+                        </div>
+                    @endforeach
+                </div>
             </div>
-            <button class="absolute top-1/2 left-6 -translate-y-1/2 w-12 h-12 rounded-full glass-panel flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10" onclick="prevSlide()">
+            <button class="absolute top-1/2 left-6 -translate-y-1/2 w-12 h-12 rounded-full glass-panel hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10" onclick="prevSlide()">
                 <span class="material-symbols-outlined">chevron_left</span>
             </button>
-            <button class="absolute top-1/2 right-6 -translate-y-1/2 w-12 h-12 rounded-full glass-panel flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10" onclick="nextSlide()">
+            <button class="absolute top-1/2 right-6 -translate-y-1/2 w-12 h-12 rounded-full glass-panel hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10" onclick="nextSlide()">
                 <span class="material-symbols-outlined">chevron_right</span>
             </button>
         @endif
@@ -225,7 +236,7 @@
     {{-- Load More --}}
     @if($products->hasMorePages())
         <div class="mt-12 flex justify-center">
-            <x-noir.button variant="outline" id="load-more-btn" data-url="{{ $products->nextPageUrl() }}" icon="expand_more">
+            <x-noir.button variant="gradient-outline" id="load-more-btn" data-url="{{ $products->nextPageUrl() }}" icon="expand_more">
                 {{ __('Load More') }}
             </x-noir.button>
         </div>
@@ -526,8 +537,17 @@ document.addEventListener('DOMContentLoaded', function() {
         function updateCarousel() {
             inner.style.transform = `translateX(-${currentIndex * 100}%)`;
             indicators.forEach((ind, i) => {
-                ind.classList.toggle('bg-primary-container', i === currentIndex);
-                ind.classList.toggle('scale-125', i === currentIndex);
+                const isActive = i === currentIndex;
+                ind.classList.toggle('bg-primary-container', isActive);
+                ind.classList.toggle('border-primary-container', isActive);
+                ind.classList.toggle('w-6', isActive);
+                ind.classList.toggle('w-2', !isActive);
+            });
+
+            // Synchronize CTA buttons
+            const ctas = document.querySelectorAll('.banner-cta-item');
+            ctas.forEach((cta, i) => {
+                cta.classList.toggle('hidden', i !== currentIndex);
             });
         }
 

@@ -97,7 +97,7 @@
                 </div>
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-5 sm:items-start">
+            <div class="grid grid-cols-5 gap-1 sm:gap-4 items-start">
                 @foreach($statusSteps as $stepKey => $step)
                     @php
                         $stepIndex = array_search($stepKey, $statusOrder, true);
@@ -109,19 +109,19 @@
                             );
                         $isTerminal = $isCurrent && in_array($stepKey, ['failed', 'refunded'], true);
                     @endphp
-                    <div class="relative rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/50 p-3 transition-all sm:border-0 sm:bg-transparent sm:p-0 {{ $isCurrent || $isPassed || $isTerminal ? ($stepKey === 'completed' ? 'text-emerald-400' : 'text-primary-container') : 'text-outline/50' }}">
+                    <div class="relative transition-all {{ $isCurrent || $isPassed || $isTerminal ? ($stepKey === 'completed' ? 'text-emerald-400' : 'text-primary-container') : 'text-outline/40' }}">
                         @if(!$loop->first)
-                            <span class="absolute -start-4 top-6 hidden h-px w-8 bg-outline-variant/25 sm:block"></span>
+                            <span class="absolute -start-1/2 top-6 h-px w-full bg-outline-variant/10 -z-10 hidden sm:block"></span>
                         @endif
-                        <div class="flex items-center gap-3 sm:flex-col sm:items-center sm:text-center">
-                            <span class="material-symbols-outlined !flex h-12 w-12 shrink-0 items-center justify-center rounded-full border text-[22px] leading-none {{ $isCurrent || $isPassed || $isTerminal ? $step['tone'] . ($stepKey === 'completed' ? ' shadow-[0_0_22px_rgba(52,211,153,0.18)]' : ' shadow-[0_0_22px_rgba(0,240,255,0.14)]') : 'border-outline-variant/20 bg-surface-container-low text-outline/50' }}">
+                        <div class="flex flex-col items-center text-center">
+                            <span class="material-symbols-outlined !flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full border text-[18px] sm:text-[22px] leading-none mb-2 {{ $isCurrent || $isPassed || $isTerminal ? $step['tone'] . ($stepKey === 'completed' ? ' shadow-[0_0_20px_rgba(52,211,153,0.15)]' : ' shadow-[0_0_20px_rgba(0,240,255,0.12)]') : 'border-outline-variant/10 bg-surface-container-low text-outline/30' }}">
                                 {{ $step['icon'] }}
                             </span>
-                            <div>
-                                <p class="font-headline text-[10px] font-black uppercase tracking-widest">
+                            <div class="px-1">
+                                <p class="font-headline text-[8px] sm:text-[10px] font-black uppercase tracking-tight sm:tracking-widest leading-tight">
                                     {{ $locale === 'ar' ? $step['label_ar'] : $step['label_en'] }}
                                 </p>
-                                <p class="mt-1 font-label text-[8px] font-black uppercase tracking-[0.18em] opacity-60">
+                                <p class="mt-0.5 font-label text-[7px] font-black uppercase tracking-tighter opacity-50 hidden sm:block">
                                     {{ $isCurrent ? ($locale === 'ar' ? 'الحالة الحالية' : 'Current') : ($isPassed ? ($locale === 'ar' ? 'تمت' : 'Done') : ($locale === 'ar' ? 'لاحقا' : 'Next')) }}
                                 </p>
                             </div>

@@ -146,7 +146,38 @@
 
         <div class="overflow-x-auto no-scrollbar">
             @if($recentOrders->isNotEmpty())
-                <table class="w-full text-start">
+                {{-- Mobile View: Cards --}}
+                <div class="divide-y divide-outline-variant/10 md:hidden">
+                    @foreach($recentOrders as $order)
+                        @php
+                            $status = $order->status->value ?? $order->status;
+                            $productImage = $order->product?->image
+                                ? (str_starts_with($order->product->image, 'http') ? $order->product->image : \Illuminate\Support\Facades\Storage::url($order->product->image))
+                                : asset('meacash-logo.png');
+                        @endphp
+                        <a href="{{ route('store.orders.detail', $order->order_number) }}" class="flex items-center gap-4 px-6 py-5 active:bg-surface-container/30">
+                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-outline-variant/10 bg-surface-container">
+                                <img src="{{ $productImage }}" alt="" class="h-8 w-8 object-contain" onerror="this.src='{{ asset('meacash-logo.png') }}'">
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="font-headline text-xs font-black uppercase text-on-surface">#{{ $order->order_number }}</span>
+                                    <span class="font-headline text-xs font-black text-primary-container">${{ number_format($order->total_price, 2) }}</span>
+                                </div>
+                                <div class="mt-1 flex items-center justify-between gap-2">
+                                    <span class="truncate text-[10px] font-bold uppercase text-on-surface-variant">{{ $order->product?->{"name_$locale"} ?? $order->product?->name_en }}</span>
+                                    <span class="text-[9px] font-black uppercase tracking-widest
+                                        {{ $status === 'completed' ? 'text-primary-container' : 'text-yellow-500' }}">
+                                        {{ $status }}
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+
+                {{-- Desktop View: Table --}}
+                <table class="hidden w-full text-start md:table">
                     <thead>
                         <tr class="bg-surface-container-highest/30 text-[10px] font-black uppercase tracking-widest text-outline">
                             <th class="py-4 ps-8 text-start">{{ $locale === 'ar' ? 'الطلب' : 'Order' }}</th>
@@ -165,7 +196,7 @@
                                         </div>
                                         <div>
                                             <div class="font-headline text-xs font-black uppercase text-on-surface">{{ $order->order_number }}</div>
-                                            <div class="max-w-[180px] truncate text-[10px] font-bold uppercase text-on-surface-variant">{{ $order->product?->name_en }}</div>
+                                            <div class="max-w-[180px] truncate text-[10px] font-bold uppercase text-on-surface-variant">{{ $order->product?->{"name_$locale"} ?? $order->product?->name_en }}</div>
                                         </div>
                                     </div>
                                 </td>

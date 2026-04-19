@@ -84,11 +84,11 @@
         @foreach($mobileCategories as $category)
             <details class="group rounded-3xl border border-outline-variant/12 bg-surface-container-low/70 p-4" {{ $loop->first ? 'open' : '' }}>
                 <summary class="flex cursor-pointer list-none items-center gap-3">
-                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-primary-container/20 bg-primary-container/10 text-primary-container">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-outline-variant/15 bg-surface-container-high transition-all group-open:border-primary-container/30">
                         @if($category->icon && mb_strlen($category->icon) <= 2)
                             <span class="text-2xl">{{ $category->icon }}</span>
                         @else
-                            <span class="material-symbols-outlined">{{ $categoryIcon($category) }}</span>
+                            <span class="material-symbols-outlined sf-text-gradient">{{ $categoryIcon($category) }}</span>
                         @endif
                     </div>
                     <div class="min-w-0 flex-1">
@@ -176,12 +176,27 @@
             </div>
         </a>
 
-        <div class="space-y-2">
-            <a href="{{ route('store.dashboard') }}" class="mobile-profile-link"><span class="material-symbols-outlined">dashboard</span><span>{{ __('Dashboard') }}</span></a>
-            <a href="{{ route('store.orders') }}" class="mobile-profile-link"><span class="material-symbols-outlined">inventory_2</span><span>{{ __('Orders') }}</span></a>
-            <a href="{{ route('store.wallet') }}" class="mobile-profile-link"><span class="material-symbols-outlined">account_balance_wallet</span><span>{{ __('Wallet') }}</span></a>
-            <a href="{{ route('store.profile') }}" class="mobile-profile-link"><span class="material-symbols-outlined">manage_accounts</span><span>{{ __('User Profile') }}</span></a>
-            <a href="{{ $languageSwitchUrl }}" class="mobile-profile-link"><span class="material-symbols-outlined">language</span><span>{{ $targetLocale === 'ar' ? 'العربية' : 'English' }}</span></a>
+        <div class="space-y-3">
+            <a href="{{ route('store.dashboard') }}" class="mobile-profile-link">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="font-headline text-sm font-black uppercase text-on-surface">{{ __('Dashboard') }}</span>
+            </a>
+            <a href="{{ route('store.orders') }}" class="mobile-profile-link">
+                <span class="material-symbols-outlined">inventory_2</span>
+                <span class="font-headline text-sm font-black uppercase text-on-surface">{{ __('Orders') }}</span>
+            </a>
+            <a href="{{ route('store.wallet') }}" class="mobile-profile-link">
+                <span class="material-symbols-outlined">account_balance_wallet</span>
+                <span class="font-headline text-sm font-black uppercase text-on-surface">{{ __('Wallet') }}</span>
+            </a>
+            <a href="{{ route('store.profile') }}" class="mobile-profile-link">
+                <span class="material-symbols-outlined">manage_accounts</span>
+                <span class="font-headline text-sm font-black uppercase text-on-surface">{{ __('User Profile') }}</span>
+            </a>
+            <a href="{{ $languageSwitchUrl }}" class="mobile-profile-link">
+                <span class="material-symbols-outlined">language</span>
+                <span class="font-headline text-sm font-black uppercase text-on-surface">{{ $targetLocale === 'ar' ? 'العربية' : 'English' }}</span>
+            </a>
         </div>
     @else
         <div class="space-y-3">
@@ -197,7 +212,7 @@
 
 <nav class="fixed inset-x-0 bottom-0 z-[95] border-t border-outline-variant/15 bg-[#0f131c]/95 px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-3 shadow-[0_-18px_60px_rgba(0,0,0,0.45)] backdrop-blur-2xl md:hidden" aria-label="{{ __('Mobile navigation') }}">
     <div class="mx-auto grid max-w-md grid-cols-4 items-end gap-1">
-        <a href="{{ route('store.home.locale', ['locale' => $locale]) }}" class="mobile-nav-item {{ request()->routeIs('store.home', 'store.home.locale') ? 'text-primary-container' : 'text-on-surface-variant' }}">
+        <a href="{{ route('store.home.locale', ['locale' => $locale]) }}" class="mobile-nav-item {{ request()->routeIs('store.home', 'store.home.locale') ? 'active' : 'text-on-surface-variant' }}">
             <span class="material-symbols-outlined">home</span>
             <span>{{ __('Home') }}</span>
         </a>
@@ -206,8 +221,8 @@
             <span>{{ __('Category') }}</span>
         </button>
         <button type="button" class="-mt-8 flex flex-col items-center gap-1 text-primary-container" data-mobile-drawer-trigger="search">
-            <span class="flex h-16 w-16 items-center justify-center rounded-full border border-primary-container/35 bg-primary-container text-on-primary-container shadow-[0_0_30px_rgba(0,240,255,0.35)]">
-                <span class="material-symbols-outlined text-3xl">search</span>
+            <span class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#00f0ff] to-[#fe00fe] text-background shadow-[0_0_35px_rgba(0,240,255,0.3)] border-4 border-background">
+                <span class="material-symbols-outlined text-3xl font-black">search</span>
             </span>
             <span class="font-label text-[10px] font-black uppercase tracking-widest">{{ __('Search') }}</span>
         </button>

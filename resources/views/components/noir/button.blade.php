@@ -8,6 +8,9 @@
         'secondary' => 'bg-gradient-to-r from-secondary-fixed to-secondary-container text-on-secondary shadow-[0_0_30px_rgba(254,0,254,0.3)]',
         'glass' => 'glass-panel text-on-surface hover:bg-surface-container-highest/60',
         'outline' => 'border border-outline-variant/30 text-on-surface hover:border-primary-container/50 hover:text-primary-container',
+        'gradient' => 'bg-gradient-to-r from-primary-container to-secondary-container text-on-surface shadow-lg border border-outline-variant/30 hover:shadow-primary-container/20 group/btn',
+        'gradient-outline' => 'sf-gradient-border text-white hover:text-white/80 hover:opacity-90 transition-all',
+        'white-outline' => 'border border-white/20 text-white/90 hover:border-white/60 hover:bg-white/5',
     ];
 
     $classes = $baseClasses . ' ' . ($variants[$variant] ?? $variants['primary']);
