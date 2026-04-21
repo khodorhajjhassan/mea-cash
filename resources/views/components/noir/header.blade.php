@@ -226,9 +226,9 @@
                 </button>
 
                 {{-- Language Switcher --}}
-                <div class="flex items-center border-s border-outline-variant/20 ps-4 ms-2 md:ms-0">
+                <div class="flex items-center ms-1 md:ms-0">
                     <a href="{{ $languageSwitchUrl }}"
-                        class="mc-icon-button mc-language-switch flex items-center rounded-full border transition-all hover:text-primary-container"
+                        class="mc-icon-button mc-language-switch flex items-center rounded-full transition-all hover:text-primary-container"
                         aria-label="{{ $targetLocale === 'ar' ? __('Switch to Arabic') : __('Switch to English') }}"
                         title="{{ $targetLocale === 'ar' ? __('Switch to Arabic') : __('Switch to English') }}">
                         <span class="mc-language-flag" aria-hidden="true">{{ $targetLocale === 'ar' ? '🇱🇧' : '🇬🇧' }}</span>
@@ -267,9 +267,15 @@
 
                 themeToggle?.addEventListener('click', () => {
                     const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+                    document.documentElement.classList.add('mc-theme-switching');
                     document.documentElement.dataset.theme = nextTheme;
                     localStorage.setItem('meacash-theme', nextTheme);
                     syncThemeToggle();
+                    window.requestAnimationFrame(() => {
+                        window.requestAnimationFrame(() => {
+                            document.documentElement.classList.remove('mc-theme-switching');
+                        });
+                    });
                 });
 
                 syncThemeToggle();
