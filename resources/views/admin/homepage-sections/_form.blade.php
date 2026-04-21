@@ -2,9 +2,28 @@
     $section = $section ?? null;
     $selectedProducts = old('product_ids', $section->product_ids ?? []);
     $selectedSubcategories = old('subcategory_ids', $section->subcategory_ids ?? []);
+    $settings = old('settings', $section->settings ?? []);
+    $featureRows = $settings['features'] ?? [];
+    $cardRows = $settings['cards'] ?? [];
+    $contentTypes = [
+        \App\Models\HomepageSection::TYPE_TRUST_PAYMENTS,
+        \App\Models\HomepageSection::TYPE_SHOP_BY_NEED,
+        \App\Models\HomepageSection::TYPE_CRYPTO_CARD,
+        \App\Models\HomepageSection::TYPE_HOW_IT_WORKS,
+    ];
 @endphp
 
 <div class="grid gap-5 md:grid-cols-2" data-homepage-section-form>
+    <div class="field">
+        <label>Section Layout</label>
+        <select name="type" required data-section-type>
+            @foreach($types as $value => $label)
+                <option value="{{ $value }}" @selected(old('type', $section->type ?? \App\Models\HomepageSection::TYPE_MANUAL_PRODUCTS) === $value)>{{ $label }}</option>
+            @endforeach
+        </select>
+        <p class="hint">Choose product grids or editable content blocks such as trust, shop by need, and crypto card.</p>
+    </div>
+
     <div class="field">
         <label>Product Source</label>
         <select name="source_type" required data-section-source>
@@ -12,7 +31,7 @@
                 <option value="{{ $value }}" @selected(old('source_type', $section->source_type ?? \App\Models\HomepageSection::SOURCE_MANUAL_PRODUCTS) === $value)>{{ $label }}</option>
             @endforeach
         </select>
-        <p class="hint">Choose how this section gets products. The section name is controlled by the title fields below.</p>
+        <p class="hint">Used for product sections. Content blocks will save as Content Block automatically.</p>
     </div>
 
     <div class="field">
@@ -71,12 +90,12 @@
 
     <div class="field">
         <label>Badge (EN)</label>
-        <input type="text" name="settings[badge_en]" value="{{ old('settings.badge_en', $section->settings['badge_en'] ?? '') }}" placeholder="Limited, Hot, New">
+        <input type="text" name="settings[badge_en]" value="{{ old('settings.badge_en', $settings['badge_en'] ?? '') }}" placeholder="Limited, Hot, New">
     </div>
 
     <div class="field">
         <label>Badge (AR)</label>
-        <input type="text" name="settings[badge_ar]" dir="rtl" value="{{ old('settings.badge_ar', $section->settings['badge_ar'] ?? '') }}">
+        <input type="text" name="settings[badge_ar]" dir="rtl" value="{{ old('settings.badge_ar', $settings['badge_ar'] ?? '') }}">
     </div>
 
     <div class="field">
@@ -126,6 +145,99 @@
         <p class="hint">For Selected Products, choose the exact products. For One Subcategory, this is optional and narrows the section to selected products only.</p>
     </div>
 
+    <div class="md:col-span-2 grid gap-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-2" data-content-panel="trust_payments shop_by_need crypto_card how_it_works">
+        <div class="field">
+            <label>Button Text (EN)</label>
+            <input type="text" name="settings[button_text_en]" value="{{ old('settings.button_text_en', $settings['button_text_en'] ?? '') }}">
+        </div>
+        <div class="field">
+            <label>Button Text (AR)</label>
+            <input type="text" name="settings[button_text_ar]" dir="rtl" value="{{ old('settings.button_text_ar', $settings['button_text_ar'] ?? '') }}">
+        </div>
+        <div class="field md:col-span-2">
+            <label>Button URL</label>
+            <input type="text" name="settings[button_url]" value="{{ old('settings.button_url', $settings['button_url'] ?? '') }}" placeholder="/en#products-section">
+        </div>
+    </div>
+
+    <div class="md:col-span-2 grid gap-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-2" data-content-panel="crypto_card">
+        <div class="field">
+            <label>Status (EN)</label>
+            <input type="text" name="settings[status_en]" value="{{ old('settings.status_en', $settings['status_en'] ?? '') }}" placeholder="Active">
+        </div>
+        <div class="field">
+            <label>Status (AR)</label>
+            <input type="text" name="settings[status_ar]" dir="rtl" value="{{ old('settings.status_ar', $settings['status_ar'] ?? '') }}">
+        </div>
+        <div class="field">
+            <label>Amount Label (EN)</label>
+            <input type="text" name="settings[amount_label_en]" value="{{ old('settings.amount_label_en', $settings['amount_label_en'] ?? '') }}" placeholder="$2,450">
+        </div>
+        <div class="field">
+            <label>Amount Label (AR)</label>
+            <input type="text" name="settings[amount_label_ar]" dir="rtl" value="{{ old('settings.amount_label_ar', $settings['amount_label_ar'] ?? '') }}">
+        </div>
+        <div class="field">
+            <label>Card Brand (EN)</label>
+            <input type="text" name="settings[card_brand_en]" value="{{ old('settings.card_brand_en', $settings['card_brand_en'] ?? '') }}" placeholder="MEACASH CARD">
+        </div>
+        <div class="field">
+            <label>Card Brand (AR)</label>
+            <input type="text" name="settings[card_brand_ar]" dir="rtl" value="{{ old('settings.card_brand_ar', $settings['card_brand_ar'] ?? '') }}">
+        </div>
+        <div class="field">
+            <label>Card Type (EN)</label>
+            <input type="text" name="settings[card_kind_en]" value="{{ old('settings.card_kind_en', $settings['card_kind_en'] ?? '') }}" placeholder="CRYPTO WALLET">
+        </div>
+        <div class="field">
+            <label>Card Type (AR)</label>
+            <input type="text" name="settings[card_kind_ar]" dir="rtl" value="{{ old('settings.card_kind_ar', $settings['card_kind_ar'] ?? '') }}">
+        </div>
+        <div class="field">
+            <label>Card Holder (EN)</label>
+            <input type="text" name="settings[card_holder_en]" value="{{ old('settings.card_holder_en', $settings['card_holder_en'] ?? '') }}" placeholder="MEACASH USER">
+        </div>
+        <div class="field">
+            <label>Card Holder (AR)</label>
+            <input type="text" name="settings[card_holder_ar]" dir="rtl" value="{{ old('settings.card_holder_ar', $settings['card_holder_ar'] ?? '') }}">
+        </div>
+    </div>
+
+    <div class="field md:col-span-2" data-content-panel="trust_payments crypto_card how_it_works">
+        <label>Feature / Step Items</label>
+        <div class="grid gap-3">
+            @for($i = 0; $i < 4; $i++)
+                @php $row = $featureRows[$i] ?? []; @endphp
+                <div class="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 md:grid-cols-5">
+                    <input type="text" name="settings[features][{{ $i }}][icon]" value="{{ $row['icon'] ?? '' }}" placeholder="Icon name">
+                    <input type="text" name="settings[features][{{ $i }}][label_en]" value="{{ $row['label_en'] ?? '' }}" placeholder="Label EN">
+                    <input type="text" name="settings[features][{{ $i }}][label_ar]" dir="rtl" value="{{ $row['label_ar'] ?? '' }}" placeholder="Label AR">
+                    <input type="text" name="settings[features][{{ $i }}][text_en]" value="{{ $row['text_en'] ?? '' }}" placeholder="Text EN">
+                    <input type="text" name="settings[features][{{ $i }}][text_ar]" dir="rtl" value="{{ $row['text_ar'] ?? '' }}" placeholder="Text AR">
+                </div>
+            @endfor
+        </div>
+        <p class="hint">Use Google Material Symbols icon names, for example shield, bolt, public, wallet.</p>
+    </div>
+
+    <div class="field md:col-span-2" data-content-panel="shop_by_need">
+        <label>Shop Cards</label>
+        <div class="grid gap-3">
+            @for($i = 0; $i < 6; $i++)
+                @php $row = $cardRows[$i] ?? []; @endphp
+                <div class="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 md:grid-cols-4">
+                    <input type="text" name="settings[cards][{{ $i }}][icon]" value="{{ $row['icon'] ?? '' }}" placeholder="Icon">
+                    <input type="text" name="settings[cards][{{ $i }}][accent]" value="{{ $row['accent'] ?? '' }}" placeholder="#00e5ff">
+                    <input type="text" name="settings[cards][{{ $i }}][title_en]" value="{{ $row['title_en'] ?? '' }}" placeholder="Title EN">
+                    <input type="text" name="settings[cards][{{ $i }}][title_ar]" dir="rtl" value="{{ $row['title_ar'] ?? '' }}" placeholder="Title AR">
+                    <input type="text" name="settings[cards][{{ $i }}][text_en]" value="{{ $row['text_en'] ?? '' }}" placeholder="Text EN">
+                    <input type="text" name="settings[cards][{{ $i }}][text_ar]" dir="rtl" value="{{ $row['text_ar'] ?? '' }}" placeholder="Text AR">
+                    <input type="text" name="settings[cards][{{ $i }}][url]" value="{{ $row['url'] ?? '' }}" placeholder="/en?category=gift-cards#products-section" class="md:col-span-2">
+                </div>
+            @endfor
+        </div>
+    </div>
+
     <div class="md:col-span-2">
         <label class="inline-flex cursor-pointer items-center">
             <input type="checkbox" name="is_active" value="1" class="sr-only peer" @checked(old('is_active', $section->is_active ?? true))>
@@ -140,6 +252,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('[data-homepage-section-form]').forEach((form) => {
             const sourceSelect = form.querySelector('[data-section-source]');
+            const typeSelect = form.querySelector('[data-section-type]');
             const categoryFilter = form.querySelector('[data-category-filter]');
             const subcategoryFilter = form.querySelector('[data-subcategory-filter]');
             const panels = form.querySelectorAll('[data-source-panel]');
@@ -147,11 +260,26 @@
             const subcategorySearch = form.querySelector('[data-filter-list="subcategory_ids"]');
             const productRows = form.querySelectorAll('[data-checkbox-list="product_ids"] [data-checkbox-row]');
             const multiSubcategoryRows = form.querySelectorAll('[data-checkbox-list="subcategory_ids"] [data-checkbox-row]');
+            const contentPanels = form.querySelectorAll('[data-content-panel]');
+            const contentTypes = @js($contentTypes);
 
             const syncPanels = () => {
+                const isContent = contentTypes.includes(typeSelect.value);
+                sourceSelect.closest('.field')?.classList.toggle('hidden', isContent);
+                if (isContent) {
+                    sourceSelect.value = 'content_block';
+                } else if (sourceSelect.value === 'content_block') {
+                    sourceSelect.value = 'manual_products';
+                }
+
                 panels.forEach((panel) => {
                     const sources = panel.dataset.sourcePanel.split(' ');
-                    panel.classList.toggle('hidden', !sources.includes(sourceSelect.value));
+                    panel.classList.toggle('hidden', isContent || !sources.includes(sourceSelect.value));
+                });
+
+                contentPanels.forEach((panel) => {
+                    const types = panel.dataset.contentPanel.split(' ');
+                    panel.classList.toggle('hidden', !types.includes(typeSelect.value));
                 });
             };
 
@@ -185,6 +313,7 @@
             };
 
             sourceSelect?.addEventListener('change', syncPanels);
+            typeSelect?.addEventListener('change', syncPanels);
             categoryFilter?.addEventListener('change', syncOptions);
             subcategoryFilter?.addEventListener('change', syncOptions);
             productSearch?.addEventListener('input', syncOptions);

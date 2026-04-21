@@ -13,6 +13,15 @@
     };
 @endphp
 
+@if($section->type === \App\Models\HomepageSection::TYPE_TRUST_PAYMENTS)
+    @include('storefront.partials.homepage-sections.trust-payments', ['section' => $section])
+@elseif($section->type === \App\Models\HomepageSection::TYPE_SHOP_BY_NEED)
+    @include('storefront.partials.homepage-sections.shop-by-need', ['section' => $section])
+@elseif($section->type === \App\Models\HomepageSection::TYPE_CRYPTO_CARD)
+    @include('storefront.partials.homepage-sections.crypto-card', ['section' => $section])
+@elseif($section->type === \App\Models\HomepageSection::TYPE_HOW_IT_WORKS)
+    @include('storefront.partials.homepage-sections.how-it-works', ['section' => $section])
+@else
 <section class="px-4 md:px-8 py-12 relative z-10 sf-reveal-section">
     <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
@@ -43,3 +52,4 @@
         @endforeach
     </div>
 </section>
+@endif

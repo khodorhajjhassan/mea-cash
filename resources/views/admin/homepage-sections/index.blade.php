@@ -35,9 +35,12 @@
                         <div class="text-xs text-slate-500">{{ $section->title_ar }}</div>
                     </td>
                     <td>
-                        <div>{{ \App\Models\HomepageSection::sourceOptions()[$section->source_type] ?? $section->source_type }}</div>
+                        <div>{{ \App\Models\HomepageSection::typeOptions()[$section->type] ?? $section->type }}</div>
+                        <div class="text-xs text-slate-500">{{ \App\Models\HomepageSection::sourceOptions()[$section->source_type] ?? $section->source_type }}</div>
                         <div class="text-xs text-slate-500">
-                            @if($section->source_type === \App\Models\HomepageSection::SOURCE_SUBCATEGORIES)
+                            @if($section->isContentBlock())
+                                Editable bilingual content block
+                            @elseif($section->source_type === \App\Models\HomepageSection::SOURCE_SUBCATEGORIES)
                                 {{ count($section->subcategory_ids ?? []) }} subcategories selected
                             @elseif($section->source_type === \App\Models\HomepageSection::SOURCE_MANUAL_PRODUCTS)
                                 {{ count($section->product_ids ?? []) }} products selected

@@ -2798,3 +2798,136 @@ html[data-theme="light"] #sf-modal-card button[onclick="closeProductModal()"] {
     border-color: rgba(195, 210, 220, 0.95) !important;
     color: var(--color-on-surface-variant) !important;
 }
+
+/* --- Dynamic Marketplace Sections --- */
+.sf-crypto-card-section {
+    position: relative;
+    background:
+        radial-gradient(circle at 100% 80%, color-mix(in srgb, var(--color-secondary-container) 18%, transparent), transparent 30%),
+        radial-gradient(circle at 72% 28%, color-mix(in srgb, var(--color-primary-container) 10%, transparent), transparent 34%),
+        linear-gradient(135deg, color-mix(in srgb, var(--mc-card) 90%, var(--color-background)), color-mix(in srgb, var(--color-surface-container-low) 92%, var(--color-background)));
+}
+
+.sf-crypto-card-section::before {
+    content: "";
+    position: absolute;
+    inset: -60px;
+    pointer-events: none;
+    background-image:
+        radial-gradient(circle, color-mix(in srgb, var(--color-primary-container) 28%, transparent) 1px, transparent 1.5px),
+        radial-gradient(circle, color-mix(in srgb, var(--color-secondary-container) 22%, transparent) 1px, transparent 1.5px);
+    background-size: 56px 56px, 88px 88px;
+    background-position: 8px 4px, 34px 38px;
+    opacity: 0.34;
+}
+
+.sf-crypto-stage {
+    isolation: isolate;
+}
+
+.sf-crypto-visual-wrap {
+    min-height: 14.5rem;
+}
+
+.sf-crypto-visual-card {
+    --sf-tilt-x: 0deg;
+    --sf-tilt-y: 0deg;
+    --sf-tilt-scale: 1;
+    overflow: hidden;
+    aspect-ratio: 1.82 / 1;
+    background:
+        linear-gradient(115deg, rgba(255, 255, 255, 0.08), transparent 36%),
+        linear-gradient(145deg, #14162c 0%, #132e52 58%, #081727 100%);
+    transform: perspective(1000px) rotateX(var(--sf-tilt-x)) rotateY(var(--sf-tilt-y)) scale(var(--sf-tilt-scale));
+    transform-style: preserve-3d;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+    will-change: transform;
+}
+
+.sf-crypto-visual-card.is-tilting {
+    --sf-tilt-scale: 1.025;
+    transition-duration: 70ms;
+}
+
+.sf-crypto-visual-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+        linear-gradient(90deg, transparent 0 91%, #ef4444 91% 93%, #f59e0b 93% 95%, #22c55e 95% 97.5%, #3b82f6 97.5% 100%);
+    opacity: 0.85;
+    pointer-events: none;
+}
+
+.sf-crypto-visual-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.sf-crypto-status {
+    background: color-mix(in srgb, var(--mc-card) 84%, transparent);
+    color: #22c55e;
+    box-shadow: 0 16px 42px color-mix(in srgb, var(--mc-shadow-strong) 60%, transparent);
+}
+
+.sf-crypto-amount {
+    background: color-mix(in srgb, var(--mc-card) 90%, transparent);
+    border: 1px solid color-mix(in srgb, var(--mc-gold) 22%, transparent);
+    color: var(--mc-gold);
+    box-shadow: 0 18px 46px color-mix(in srgb, var(--mc-shadow-strong) 55%, transparent);
+}
+
+.sf-crypto-rail {
+    background: linear-gradient(180deg, #ef4444, #f59e0b, #22c55e, #3b82f6);
+    box-shadow: 0 0 24px color-mix(in srgb, var(--color-primary-container) 18%, transparent);
+}
+
+html[data-theme="light"] .sf-crypto-card-section {
+    background:
+        radial-gradient(circle at 100% 80%, rgba(153, 0, 204, 0.12), transparent 30%),
+        radial-gradient(circle at 72% 32%, rgba(0, 153, 187, 0.12), transparent 34%),
+        linear-gradient(135deg, #f7fbfd 0%, #e7eef3 100%);
+    box-shadow: 0 24px 70px rgba(15, 32, 40, 0.12);
+}
+
+html[data-theme="light"] .sf-crypto-card-section::before {
+    opacity: 0.42;
+    mix-blend-mode: multiply;
+}
+
+html[data-theme="light"] .sf-crypto-status,
+html[data-theme="light"] .sf-crypto-amount {
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 18px 46px rgba(15, 32, 40, 0.12);
+}
+
+@media (min-width: 640px) {
+    .sf-crypto-visual-wrap {
+        min-height: 18rem;
+    }
+}
+
+@media (max-width: 420px) {
+    .sf-crypto-card-section {
+        border-radius: 1.125rem;
+    }
+
+    .sf-crypto-stage {
+        min-height: 14.25rem;
+    }
+
+    .sf-crypto-visual-wrap {
+        min-height: 13.75rem;
+    }
+
+    .sf-crypto-visual-card {
+        aspect-ratio: 1.75 / 1;
+        max-width: 25.5rem;
+    }
+
+    .sf-crypto-visual-card::before {
+        background:
+            linear-gradient(90deg, transparent 0 89%, #ef4444 89% 92%, #f59e0b 92% 95%, #22c55e 95% 97.5%, #3b82f6 97.5% 100%);
+    }
+}

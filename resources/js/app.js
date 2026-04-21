@@ -36,4 +36,27 @@ document.addEventListener('DOMContentLoaded', () => {
             window.setTimeout(() => alert.remove(), 500);
         }, 3500);
     });
+
+    const canTilt = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (canTilt) {
+        document.querySelectorAll('[data-tilt-card]').forEach((card) => {
+            const maxTilt = 10;
+
+            card.addEventListener('pointermove', (event) => {
+                const rect = card.getBoundingClientRect();
+                const x = ((event.clientX - rect.left) / rect.width) - 0.5;
+                const y = ((event.clientY - rect.top) / rect.height) - 0.5;
+
+                card.classList.add('is-tilting');
+                card.style.setProperty('--sf-tilt-x', `${(-y * maxTilt).toFixed(2)}deg`);
+                card.style.setProperty('--sf-tilt-y', `${(x * maxTilt).toFixed(2)}deg`);
+            });
+
+            card.addEventListener('pointerleave', () => {
+                card.classList.remove('is-tilting');
+                card.style.setProperty('--sf-tilt-x', '0deg');
+                card.style.setProperty('--sf-tilt-y', '0deg');
+            });
+        });
+    }
 });

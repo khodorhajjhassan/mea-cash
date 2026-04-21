@@ -5,6 +5,12 @@
 @section('content')
     @php $locale = app()->getLocale(); @endphp
     @php $activeSearchQuery = trim((string) ($searchQuery ?? request('q', ''))); @endphp
+    @php
+        $homepageSections = $homepageSections ?? collect();
+        $contentHomepageSections = $homepageSections->filter(fn ($payload) => $payload['section']->isContentBlock());
+        $cryptoHomepageSections = $contentHomepageSections->filter(fn ($payload) => $payload['section']->type === \App\Models\HomepageSection::TYPE_CRYPTO_CARD);
+        $productHomepageSections = $homepageSections->reject(fn ($payload) => $payload['section']->isContentBlock());
+    @endphp
 
     <div class="sf-home-atmosphere" aria-hidden="true">
         <div class="sf-home-orb sf-home-orb-cyan"></div>
@@ -293,14 +299,20 @@
 
     </section>
 
-    @if(($homepageSections ?? collect())->isNotEmpty())
-        @foreach($homepageSections as $homepageSection)
+    @if($cryptoHomepageSections->isNotEmpty())
+        @foreach($cryptoHomepageSections as $homepageSection)
+            @include('storefront.partials.homepage-section', $homepageSection)
+        @endforeach
+    @endif
+
+    @if($productHomepageSections->isNotEmpty())
+        @foreach($productHomepageSections as $homepageSection)
             @include('storefront.partials.homepage-section', $homepageSection)
         @endforeach
     @endif
 
     {{-- Community Feedback Marquee --}}
-    @if(($featuredFeedbacks ?? collect())->isNotEmpty())
+    @if(false && ($featuredFeedbacks ?? collect())->isNotEmpty())
         <section class="py-16 md:py-24 border-y border-outline-variant/10 bg-surface-container-low/30 relative overflow-hidden sf-reveal-section">
             <div class="sf-home-atmosphere opacity-20" aria-hidden="true">
                 <div class="sf-home-orb sf-home-orb-magenta" style="left: 80%; top: 20%;"></div>
@@ -352,6 +364,50 @@
         </section>
     @endif
 
+    @if(false)
+    {{-- Static Why MeaCash Section --}}
+    <section class="px-4 md:px-8 py-16 md:py-20 relative z-10 sf-reveal-section">
+        <div class="mx-auto max-w-7xl rounded-[2rem] border border-outline-variant/15 bg-surface-container-low/55 p-6 shadow-2xl backdrop-blur-xl md:p-10">
+            <div class="grid gap-8 lg:grid-cols-[0.9fr_1.4fr] lg:items-center">
+                <div>
+                    <span class="inline-flex items-center gap-2 rounded-full border border-primary-container/25 bg-primary-container/10 px-3 py-1 font-label text-[10px] font-black uppercase tracking-[0.24em] text-primary-container">
+                        <span class="material-symbols-outlined text-sm">verified_user</span>
+                        {{ $locale === 'ar' ? 'ثقة وسرعة' : 'Trust & Speed' }}
+                    </span>
+                    <h2 class="mt-5 font-headline text-3xl font-black uppercase tracking-tight text-on-surface md:text-5xl">
+                        {{ $locale === 'ar' ? 'لماذا MeaCash؟' : 'Why MeaCash?' }}
+                    </h2>
+                    <p class="mt-4 max-w-xl text-sm leading-relaxed text-on-surface-variant md:text-base">
+                        {{ $locale === 'ar'
+                            ? 'نساعدك على شراء البطاقات الرقمية وشحن الألعاب والخدمات الإلكترونية بسرعة، مع محفظة واضحة ودعم محلي عندما تحتاجه.'
+                            : 'We help you buy digital cards, game top-ups, and online services quickly, with a clear wallet experience and local support when you need it.' }}
+                    </p>
+                </div>
+
+                <div class="grid gap-3 sm:grid-cols-2">
+                    @foreach([
+                        ['icon' => 'bolt', 'en' => 'Fast Delivery', 'ar' => 'تسليم سريع', 'text_en' => 'Orders are prepared for quick digital fulfillment.', 'text_ar' => 'تتم معالجة الطلبات لتسليم رقمي سريع.'],
+                        ['icon' => 'account_balance_wallet', 'en' => 'Wallet Checkout', 'ar' => 'الدفع بالمحفظة', 'text_en' => 'Top up once and use your balance for repeat purchases.', 'text_ar' => 'اشحن مرة واحدة واستخدم الرصيد لطلباتك المتكررة.'],
+                        ['icon' => 'shield', 'en' => 'Verified Products', 'ar' => 'منتجات موثوقة', 'text_en' => 'Products and packages are managed with approved suppliers.', 'text_ar' => 'تتم إدارة المنتجات والباقات مع موردين معتمدين.'],
+                        ['icon' => 'support_agent', 'en' => 'Local Support', 'ar' => 'دعم محلي', 'text_en' => 'Our team follows wallet top-ups, orders, and reports.', 'text_ar' => 'فريقنا يتابع شحن المحفظة والطلبات والبلاغات.'],
+                    ] as $item)
+                        <div class="rounded-[1.35rem] border border-outline-variant/15 bg-surface-container/70 p-5 transition hover:border-primary-container/45 hover:bg-surface-container-high">
+                            <div class="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-primary-container/20 bg-primary-container/10 text-primary-container">
+                                <span class="material-symbols-outlined">{{ $item['icon'] }}</span>
+                            </div>
+                            <h3 class="font-headline text-sm font-black uppercase tracking-widest text-on-surface">
+                                {{ $locale === 'ar' ? $item['ar'] : $item['en'] }}
+                            </h3>
+                            <p class="mt-2 text-xs leading-relaxed text-on-surface-variant">
+                                {{ $locale === 'ar' ? $item['text_ar'] : $item['text_en'] }}
+                            </p>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </section>
+
     {{-- Featured Section --}}
     <section class="px-4 md:px-8 py-16 md:py-20 relative sf-reveal-section">
         <div class="grid grid-cols-12 gap-8 items-center max-w-7xl mx-auto">
@@ -401,64 +457,10 @@
         </div>
     </section>
 
-    {{-- How It Works Section --}}
-    <section class="px-4 md:px-8 py-16 md:py-24 relative z-10 sf-reveal-section">
-        <x-noir.section-heading :title="__('noir.how_it_works')" :centered="true" :gradient="true" />
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            {{-- Step 1 --}}
-            <div
-                class="glass-panel p-6 md:p-10 rounded-3xl group relative overflow-hidden hover:border-[#00f0ff]/50 transition-all duration-500">
-                <div
-                    class="absolute top-0 {{ $locale == 'ar' ? 'left-0' : 'right-0' }} p-5 md:p-6 font-headline font-black text-5xl md:text-6xl text-on-surface-variant/5">
-                    01</div>
-                <div
-                    class="w-16 h-16 rounded-2xl bg-primary-container/10 flex items-center justify-center mb-8 border border-primary-container/30 group-hover:scale-110 transition-transform duration-500">
-                    <span
-                        class="material-symbols-outlined text-4xl text-primary-container shadow-[0_0_15px_rgba(0,240,255,0.5)]">search_insights</span>
-                </div>
-                <h3
-                    class="font-headline text-xl font-bold tracking-wider uppercase mb-4 text-on-surface group-hover:text-primary-container transition-colors">
-                    {{ __('noir.step_1_title') }}
-                </h3>
-                <p class="text-on-surface-variant text-sm leading-relaxed">{{ __('noir.step_1_desc') }}</p>
-            </div>
-            {{-- Step 2 --}}
-            <div
-                class="glass-panel p-6 md:p-10 rounded-3xl group relative overflow-hidden hover:border-[#fe00fe]/50 transition-all duration-500">
-                <div
-                    class="absolute top-0 {{ $locale == 'ar' ? 'left-0' : 'right-0' }} p-5 md:p-6 font-headline font-black text-5xl md:text-6xl text-on-surface-variant/5">
-                    02</div>
-                <div
-                    class="w-16 h-16 rounded-2xl bg-secondary-container/10 flex items-center justify-center mb-8 border border-secondary-container/30 group-hover:scale-110 transition-transform duration-500">
-                    <span
-                        class="material-symbols-outlined text-4xl text-secondary-container shadow-[0_0_15px_rgba(254,0,254,0.5)]">bolt</span>
-                </div>
-                <h3
-                    class="font-headline text-xl font-bold tracking-wider uppercase mb-4 text-on-surface group-hover:text-secondary-container transition-colors">
-                    {{ __('noir.step_2_title') }}
-                </h3>
-                <p class="text-on-surface-variant text-sm leading-relaxed">{{ __('noir.step_2_desc') }}</p>
-            </div>
-            {{-- Step 3 --}}
-            <div
-                class="glass-panel p-6 md:p-10 rounded-3xl group relative overflow-hidden hover:border-[#00f0ff]/50 transition-all duration-500">
-                <div
-                    class="absolute top-0 {{ $locale == 'ar' ? 'left-0' : 'right-0' }} p-5 md:p-6 font-headline font-black text-5xl md:text-6xl text-on-surface-variant/5">
-                    03</div>
-                <div
-                    class="w-16 h-16 rounded-2xl bg-primary-container/10 flex items-center justify-center mb-8 border border-primary-container/30 group-hover:scale-110 transition-transform duration-500">
-                    <span
-                        class="material-symbols-outlined text-4xl text-primary-container shadow-[0_0_15px_rgba(0,240,255,0.5)]">videogame_asset</span>
-                </div>
-                <h3
-                    class="font-headline text-xl font-bold tracking-wider uppercase mb-4 text-on-surface group-hover:text-primary-container transition-colors">
-                    {{ __('noir.step_3_title') }}
-                </h3>
-                <p class="text-on-surface-variant text-sm leading-relaxed">{{ __('noir.step_3_desc') }}</p>
-            </div>
-        </div>
-    </section>
+    @foreach($howItWorksSections as $homepageSection)
+        @include('storefront.partials.homepage-section', $homepageSection)
+    @endforeach
+    @endif
 
     {{-- FAQ Section --}}
     @if($faqs->isNotEmpty())

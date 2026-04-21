@@ -48,7 +48,7 @@ class HomepageSectionService
                 'section' => $section,
                 'items' => $this->resolveItems($section),
             ])
-            ->filter(fn (array $payload) => $payload['items']->isNotEmpty())
+            ->filter(fn (array $payload) => $payload['section']->isContentBlock() || $payload['items']->isNotEmpty())
             ->values();
     }
 
@@ -60,6 +60,10 @@ class HomepageSectionService
 
     private function resolveItems(HomepageSection $section): Collection
     {
+        if ($section->isContentBlock()) {
+            return collect(['content']);
+        }
+
         if ($section->type === HomepageSection::TYPE_CATEGORY_SHOWCASE) {
             return $this->resolveSubcategories($section);
         }

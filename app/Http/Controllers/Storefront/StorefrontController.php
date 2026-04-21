@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Subcategory;
 use App\Models\Banner;
 use App\Models\Faq;
+use App\Models\HomepageSection;
 use App\Models\AdminSetting;
 use App\Services\HomepageSectionService;
 use App\Services\SeoService;
@@ -195,8 +196,24 @@ class StorefrontController extends Controller
             ->value('value');
 
         $seo = $this->seoService->forPage($title);
+        $aboutSections = $slug === 'about'
+            ? $this->homepageSections->activeSections()
+                ->filter(fn (array $payload) => $payload['section']->isContentBlock())
+                ->values()
+            : collect();
+        $faqs = $slug === 'about'
+            ? Faq::query()->where('is_active', true)->orderBy('sort_order')->get()
+            : collect();
+        $featuredFeedbacks = $slug === 'about'
+            ? \App\Models\Feedback::query()
+                ->where('show_on_homepage', true)
+                ->where('type', 'feedback')
+                ->with('user:id,name')
+                ->latest()
+                ->get()
+            : collect();
 
-        return view('storefront.page', compact('title', 'content', 'slug', 'seo'));
+        return view('storefront.page', compact('title', 'content', 'slug', 'seo', 'aboutSections', 'faqs', 'featuredFeedbacks'));
     }
 
     public function localizedPage(string $slug)

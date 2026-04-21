@@ -16,7 +16,12 @@ class HomepageSection extends Model
     public const TYPE_FLASH_SALE = 'flash_sale';
     public const TYPE_NEW_ARRIVALS = 'new_arrivals';
     public const TYPE_MANUAL_PRODUCTS = 'manual_products';
+    public const TYPE_TRUST_PAYMENTS = 'trust_payments';
+    public const TYPE_SHOP_BY_NEED = 'shop_by_need';
+    public const TYPE_CRYPTO_CARD = 'crypto_card';
+    public const TYPE_HOW_IT_WORKS = 'how_it_works';
 
+    public const SOURCE_CONTENT_BLOCK = 'content_block';
     public const SOURCE_MANUAL_PRODUCTS = 'manual_products';
     public const SOURCE_CATEGORY = 'category';
     public const SOURCE_SUBCATEGORY = 'subcategory';
@@ -69,12 +74,17 @@ class HomepageSection extends Model
             self::TYPE_FLASH_SALE => 'Flash Sale',
             self::TYPE_NEW_ARRIVALS => 'New Arrivals',
             self::TYPE_MANUAL_PRODUCTS => 'Manual Products',
+            self::TYPE_TRUST_PAYMENTS => 'Trust & Payments',
+            self::TYPE_SHOP_BY_NEED => 'Shop By Need',
+            self::TYPE_CRYPTO_CARD => 'Crypto Card Hero',
+            self::TYPE_HOW_IT_WORKS => 'How It Works',
         ];
     }
 
     public static function sourceOptions(): array
     {
         return [
+            self::SOURCE_CONTENT_BLOCK => 'Content Block',
             self::SOURCE_MANUAL_PRODUCTS => 'By Product',
             self::SOURCE_SUBCATEGORY => 'By Subcategory',
             self::SOURCE_SUBCATEGORIES => 'By Subcategories',
@@ -82,6 +92,16 @@ class HomepageSection extends Model
             self::SOURCE_FEATURED => 'Auto Featured',
             self::SOURCE_LATEST => 'Auto Latest',
         ];
+    }
+
+    public function isContentBlock(): bool
+    {
+        return in_array($this->type, [
+            self::TYPE_TRUST_PAYMENTS,
+            self::TYPE_SHOP_BY_NEED,
+            self::TYPE_CRYPTO_CARD,
+            self::TYPE_HOW_IT_WORKS,
+        ], true);
     }
 
     public function category(): BelongsTo

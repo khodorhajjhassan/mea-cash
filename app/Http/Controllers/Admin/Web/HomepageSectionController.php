@@ -110,6 +110,7 @@ class HomepageSectionController extends Controller
     private function validatedData(Request $request): array
     {
         $data = $request->validate([
+            'type' => ['required', 'string', Rule::in(array_keys(HomepageSection::typeOptions()))],
             'source_type' => ['required', 'string', Rule::in(array_keys(HomepageSection::sourceOptions()))],
             'title_en' => ['required', 'string', 'max:255'],
             'title_ar' => ['required', 'string', 'max:255'],
@@ -129,16 +130,56 @@ class HomepageSectionController extends Controller
             'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
             'settings.badge_en' => ['nullable', 'string', 'max:50'],
             'settings.badge_ar' => ['nullable', 'string', 'max:50'],
+            'settings.button_text_en' => ['nullable', 'string', 'max:80'],
+            'settings.button_text_ar' => ['nullable', 'string', 'max:80'],
+            'settings.button_url' => ['nullable', 'string', 'max:255'],
+            'settings.status_en' => ['nullable', 'string', 'max:80'],
+            'settings.status_ar' => ['nullable', 'string', 'max:80'],
+            'settings.amount_label_en' => ['nullable', 'string', 'max:80'],
+            'settings.amount_label_ar' => ['nullable', 'string', 'max:80'],
+            'settings.card_brand_en' => ['nullable', 'string', 'max:80'],
+            'settings.card_brand_ar' => ['nullable', 'string', 'max:80'],
+            'settings.card_kind_en' => ['nullable', 'string', 'max:80'],
+            'settings.card_kind_ar' => ['nullable', 'string', 'max:80'],
+            'settings.card_holder_en' => ['nullable', 'string', 'max:80'],
+            'settings.card_holder_ar' => ['nullable', 'string', 'max:80'],
+            'settings.features' => ['nullable', 'array'],
+            'settings.features.*.icon' => ['nullable', 'string', 'max:60'],
+            'settings.features.*.label_en' => ['nullable', 'string', 'max:120'],
+            'settings.features.*.label_ar' => ['nullable', 'string', 'max:120'],
+            'settings.features.*.text_en' => ['nullable', 'string', 'max:160'],
+            'settings.features.*.text_ar' => ['nullable', 'string', 'max:160'],
+            'settings.cards' => ['nullable', 'array'],
+            'settings.cards.*.icon' => ['nullable', 'string', 'max:60'],
+            'settings.cards.*.title_en' => ['nullable', 'string', 'max:120'],
+            'settings.cards.*.title_ar' => ['nullable', 'string', 'max:120'],
+            'settings.cards.*.text_en' => ['nullable', 'string', 'max:180'],
+            'settings.cards.*.text_ar' => ['nullable', 'string', 'max:180'],
+            'settings.cards.*.url' => ['nullable', 'string', 'max:255'],
+            'settings.cards.*.accent' => ['nullable', 'string', 'max:30'],
         ]);
 
-        $data['type'] = $this->typeForSource($data['source_type']);
+        if ($this->isContentType($data['type'])) {
+            $data['source_type'] = HomepageSection::SOURCE_CONTENT_BLOCK;
+        } elseif ($data['source_type'] === HomepageSection::SOURCE_CONTENT_BLOCK) {
+            $data['type'] = HomepageSection::TYPE_TRUST_PAYMENTS;
+        } else {
+            $data['type'] = $this->typeForSource($data['source_type']);
+        }
+
         $data['is_active'] = $request->boolean('is_active');
         $data['sort_order'] = $data['sort_order'] ?? 0;
         $data['product_ids'] = array_values($data['product_ids'] ?? []);
         $data['subcategory_ids'] = array_values($data['subcategory_ids'] ?? []);
-        $data['settings'] = array_filter($data['settings'] ?? [], fn ($value) => $value !== null && $value !== '');
+        $data['settings'] = $this->cleanSettings($data['settings'] ?? []);
 
-        if (! in_array($data['source_type'], [HomepageSection::SOURCE_MANUAL_PRODUCTS, HomepageSection::SOURCE_SUBCATEGORY], true)) {
+        if ($data['source_type'] === HomepageSection::SOURCE_CONTENT_BLOCK) {
+            $data['product_ids'] = [];
+            $data['subcategory_ids'] = [];
+            $data['category_id'] = null;
+            $data['subcategory_id'] = null;
+            $data['product_type_id'] = null;
+        } elseif (! in_array($data['source_type'], [HomepageSection::SOURCE_MANUAL_PRODUCTS, HomepageSection::SOURCE_SUBCATEGORY], true)) {
             $data['product_ids'] = [];
         }
 
@@ -158,5 +199,33 @@ class HomepageSectionController extends Controller
             HomepageSection::SOURCE_SUBCATEGORY, HomepageSection::SOURCE_SUBCATEGORIES => HomepageSection::TYPE_CATEGORY_SHOWCASE,
             default => HomepageSection::TYPE_MANUAL_PRODUCTS,
         };
+    }
+
+    private function isContentType(string $type): bool
+    {
+        return in_array($type, [
+            HomepageSection::TYPE_TRUST_PAYMENTS,
+            HomepageSection::TYPE_SHOP_BY_NEED,
+            HomepageSection::TYPE_CRYPTO_CARD,
+            HomepageSection::TYPE_HOW_IT_WORKS,
+        ], true);
+    }
+
+    private function cleanSettings(array $settings): array
+    {
+        $settings = array_filter($settings, fn ($value) => $value !== null && $value !== '' && $value !== []);
+
+        foreach (['features', 'cards'] as $group) {
+            if (! isset($settings[$group]) || ! is_array($settings[$group])) {
+                continue;
+            }
+
+            $settings[$group] = array_values(array_filter(array_map(
+                fn (array $row) => array_filter($row, fn ($value) => $value !== null && $value !== ''),
+                $settings[$group]
+            ), fn (array $row) => $row !== []));
+        }
+
+        return $settings;
     }
 }
