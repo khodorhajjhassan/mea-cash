@@ -22,6 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\HandleSeoDefaults::class,
         ]);
+
+        $middleware->redirectGuestsTo(fn () => route('login', ['locale' => app()->getLocale()]));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

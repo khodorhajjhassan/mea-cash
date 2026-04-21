@@ -115,7 +115,7 @@
                     });
                 </script>
 
-                <a href="{{ route('admin.dashboard') }}" class="chip">{{ __('admin.header.home') }}</a>
+                <a href="{{ route('store.home') }}" class="chip" target="_blank">{{ __('Home Page') }}</a>
                 <form method="POST" action="{{ route('admin.logout') }}">
                     @csrf
                     <button type="submit" class="btn-danger-outline">{{ __('admin.header.logout') }}</button>

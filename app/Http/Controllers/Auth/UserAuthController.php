@@ -41,10 +41,10 @@ class UserAuthController extends Controller
             }
 
             if (Auth::user()?->is_admin) {
-                return redirect()->route('admin.dashboard');
+                return redirect()->route('admin.dashboard', ['locale' => app()->getLocale()]);
             }
 
-            return redirect()->route('store.dashboard')->with('success', 'Logged in successfully.');
+            return redirect()->route('store.dashboard', ['locale' => app()->getLocale()])->with('success', 'Logged in successfully.');
         } catch (\Exception $exception) {
             report($exception);
 
@@ -59,6 +59,6 @@ class UserAuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('success', 'Logged out successfully.');
+        return redirect()->route('login', ['locale' => app()->getLocale()])->with('success', 'Logged out successfully.');
     }
 }
