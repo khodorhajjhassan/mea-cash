@@ -60,11 +60,11 @@
 
     <div class="max-h-[62vh] space-y-4 overflow-y-auto pe-1 no-scrollbar">
         <div class="grid grid-cols-2 gap-3">
-            <a href="{{ route('store.home.locale', ['locale' => $locale]) }}#products-section" class="rounded-2xl border p-4" style="border-color: color-mix(in srgb, var(--mc-gold) 35%, transparent); background-color: color-mix(in srgb, var(--mc-gold) 10%, transparent);">
+            <a href="{{ route('store.home') }}#products-section" class="rounded-2xl border p-4" style="border-color: color-mix(in srgb, var(--mc-gold) 35%, transparent); background-color: color-mix(in srgb, var(--mc-gold) 10%, transparent);">
                 <span class="material-symbols-outlined text-3xl" style="color: var(--mc-gold);">apps</span>
                 <span class="mt-3 block font-headline text-xs font-black uppercase tracking-widest text-on-surface">{{ __('All Assets') }}</span>
             </a>
-            <a href="{{ route('store.home.locale', ['locale' => $locale, 'featured' => 1]) }}#products-section" class="rounded-2xl border border-secondary-container/35 bg-secondary-container/10 p-4">
+            <a href="{{ route('store.home', ['featured' => 1]) }}#products-section" class="rounded-2xl border border-secondary-container/35 bg-secondary-container/10 p-4">
                 <span class="material-symbols-outlined text-3xl text-secondary-container">local_fire_department</span>
                 <span class="mt-3 block font-headline text-xs font-black uppercase tracking-widest text-on-surface">{{ __('Hot') }}</span>
             </a>
@@ -88,7 +88,7 @@
                 </summary>
 
                 <div class="mt-3 grid grid-cols-1 gap-2">
-                    <a href="{{ route('store.home.locale', ['locale' => $locale, 'category' => $category->slug]) }}#products-section" class="flex items-center justify-between rounded-2xl border border-primary-container/15 bg-primary-container/10 px-3 py-3 text-start transition hover:border-primary-container/50">
+                    <a href="{{ route('store.home', ['category' => $category->slug]) }}#products-section" class="flex items-center justify-between rounded-2xl border border-primary-container/15 bg-primary-container/10 px-3 py-3 text-start transition hover:border-primary-container/50">
                         <span class="font-label text-[10px] font-black uppercase tracking-widest text-primary-container">{{ __('View all') }}</span>
                         <span class="material-symbols-outlined text-base text-primary-container">arrow_forward</span>
                     </a>
@@ -187,9 +187,16 @@
                 <span class="font-headline text-sm font-black uppercase text-on-surface">{{ __('User Profile') }}</span>
             </a>
             <a href="{{ $languageSwitchUrl }}" class="mobile-profile-link">
-                <span class="material-symbols-outlined">language</span>
+                <span class="mc-language-flag flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-outline-variant/20">
+                    <img src="{{ $targetLocale === 'ar' ? 'https://flagcdn.com/lb.svg' : 'https://flagcdn.com/gb.svg' }}" alt="{{ $targetLocale }}" class="h-full w-full object-cover">
+                </span>
                 <span class="font-headline text-sm font-black uppercase text-on-surface">{{ $targetLocale === 'ar' ? 'العربية' : 'English' }}</span>
             </a>
+            <button type="button" class="mc-theme-toggle mobile-profile-link w-full">
+                <span class="material-symbols-outlined mc-theme-icon mc-theme-icon-sun">light_mode</span>
+                <span class="material-symbols-outlined mc-theme-icon mc-theme-icon-moon">dark_mode</span>
+                <span class="font-headline text-sm font-black uppercase text-on-surface">{{ __('Toggle Theme') }}</span>
+            </button>
         </div>
     @else
         <div class="space-y-3">
@@ -198,14 +205,24 @@
                 <span>{{ __('Login First') }}</span>
             </a>
             <a href="{{ route('store.register') }}" class="mobile-profile-link"><span class="material-symbols-outlined">person_add</span><span>{{ __('Create Account') }}</span></a>
-            <a href="{{ $languageSwitchUrl }}" class="mobile-profile-link"><span class="material-symbols-outlined">language</span><span>{{ $targetLocale === 'ar' ? 'العربية' : 'English' }}</span></a>
+            <a href="{{ $languageSwitchUrl }}" class="mobile-profile-link">
+                <span class="mc-language-flag flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-outline-variant/20">
+                    <img src="{{ $targetLocale === 'ar' ? 'https://flagcdn.com/lb.svg' : 'https://flagcdn.com/gb.svg' }}" alt="{{ $targetLocale }}" class="h-full w-full object-cover">
+                </span>
+                <span>{{ $targetLocale === 'ar' ? 'العربية' : 'English' }}</span>
+            </a>
+            <button type="button" class="mc-theme-toggle mobile-profile-link w-full">
+                <span class="material-symbols-outlined mc-theme-icon mc-theme-icon-sun">light_mode</span>
+                <span class="material-symbols-outlined mc-theme-icon mc-theme-icon-moon">dark_mode</span>
+                <span class="font-headline text-sm font-black uppercase text-on-surface">{{ __('Toggle Theme') }}</span>
+            </button>
         </div>
     @endauth
 </div>
 
 <nav class="mc-mobile-nav fixed inset-x-0 bottom-0 z-[95] border-t border-outline-variant/15 px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-3 backdrop-blur-2xl md:hidden" aria-label="{{ __('Mobile navigation') }}">
     <div class="mx-auto grid max-w-md grid-cols-4 items-end gap-1">
-        <a href="{{ route('store.home.locale', ['locale' => $locale]) }}" class="mobile-nav-item {{ request()->routeIs('store.home', 'store.home.locale') ? 'active' : 'text-on-surface-variant' }}">
+        <a href="{{ route('store.home') }}" class="mobile-nav-item {{ request()->routeIs('store.home') ? 'active' : 'text-on-surface-variant' }}">
             <span class="material-symbols-outlined">home</span>
             <span>{{ __('Home') }}</span>
         </a>

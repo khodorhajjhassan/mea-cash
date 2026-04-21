@@ -115,7 +115,7 @@
                     <span class="font-headline text-8xl font-black leading-none text-on-surface">X</span>
                 </div>
                 <p class="max-w-xs text-sm leading-relaxed text-on-surface-variant">{{ __('Follow the latest products, offers, and updates.') }}</p>
-                <a href="{{ $contactUrl ?? route('store.contact.locale', ['locale' => $locale]) }}" class="mt-6 font-label text-[10px] font-black uppercase tracking-[0.24em] text-primary-container">
+                <a href="{{ $contactUrl ?? route('store.contact') }}" class="mt-6 font-label text-[10px] font-black uppercase tracking-[0.24em] text-primary-container">
                     @MEACASH
                 </a>
             </aside>
@@ -192,7 +192,7 @@
                         $hotActive = request()->boolean('featured');
                         $allActive = !request('category') && !request('featured');
                     @endphp
-                    <a href="{{ route('store.home.locale', ['locale' => $locale, 'featured' => 1]) }}#products-section"
+                    <a href="{{ route('store.home', ['featured' => 1]) }}#products-section"
                         data-category-link="hot" data-category-color="#fe00fe"
                         class="sf-category-item flex flex-col items-center gap-4 shrink-0 group">
                         <div data-category-circle
@@ -208,7 +208,7 @@
                         </span>
                     </a>
 
-                    <a href="{{ route('store.home.locale', ['locale' => $locale]) }}#products-section" data-category-link="all"
+                    <a href="{{ route('store.home') }}#products-section" data-category-link="all"
                         data-category-color="#fbbf24" class="sf-category-item flex flex-col items-center gap-4 shrink-0 group">
                         <div data-category-circle
                             class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center transition-all duration-300 bg-surface-container-highest text-on-surface-variant border {{ $allActive ? 'border-[#fbbf24] ring-2 ring-[#fbbf24]/40 shadow-[0_0_22px_rgba(251,191,36,0.22)]' : 'border-outline-variant/20 group-hover:border-[#fbbf24]/70 group-hover:text-[#fbbf24]' }} shadow-lg"
@@ -246,7 +246,7 @@
                             if (str_contains(strtolower($cat->name_en), 'console'))
                                 $icon = 'videogame_asset';
                         @endphp
-                        <a href="{{ route('store.home.locale', ['locale' => $locale, 'category' => $cat->slug]) }}#products-section"
+                        <a href="{{ route('store.home', ['category' => $cat->slug]) }}#products-section"
                             data-category-link="{{ $cat->slug }}" data-category-color="#00f0ff"
                             class="sf-category-item flex flex-col items-center gap-4 shrink-0 group">
                             <div data-category-circle
@@ -285,7 +285,7 @@
         @if($products->hasMorePages())
             <div class="mt-12 flex justify-center">
                 <x-noir.button variant="gradient-outline" id="load-more-btn" data-url="{{ $products->nextPageUrl() }}"
-                    icon="expand_more">
+                    icon="expand_more" class="text-[10px] md:text-xs">
                     {{ __('Load More') }}
                 </x-noir.button>
             </div>
@@ -297,6 +297,59 @@
         @foreach($homepageSections as $homepageSection)
             @include('storefront.partials.homepage-section', $homepageSection)
         @endforeach
+    @endif
+
+    {{-- Community Feedback Marquee --}}
+    @if(($featuredFeedbacks ?? collect())->isNotEmpty())
+        <section class="py-16 md:py-24 border-y border-outline-variant/10 bg-surface-container-low/30 relative overflow-hidden sf-reveal-section">
+            <div class="sf-home-atmosphere opacity-20" aria-hidden="true">
+                <div class="sf-home-orb sf-home-orb-magenta" style="left: 80%; top: 20%;"></div>
+            </div>
+            
+            <div class="px-4 md:px-8 mb-12">
+                <x-noir.section-heading :title="__('What Our Community Says')" :subtitle="__('User Reviews')" :centered="true" :gradient="true" />
+            </div>
+
+            <div class="overflow-hidden">
+                <div class="{{ $locale === 'ar' ? 'animate-marquee-rtl' : 'animate-marquee' }} flex w-max items-stretch gap-6 px-10" dir="ltr">
+                    @php
+                        $feedbackCards = $featuredFeedbacks->count() < 6 ? $featuredFeedbacks->concat($featuredFeedbacks) : $featuredFeedbacks;
+                    @endphp
+                    @foreach($feedbackCards as $fb)
+                        <div class="sf-feedback-card group w-72 md:w-96 p-6 rounded-3xl border border-outline-variant/15 bg-surface-container/60 backdrop-blur-xl flex flex-col justify-between transition-all duration-500 hover:border-primary-container/40 hover:bg-surface-container-high hover:shadow-[0_0_40px_rgba(0,240,255,0.08)]">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="h-10 w-10 rounded-full bg-gradient-to-br from-primary-container/20 to-secondary-container/20 border border-outline-variant/30 flex items-center justify-center font-headline font-black text-primary-container">
+                                            {{ substr($fb->user?->name ?? 'U', 0, 1) }}
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="truncate font-headline text-sm font-black text-on-surface">{{ $fb->user?->name ?? 'Anonymous' }}</div>
+                                            <div class="text-[9px] uppercase tracking-widest text-outline">{{ __('Verified Buyer') }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-0.5 text-amber-500">
+                                        @for($i = 0; $i < 5; $i++)
+                                            <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' {{ $i < ($fb->rating ?? 5) ? 1 : 0 }}">star</span>
+                                        @endfor
+                                    </div>
+                                </div>
+                                <p class="text-sm italic leading-relaxed text-on-surface-variant line-clamp-4">
+                                    "{{ $fb->comment ?: ($locale === 'ar' ? 'خدمة رائعة وسريعة جداً!' : 'Excellent and very fast service!') }}"
+                                </p>
+                            </div>
+                            <div class="mt-6 flex items-center justify-between border-t border-outline-variant/10 pt-4">
+                                <span class="text-[9px] font-black uppercase tracking-widest text-outline/60">{{ $fb->created_at->format('M Y') }}</span>
+                                <div class="flex items-center gap-1.5 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                                    <span class="material-symbols-outlined text-[12px] text-emerald-500">verified</span>
+                                    <span class="text-[8px] font-black uppercase tracking-tighter text-emerald-500">{{ __('Verified') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </section>
     @endif
 
     {{-- Featured Section --}}

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use Symfony\Component\HttpFoundation\Response;
 
 class SetLocale
@@ -15,29 +16,34 @@ class SetLocale
     public function handle(Request $request, Closure $next): Response
     {
         $supported = ['en', 'ar'];
+        $defaultLocale = 'en';
 
-        $pathLocale = $request->route('locale');
+        $pathLocale = $request->route('locale') ?? $request->segment(1);
+        $locale = null;
 
         if (in_array($pathLocale, $supported, true)) {
             $locale = $pathLocale;
-            session(['locale' => $locale]);
-            app()->setLocale($locale);
         }
         // Check query param next
         elseif ($request->has('lang') && in_array($request->query('lang'), $supported, true)) {
             $locale = $request->query('lang');
-            session(['locale' => $locale]);
-            app()->setLocale($locale);
         }
         // Then session
         elseif (session()->has('locale') && in_array(session('locale'), $supported, true)) {
-            app()->setLocale(session('locale'));
+            $locale = session('locale');
         }
         // Then authenticated user preference
         elseif ($request->user()?->preferred_language && in_array($request->user()->preferred_language, $supported, true)) {
             $locale = $request->user()->preferred_language;
-            session(['locale' => $locale]);
-            app()->setLocale($locale);
+        }
+
+        $locale = $locale ?: $defaultLocale;
+        session(['locale' => $locale]);
+        app()->setLocale($locale);
+        URL::defaults(['locale' => $locale]);
+
+        if ($request->route() && $request->route()->hasParameter('locale')) {
+            $request->route()->forgetParameter('locale');
         }
 
         return $next($request);

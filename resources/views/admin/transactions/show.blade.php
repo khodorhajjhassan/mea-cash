@@ -42,6 +42,25 @@
                         <span class="text-indigo-600 font-bold">${{ number_format($transaction->balance_after, 2) }}</span>
                     </div>
                 </div>
+                @if($transaction->reference instanceof \App\Models\Order)
+                    <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                        <label class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Order Profit Snapshot</label>
+                        <div class="mt-3 grid grid-cols-3 gap-2 text-sm">
+                            <div>
+                                <p class="text-[10px] font-bold uppercase text-slate-400">Revenue</p>
+                                <p class="font-black text-slate-900">${{ number_format($transaction->reference->total_price, 2) }}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold uppercase text-slate-400">Cost</p>
+                                <p class="font-black text-amber-600">${{ number_format($transaction->reference->cost_price, 2) }}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold uppercase text-slate-400">Profit</p>
+                                <p class="font-black {{ $transaction->reference->profit >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">${{ number_format($transaction->reference->profit, 2) }}</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <div class="space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-100">

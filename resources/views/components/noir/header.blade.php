@@ -33,16 +33,16 @@
             </a>
 
             <div class="hidden md:flex items-center gap-8 font-headline uppercase tracking-widest text-sm">
-                <a class="font-bold pb-1 transition-all duration-300 hover:scale-105 {{ request()->routeIs('store.home', 'store.home.locale') ? 'mc-nav-link-active border-b-2' : 'mc-nav-link hover:text-secondary-container' }}"
-                    href="{{ route('store.home.locale', ['locale' => $locale]) }}">
+                <a class="font-bold pb-1 transition-all duration-300 hover:scale-105 {{ request()->routeIs('store.home') ? 'mc-nav-link-active border-b-2' : 'mc-nav-link hover:text-secondary-container' }}"
+                    href="{{ route('store.home') }}">
                     {{ __('Store') }}
                 </a>
                 <a class="mc-nav-link transition-all duration-300 hover:scale-105 hover:text-secondary-container"
-                    href="{{ route('store.home.locale', ['locale' => $locale, 'featured' => 1]) }}#products-section">
+                    href="{{ route('store.home', ['featured' => 1]) }}#products-section">
                     {{ __('Hot Deals') }}
                 </a>
                 <a class="mc-nav-link transition-all duration-300 hover:scale-105 hover:text-secondary-container"
-                    href="{{ route('store.contact.locale', ['locale' => $locale]) }}">
+                    href="{{ route('store.contact') }}">
                     {{ __('Support') }}
                 </a>
             </div>
@@ -50,7 +50,7 @@
 
         <div class="flex items-center gap-3 md:gap-6">
             <div class="hidden lg:block relative group/search flex-grow max-w-xl mx-8">
-                <form action="{{ route('store.home.locale', ['locale' => app()->getLocale()]) }}" method="GET"
+                <form action="{{ route('store.home') }}" method="GET"
                     class="flex items-center bg-surface-container-highest px-4 py-3 rounded-full border border-outline-variant/30 focus-within:border-primary-container/60 focus-within:bg-surface-container-lowest focus-within:shadow-[0_0_25px_rgba(0,240,255,0.15)] transition-all duration-500 w-full xl:w-80 group-focus-within/search:w-full">
                     <span id="search-icon"
                         class="material-symbols-outlined text-outline text-lg transition-colors group-focus-within/search:text-primary-container">search</span>
@@ -178,7 +178,7 @@
                         </button>
 
                         <div id="store-notification-dropdown"
-                            class="absolute {{ app()->getLocale() == 'ar' ? 'left-0' : 'right-0' }} mt-3 hidden w-[calc(100vw-2rem)] max-w-80 overflow-hidden rounded-2xl border border-outline-variant/20 bg-surface-container-lowest/95 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+                            class="fixed md:absolute left-1/2 -translate-x-1/2 md:left-auto {{ app()->getLocale() == 'ar' ? 'md:left-0 md:right-auto' : 'md:right-0 md:left-auto' }} md:translate-x-0 top-20 md:top-full mt-2 md:mt-3 hidden w-[calc(100vw-2rem)] max-w-80 overflow-hidden rounded-2xl border border-outline-variant/20 bg-surface-container-lowest/95 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl z-[100]">
                             <div class="flex items-center justify-between border-b border-outline-variant/10 p-4">
                                 <h3 class="font-headline text-sm font-black uppercase text-on-surface">
                                     {{ __('Notifications') }}</h3>
@@ -219,7 +219,7 @@
                 @endauth
 
                 <button id="theme-toggle" type="button"
-                    class="mc-icon-button mc-theme-toggle flex h-10 w-10 items-center justify-center rounded-full border transition"
+                    class="mc-icon-button mc-theme-toggle hidden md:flex h-10 w-10 items-center justify-center rounded-full border transition"
                     aria-label="{{ __('Toggle theme') }}" aria-pressed="false">
                     <span class="material-symbols-outlined mc-theme-icon mc-theme-icon-sun text-xl" aria-hidden="true">light_mode</span>
                     <span class="material-symbols-outlined mc-theme-icon mc-theme-icon-moon text-xl" aria-hidden="true">dark_mode</span>
@@ -231,7 +231,13 @@
                         class="mc-icon-button mc-language-switch flex items-center rounded-full transition-all hover:text-primary-container"
                         aria-label="{{ $targetLocale === 'ar' ? __('Switch to Arabic') : __('Switch to English') }}"
                         title="{{ $targetLocale === 'ar' ? __('Switch to Arabic') : __('Switch to English') }}">
-                        <span class="mc-language-flag" aria-hidden="true">{{ $targetLocale === 'ar' ? '🇱🇧' : '🇬🇧' }}</span>
+                        <span class="mc-language-flag" aria-hidden="true">
+                            @if($targetLocale === 'ar')
+                                <img src="https://flagcdn.com/lb.svg" alt="ar">
+                            @else
+                                <img src="https://flagcdn.com/gb.svg" alt="en">
+                            @endif
+                        </span>
                     </a>
                 </div>
 
@@ -257,28 +263,32 @@
             document.addEventListener('DOMContentLoaded', () => {
                 const bell = document.getElementById('store-notification-bell');
                 const dropdown = document.getElementById('store-notification-dropdown');
-                const themeToggle = document.getElementById('theme-toggle');
-
-                const syncThemeToggle = () => {
+                const themeToggles = document.querySelectorAll('.mc-theme-toggle');
+                
+                const syncThemeToggles = () => {
                     const isDark = document.documentElement.dataset.theme === 'dark';
-                    themeToggle?.setAttribute('aria-pressed', String(!isDark));
-                    themeToggle?.setAttribute('title', isDark ? @js(__('Switch to light mode')) : @js(__('Switch to dark mode')));
+                    themeToggles.forEach(toggle => {
+                        toggle.setAttribute('aria-pressed', String(!isDark));
+                        toggle.setAttribute('title', isDark ? @js(__('Switch to light mode')) : @js(__('Switch to dark mode')));
+                    });
                 };
 
-                themeToggle?.addEventListener('click', () => {
-                    const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-                    document.documentElement.classList.add('mc-theme-switching');
-                    document.documentElement.dataset.theme = nextTheme;
-                    localStorage.setItem('meacash-theme', nextTheme);
-                    syncThemeToggle();
-                    window.requestAnimationFrame(() => {
+                themeToggles.forEach(toggle => {
+                    toggle.addEventListener('click', () => {
+                        const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+                        document.documentElement.classList.add('mc-theme-switching');
+                        document.documentElement.dataset.theme = nextTheme;
+                        localStorage.setItem('meacash-theme', nextTheme);
+                        syncThemeToggles();
                         window.requestAnimationFrame(() => {
-                            document.documentElement.classList.remove('mc-theme-switching');
+                            window.requestAnimationFrame(() => {
+                                document.documentElement.classList.remove('mc-theme-switching');
+                            });
                         });
                     });
                 });
 
-                syncThemeToggle();
+                syncThemeToggles();
 
                 if (!bell || !dropdown) return;
 

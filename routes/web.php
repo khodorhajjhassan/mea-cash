@@ -27,7 +27,6 @@ use App\Http\Controllers\Admin\Web\AnalyticsController;
 use App\Http\Controllers\Admin\Web\NotificationController;
 use App\Http\Controllers\Admin\Web\PageController;
 use App\Http\Controllers\Admin\Web\RoleController;
-use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\Storefront\StorefrontController;
 use App\Http\Controllers\Storefront\CartController;
@@ -40,86 +39,78 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Language Switching Routes
+| Localized Storefront Routes
 |--------------------------------------------------------------------------
 */
-Route::get('/{locale}', [StorefrontController::class, 'index'])
+Route::redirect('/', '/en');
+
+Route::prefix('{locale}')
     ->whereIn('locale', ['en', 'ar'])
-    ->name('store.home.locale');
-
-/*
-|--------------------------------------------------------------------------
-| Storefront (Public) Routes
-|--------------------------------------------------------------------------
-*/
-Route::get('/', [StorefrontController::class, 'index'])->name('store.home');
-Route::get('/category/{slug}', [StorefrontController::class, 'category'])->name('store.category');
-Route::get('/pages/{slug}', [StorefrontController::class, 'page'])->name('store.page');
-Route::get('/{locale}/pages/{slug}', [StorefrontController::class, 'localizedPage'])
-    ->whereIn('locale', ['en', 'ar'])
-    ->name('store.page.locale');
-Route::get('/contact', [StorefrontContactController::class, 'create'])->name('store.contact');
-Route::get('/{locale}/contact', [StorefrontContactController::class, 'create'])
-    ->whereIn('locale', ['en', 'ar'])
-    ->name('store.contact.locale');
-Route::post('/contact', [StorefrontContactController::class, 'store'])
-    ->middleware('throttle:3,10')
-    ->name('store.contact.store');
-Route::get('/search', [StorefrontController::class, 'search'])->name('store.search');
-Route::get('/api/product/{slug}', [StorefrontController::class, 'subcategoryJson'])->name('store.product.json');
-Route::get('/api/subcategory/{slug}', [StorefrontController::class, 'subcategoryJson'])->name('store.subcategory.json');
-Route::get('/api/search', [StorefrontController::class, 'search'])->name('store.search.api');
-
-// Cart
-Route::post('/cart/add', [CartController::class, 'add'])->middleware(['auth', 'customer'])->name('store.cart.add');
-Route::get('/cart', [CartController::class, 'show'])->name('store.cart');
-Route::delete('/cart/{itemId}', [CartController::class, 'remove'])->name('store.cart.remove');
-Route::delete('/cart', [CartController::class, 'clear'])->name('store.cart.clear');
-
-// Customer Auth
-Route::middleware('guest')->group(function (): void {
-    Route::get('/register', [CustomerAuthController::class, 'showRegister'])->name('store.register');
-    Route::post('/register', [CustomerAuthController::class, 'register'])->name('store.register.store');
-});
-Route::post('/customer/logout', [CustomerAuthController::class, 'logout'])->name('store.logout')->middleware('auth');
-
-// Checkout (auth required)
-Route::middleware(['auth', 'customer'])->group(function (): void {
-    Route::get('/checkout', [CheckoutController::class, 'show'])->name('store.checkout');
-    Route::post('/checkout', [CheckoutController::class, 'process'])->name('store.checkout.process');
-    Route::get('/order/{orderNumber}/confirmation', [CheckoutController::class, 'confirmation'])->name('store.confirmation');
-});
-
-// Customer Dashboard (auth required)
-Route::prefix('dashboard')
-    ->name('store.')
-    ->middleware(['auth', 'customer'])
     ->group(function (): void {
-        Route::get('/', [CustomerDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/orders', [CustomerDashboardController::class, 'orders'])->name('orders');
-        Route::post('/orders/{order}/feedback', [CustomerDashboardController::class, 'submitFeedback'])->name('orders.feedback');
-        Route::get('/orders/{orderNumber}', [CustomerDashboardController::class, 'orderDetail'])->name('orders.detail');
-        Route::get('/wallet', [CustomerDashboardController::class, 'wallet'])->name('wallet');
-        Route::post('/wallet/topup', [CustomerDashboardController::class, 'submitTopup'])->name('wallet.topup');
-        Route::get('/profile', [CustomerDashboardController::class, 'profile'])->name('profile');
-        Route::put('/profile', [CustomerDashboardController::class, 'updateProfile'])->name('profile.update');
-        Route::get('/notifications/{id}/read', [StorefrontNotificationController::class, 'read'])->name('notifications.read');
-        Route::post('/notifications/read-all', [StorefrontNotificationController::class, 'readAll'])->name('notifications.read-all');
-    });
+        // Home
+        Route::get('/', [StorefrontController::class, 'index'])->name('store.home');
 
-Route::prefix('auth')
-    ->group(function (): void {
-        Route::get('login', [UserAuthController::class, 'create'])->name('login');
-        Route::post('login', [UserAuthController::class, 'store'])->name('login.store');
-        Route::post('logout', [UserAuthController::class, 'destroy'])->name('logout');
+        // Public pages
+        Route::get('/category/{slug}', [StorefrontController::class, 'category'])->name('store.category');
+        Route::get('/pages/{slug}', [StorefrontController::class, 'localizedPage'])->name('store.page');
+        Route::get('/contact', [StorefrontContactController::class, 'create'])->name('store.contact');
+        Route::post('/contact', [StorefrontContactController::class, 'store'])
+            ->middleware('throttle:3,10')
+            ->name('store.contact.store');
+        Route::get('/search', [StorefrontController::class, 'search'])->name('store.search');
+        Route::get('/api/product/{slug}', [StorefrontController::class, 'subcategoryJson'])->name('store.product.json');
+        Route::get('/api/subcategory/{slug}', [StorefrontController::class, 'subcategoryJson'])->name('store.subcategory.json');
+        Route::get('/api/search', [StorefrontController::class, 'search'])->name('store.search.api');
+
+        // Cart
+        Route::post('/cart/add', [CartController::class, 'add'])->middleware(['auth', 'customer'])->name('store.cart.add');
+        Route::get('/cart', [CartController::class, 'show'])->name('store.cart');
+        Route::delete('/cart/{itemId}', [CartController::class, 'remove'])->name('store.cart.remove');
+        Route::delete('/cart', [CartController::class, 'clear'])->name('store.cart.clear');
+
+        // Customer Auth
+        Route::middleware('guest')->group(function (): void {
+            Route::get('/register', [CustomerAuthController::class, 'showRegister'])->name('store.register');
+            Route::post('/register', [CustomerAuthController::class, 'register'])->name('store.register.store');
+        });
+        Route::post('/customer/logout', [CustomerAuthController::class, 'logout'])->name('store.logout')->middleware('auth');
+
+        Route::prefix('auth')->group(function (): void {
+            Route::get('login', [UserAuthController::class, 'create'])->name('login');
+            Route::post('login', [UserAuthController::class, 'store'])->name('login.store');
+            Route::post('logout', [UserAuthController::class, 'destroy'])->name('logout');
+        });
+
+        // Checkout (auth required)
+        Route::middleware(['auth', 'customer'])->group(function (): void {
+            Route::get('/checkout', [CheckoutController::class, 'show'])->name('store.checkout');
+            Route::post('/checkout', [CheckoutController::class, 'process'])->name('store.checkout.process');
+            Route::get('/order/{orderNumber}/confirmation', [CheckoutController::class, 'confirmation'])->name('store.confirmation');
+        });
+
+        // Customer Dashboard (auth required)
+        Route::prefix('dashboard')
+            ->name('store.')
+            ->middleware(['auth', 'customer'])
+            ->group(function (): void {
+                Route::get('/', [CustomerDashboardController::class, 'index'])->name('dashboard');
+                Route::get('/orders', [CustomerDashboardController::class, 'orders'])->name('orders');
+                Route::post('/orders/{order}/feedback', [CustomerDashboardController::class, 'submitFeedback'])->name('orders.feedback');
+                Route::post('/orders/{order}/report', [CustomerDashboardController::class, 'submitReport'])->name('orders.report');
+                Route::get('/orders/{orderNumber}', [CustomerDashboardController::class, 'orderDetail'])->name('orders.detail');
+                Route::get('/wallet', [CustomerDashboardController::class, 'wallet'])->name('wallet');
+                Route::post('/wallet/topup', [CustomerDashboardController::class, 'submitTopup'])->name('wallet.topup');
+                Route::get('/profile', [CustomerDashboardController::class, 'profile'])->name('profile');
+                Route::put('/profile', [CustomerDashboardController::class, 'updateProfile'])->name('profile.update');
+                Route::get('/notifications/{id}/read', [StorefrontNotificationController::class, 'read'])->name('notifications.read');
+                Route::post('/notifications/read-all', [StorefrontNotificationController::class, 'readAll'])->name('notifications.read-all');
+            });
     });
 
 Route::prefix('admin')
     ->name('admin.')
     ->group(function (): void {
-        Route::get('login', [AdminAuthController::class, 'create'])->name('login');
-        Route::post('login', [AdminAuthController::class, 'store'])->name('login.store');
-        Route::post('logout', [AdminAuthController::class, 'destroy'])->name('logout');
+        Route::post('logout', [UserAuthController::class, 'destroy'])->name('logout');
 
         Route::middleware(['auth', 'admin'])->group(function (): void {
             Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -159,6 +150,8 @@ Route::prefix('admin')
             Route::get('analytics/profit', [AnalyticsController::class, 'profit'])->middleware('permission:analytics.index')->name('analytics.profit');
             Route::resource('contact', ContactController::class)->only(['index', 'show', 'destroy'])->middleware('permission:contact.index');
             Route::resource('feedback', FeedbackController::class)->only(['index', 'show', 'destroy'])->middleware('permission:feedback.index');
+            Route::post('feedback/{feedback}/status', [FeedbackController::class, 'updateStatus'])->middleware('permission:feedback.index')->name('feedback.status');
+            Route::post('feedback/{feedback}/toggle-featured', [FeedbackController::class, 'toggleFeatured'])->middleware('permission:feedback.index')->name('feedback.toggle-featured');
             Route::get('pages/edit', [PageController::class, 'edit'])->middleware('permission:settings.general')->name('pages.edit');
             Route::post('pages', [PageController::class, 'update'])->middleware('permission:settings.general')->name('pages.update');
             
@@ -207,3 +200,7 @@ Route::prefix('admin/api')
         Route::apiResource('products', ApiProductController::class);
         Route::apiResource('product-packages', ApiProductPackageController::class);
     });
+
+Route::get('/{path}', function (string $path) {
+    return redirect('/en/' . ltrim($path, '/'));
+})->where('path', '^(?!en(?:/|$)|ar(?:/|$)|admin(?:/|$)|up$).+');

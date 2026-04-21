@@ -58,6 +58,7 @@ return [
     'analytics' => [
         'title' => 'Analytics',
         'total_revenue' => 'Total Revenue',
+        'total_profit' => 'Total Profit',
         'total_orders' => 'Total Orders',
         'revenue_trend' => 'Revenue Trend',
         'profit_vs_cost' => 'Profit vs Cost',

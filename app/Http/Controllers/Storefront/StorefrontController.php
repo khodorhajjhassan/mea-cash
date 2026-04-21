@@ -35,7 +35,7 @@ class StorefrontController extends Controller
     /**
      * Homepage: hero, featured categories, hot deals, product grid.
      */
-    public function index(Request $request, ?string $locale = null)
+    public function index(Request $request)
     {
         if (! Schema::hasTable('categories') || ! Schema::hasTable('subcategories') || ! Schema::hasTable('products')) {
             return view('storefront.home', [
@@ -127,7 +127,14 @@ class StorefrontController extends Controller
  
         $seo = $this->seoService->forPage('MeaCash');
         $homepageSections = $this->homepageSections->activeSections();
- 
+
+        $featuredFeedbacks = \App\Models\Feedback::query()
+            ->where('show_on_homepage', true)
+            ->where('type', 'feedback')
+            ->with('user:id,name')
+            ->latest()
+            ->get();
+
         return view('storefront.home', compact(
             'categories',
             'featuredSubcategories',
@@ -136,6 +143,7 @@ class StorefrontController extends Controller
             'faqs',
             'homepageSections',
             'seo',
+            'featuredFeedbacks',
         ));
     }
  
@@ -191,7 +199,7 @@ class StorefrontController extends Controller
         return view('storefront.page', compact('title', 'content', 'slug', 'seo'));
     }
 
-    public function localizedPage(string $locale, string $slug)
+    public function localizedPage(string $slug)
     {
         return $this->page($slug);
     }
@@ -286,6 +294,8 @@ class StorefrontController extends Controller
             'description' => $subcategory->{"description_{$locale}"},
             'description_en' => $subcategory->description_en,
             'description_ar' => $subcategory->description_ar,
+            'delivery_type' => $subcategory->delivery_type,
+            'delivery_time_minutes' => $subcategory->delivery_time_minutes,
             'image' => (function() use ($subcategory) {
                 if (!$subcategory->image) return null;
                 return str_starts_with($subcategory->image, 'http') ? $subcategory->image : \Illuminate\Support\Facades\Storage::url($subcategory->image);
@@ -310,6 +320,7 @@ class StorefrontController extends Controller
                     })(),
                     'product_type' => $product->product_type?->value,
                     'delivery_type' => $product->delivery_type,
+                    'delivery_time_minutes' => $product->delivery_time_minutes,
                     'is_featured' => $product->is_featured,
                     'selling_price' => (float) $product->selling_price,
                     'price_per_unit' => (float) ($product->price_per_unit ?? $product->selling_price),

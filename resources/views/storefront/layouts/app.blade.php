@@ -8,7 +8,7 @@
         (() => {
             const savedTheme = localStorage.getItem('meacash-theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            document.documentElement.dataset.theme = savedTheme || (prefersDark ? 'dark' : 'light');
+            document.documentElement.dataset.theme = savedTheme || 'light';
         })();
     </script>
     <title>@yield('title', config('app.name', 'MeaCash'))</title>

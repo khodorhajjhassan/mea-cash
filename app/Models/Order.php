@@ -115,7 +115,17 @@ class Order extends Model
 
     public function feedback(): HasOne
     {
-        return $this->hasOne(Feedback::class);
+        return $this->hasOne(Feedback::class)->where('type', 'feedback');
+    }
+
+    public function report(): HasOne
+    {
+        return $this->hasOne(Feedback::class)->where('type', 'report')->latestOfMany();
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Feedback::class)->where('type', 'report');
     }
 
     /**
@@ -123,6 +133,6 @@ class Order extends Model
      */
     public function scopePending($query)
     {
-        return $query->whereIn('status', [OrderStatus::Pending, OrderStatus::Processing]);
+        return $query->whereIn('status', [OrderStatus::Pending, OrderStatus::Processing, OrderStatus::Reported]);
     }
 }

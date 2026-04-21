@@ -51,6 +51,23 @@ class CartController extends Controller
                 if ($field->is_required && !in_array('required', $fieldRules)) {
                     array_unshift($fieldRules, 'required');
                 }
+
+                if ($field->field_type === 'number') {
+                    if (!in_array('numeric', $fieldRules, true)) {
+                        $fieldRules[] = 'numeric';
+                    }
+
+                    $min = $field->ui_meta['min'] ?? null;
+                    $max = $field->ui_meta['max'] ?? null;
+
+                    if ($min !== null && $min !== '' && !collect($fieldRules)->contains(fn ($rule) => str_starts_with((string) $rule, 'min:'))) {
+                        $fieldRules[] = 'min:'.$min;
+                    }
+
+                    if ($max !== null && $max !== '' && !collect($fieldRules)->contains(fn ($rule) => str_starts_with((string) $rule, 'max:'))) {
+                        $fieldRules[] = 'max:'.$max;
+                    }
+                }
                 
                 if (!empty($fieldRules)) {
                     $rules["form_data.{$field->field_key}"] = $fieldRules;

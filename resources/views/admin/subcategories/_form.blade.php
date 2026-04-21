@@ -17,6 +17,18 @@
             @endforeach
         </select>
     </div>
+    <div class="field">
+        <label>Delivery Badge</label>
+        <select name="delivery_type" required>
+            @foreach(['instant' => 'Instant', 'fast' => 'Fast', 'timed' => 'Timed', 'slow' => 'Slow'] as $value => $label)
+                <option value="{{ $value }}" @selected(old('delivery_type', $subcategory->delivery_type ?? 'instant') === $value)>{{ $label }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div class="field">
+        <label>Delivery Time Minutes</label>
+        <input type="number" min="1" name="delivery_time_minutes" value="{{ old('delivery_time_minutes', $subcategory->delivery_time_minutes ?? '') }}" placeholder="Optional">
+    </div>
     <div class="field"><label>Name (EN)</label><input type="text" name="name_en" value="{{ old('name_en', $subcategory->name_en ?? '') }}" required></div>
     <div class="field"><label>Name (AR)</label><input type="text" name="name_ar" value="{{ old('name_ar', $subcategory->name_ar ?? '') }}" required></div>
     <div class="field md:col-span-2">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\TopupRequest;
+use App\Models\WalletTransaction;
 use App\Services\WalletService;
 use App\Notifications\UserNotification;
 use Exception;
@@ -98,6 +99,12 @@ class TopupController extends Controller
                 return back()->with('error', 'Only pending requests can be approved.');
             }
 
+            $alreadyCredited = WalletTransaction::query()
+                ->where('reference_type', $topup->getMorphClass())
+                ->where('reference_id', $topup->id)
+                ->where('type', 'topup')
+                ->exists();
+
             $amount = (float) $data['amount_credited'];
 
             $topup->update([
@@ -106,6 +113,10 @@ class TopupController extends Controller
                 'processed_by' => auth()->id(),
                 'processed_at' => now(),
             ]);
+
+            if ($alreadyCredited) {
+                return back()->with('success', 'Top-up was already credited. Status repaired to approved.');
+            }
 
             $this->walletService->credit($topup->user, $amount, 'Top-up request approved: #'.$topup->id, $topup, auth()->id());
             $topup->user?->notify(new UserNotification([
@@ -147,10 +158,27 @@ class TopupController extends Controller
                 return back()->with('error', 'Only pending requests can be rejected.');
             }
 
+            $alreadyCredited = WalletTransaction::query()
+                ->where('reference_type', $topup->getMorphClass())
+                ->where('reference_id', $topup->id)
+                ->where('type', 'topup')
+                ->exists();
+
+            if ($alreadyCredited) {
+                $topup->update([
+                    'status' => 'approved',
+                    'admin_note' => 'This request was already credited, so it cannot be rejected. '.$data['admin_note'],
+                    'processed_by' => auth()->id(),
+                    'processed_at' => now(),
+                ]);
+
+                return back()->with('error', 'This top-up was already credited, so it was repaired to approved instead of rejected.');
+            }
+
             $topup->update([
                 'status' => 'rejected',
                 'admin_note' => $data['admin_note'],
-                'processed_by' => null,
+                'processed_by' => auth()->id(),
                 'processed_at' => now(),
             ]);
 

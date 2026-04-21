@@ -19,10 +19,12 @@ class AnalyticsController extends Controller
 
         $ordersQuery = Order::query();
         $completedOrdersQuery = Order::query()->where('status', \App\Enums\OrderStatus::Completed);
+        
         $this->applyDateRange($ordersQuery, $startAt, $endAt, $hasDateFilter);
         $this->applyDateRange($completedOrdersQuery, $startAt, $endAt, $hasDateFilter);
 
         $totalRevenue = (float) $completedOrdersQuery->sum('total_price');
+        $totalProfit = (float) $completedOrdersQuery->sum('profit');
         $totalOrders = (int) $ordersQuery->count();
 
         $filters = [
@@ -30,29 +32,31 @@ class AnalyticsController extends Controller
             'end_date' => $endAt?->toDateString(),
         ];
 
-        return view('admin.analytics.index', compact('totalRevenue', 'totalOrders', 'filters'));
+        return view('admin.analytics.index', compact('totalRevenue', 'totalProfit', 'totalOrders', 'filters'));
     }
 
     public function revenue(Request $request): JsonResponse
     {
-        [$startAt, $endAt, $hasDateFilter] = $this->resolveDateRange($request);
-        if (!$hasDateFilter) {
-            $endAt = Carbon::today()->endOfDay();
-            $startAt = Carbon::today()->subDays(29)->startOfDay();
-        }
-        $start = $startAt->copy()->startOfDay();
-        $end = $endAt->copy()->startOfDay();
+        [$startAt, $endAt] = $this->resolveDateRange($request);
+        
+        // Use database grouping for efficiency instead of a PHP loop
+        $data = Order::query()
+            ->where('status', \App\Enums\OrderStatus::Completed)
+            ->whereBetween('created_at', [$startAt, $endAt])
+            ->selectRaw('DATE(created_at) as date, SUM(total_price) as revenue')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
 
-        $points = collect(CarbonPeriod::create($start, $end))->map(function ($date) use ($startAt, $endAt) {
-            $amount = Order::query()
-                ->where('status', \App\Enums\OrderStatus::Completed)
-                ->whereBetween('created_at', [$startAt, $endAt])
-                ->whereDate('created_at', $date)
-                ->sum('total_price');
-
+        // Fill in missing days with zero revenue to ensure a smooth chart scale
+        $days = collect(CarbonPeriod::create($startAt->startOfDay(), $endAt->startOfDay()));
+        $points = $days->map(function ($date) use ($data) {
+            $dateStr = $date->toDateString();
+            $row = $data->firstWhere('date', $dateStr);
+            
             return [
-                'date' => $date->toDateString(),
-                'revenue' => (float) $amount,
+                'date' => $dateStr,
+                'revenue' => (float) ($row->revenue ?? 0),
             ];
         });
 
@@ -61,13 +65,13 @@ class AnalyticsController extends Controller
 
     public function products(Request $request): JsonResponse
     {
-        [$startAt, $endAt, $hasDateFilter] = $this->resolveDateRange($request);
+        [$startAt, $endAt] = $this->resolveDateRange($request);
 
+        // Fix: Only count completed orders in product analytics
         $data = Product::query()->withCount([
-            'orders as orders_count' => function ($query) use ($startAt, $endAt, $hasDateFilter): void {
-                if ($hasDateFilter) {
-                    $query->whereBetween('created_at', [$startAt, $endAt]);
-                }
+            'orders as orders_count' => function ($query) use ($startAt, $endAt): void {
+                $query->where('status', \App\Enums\OrderStatus::Completed)
+                      ->whereBetween('created_at', [$startAt, $endAt]);
             },
         ])
             ->orderByDesc('orders_count')
@@ -79,15 +83,13 @@ class AnalyticsController extends Controller
 
     public function profit(Request $request): JsonResponse
     {
-        [$startAt, $endAt, $hasDateFilter] = $this->resolveDateRange($request);
+        [$startAt, $endAt] = $this->resolveDateRange($request);
 
         $profitQuery = Order::query()->where('status', \App\Enums\OrderStatus::Completed);
-        $costQuery = Order::query()->where('status', \App\Enums\OrderStatus::Completed);
-        $this->applyDateRange($profitQuery, $startAt, $endAt, $hasDateFilter);
-        $this->applyDateRange($costQuery, $startAt, $endAt, $hasDateFilter);
+        $this->applyDateRange($profitQuery, $startAt, $endAt, true);
 
         $profit = $profitQuery->sum('profit');
-        $cost = $costQuery->sum('cost_price');
+        $cost = $profitQuery->sum('cost_price');
 
         return response()->json([
             'profit' => (float) $profit,
@@ -97,13 +99,11 @@ class AnalyticsController extends Controller
 
     public function users(Request $request): JsonResponse
     {
-        [$startAt, $endAt, $hasDateFilter] = $this->resolveDateRange($request);
+        [$startAt, $endAt] = $this->resolveDateRange($request);
 
-        $completedOrdersFilter = function ($query) use ($startAt, $endAt, $hasDateFilter): void {
-            $query->where('status', \App\Enums\OrderStatus::Completed);
-            if ($hasDateFilter) {
-                $query->whereBetween('created_at', [$startAt, $endAt]);
-            }
+        $completedOrdersFilter = function ($query) use ($startAt, $endAt): void {
+            $query->where('status', \App\Enums\OrderStatus::Completed)
+                  ->whereBetween('created_at', [$startAt, $endAt]);
         };
 
         $data = User::query()
@@ -131,22 +131,21 @@ class AnalyticsController extends Controller
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
         ]);
 
-        if (empty($validated['start_date']) && empty($validated['end_date'])) {
-            return [null, null, false];
-        }
+        $hasDateFilter = !empty($validated['start_date']) || !empty($validated['end_date']);
 
-        $start = !empty($validated['start_date'])
-            ? Carbon::parse($validated['start_date'])
-            : Carbon::parse($validated['end_date'])->subDays(29);
         $end = !empty($validated['end_date'])
             ? Carbon::parse($validated['end_date'])
             : Carbon::today();
+
+        $start = !empty($validated['start_date'])
+            ? Carbon::parse($validated['start_date'])
+            : ($hasDateFilter ? $end->copy()->subDays(29) : Carbon::today()->subDays(29));
 
         if ($start->diffInDays($end) > 180) {
             $start = $end->copy()->subDays(180);
         }
 
-        return [$start->startOfDay(), $end->endOfDay(), true];
+        return [$start->startOfDay(), $end->endOfDay(), $hasDateFilter];
     }
 
     private function applyDateRange($query, ?Carbon $startAt, ?Carbon $endAt, bool $hasDateFilter): void

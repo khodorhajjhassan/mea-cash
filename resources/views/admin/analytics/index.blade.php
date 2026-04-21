@@ -19,10 +19,14 @@
     </form>
 </section>
 
-<section class="grid gap-4 mt-6 md:grid-cols-2">
+<section class="grid gap-4 mt-6 md:grid-cols-3">
     <div class="stat-card">
         <p>{{ __('admin.analytics.total_revenue') }}</p>
         <h3>${{ number_format((float) $totalRevenue, 2) }}</h3>
+    </div>
+    <div class="stat-card">
+        <p>{{ __('admin.analytics.total_profit') }}</p>
+        <h3 class="text-green-600">${{ number_format((float) $totalProfit, 2) }}</h3>
     </div>
     <div class="stat-card">
         <p>{{ __('admin.analytics.total_orders') }}</p>

@@ -5,6 +5,7 @@
 @section('content')
 @php
     $locale = app()->getLocale();
+    $isArabic = $locale === 'ar';
     $selectedMethod = old('payment_method', $paymentMethods->first()?->method);
     $methodStyles = [
         'omt' => ['icon' => 'payments', 'from' => '#00f0ff', 'to' => '#7df4ff'],
@@ -18,7 +19,7 @@
 
     <div class="mb-6 flex flex-col gap-4 md:mb-8 md:flex-row md:items-end md:justify-between">
         <div>
-            <p class="font-label text-[10px] font-black uppercase tracking-[0.28em] text-primary-container">
+            <p class="font-label {{ $isArabic ? 'text-xs tracking-[0.08em]' : 'text-[10px] uppercase tracking-[0.28em]' }} font-black text-primary-container">
                 {{ $locale === 'ar' ? 'إدارة الرصيد' : 'Balance Control' }}
             </p>
             <h1 class="mt-2 font-headline text-3xl font-black uppercase tracking-tight text-on-surface sm:text-4xl md:text-5xl">
@@ -38,7 +39,7 @@
     <div class="grid gap-6 lg:grid-cols-[0.95fr_1.45fr]">
         <div class="space-y-5 md:space-y-6">
             <div class="rounded-[1.5rem] border border-primary-container/20 bg-surface-container-low/80 p-5 shadow-2xl shadow-black/20 md:rounded-[2rem] md:p-6">
-                <div class="font-label text-[10px] font-black uppercase tracking-[0.24em] text-outline">
+                <div class="font-label {{ $isArabic ? 'text-sm tracking-[0.05em]' : 'text-[10px] uppercase tracking-[0.24em]' }} font-black text-outline">
                     {{ $locale === 'ar' ? 'الرصيد الحالي' : 'Current Balance' }}
                 </div>
                 <div class="mt-3 break-words font-headline text-3xl font-black tracking-tight text-primary-container sm:text-5xl">${{ number_format($balance, 2) }}</div>
@@ -55,11 +56,13 @@
                         {{ $locale === 'ar' ? 'لا توجد طرق دفع متاحة حاليا.' : 'No payment methods are available right now.' }}
                     </div>
                 @else
-                    <form id="topup-form" action="{{ route('store.wallet.topup') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
+                    <form id="topup-form" action="{{ route('store.wallet.topup') }}" method="POST" enctype="multipart/form-data" class="space-y-5" novalidate>
                         @csrf
 
+                        <div id="topup-response" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+
                         <div>
-                            <label class="mb-3 block font-label text-[10px] font-black uppercase tracking-widest text-outline">
+                            <label class="mb-3 block font-label {{ $isArabic ? 'text-sm tracking-normal' : 'text-[10px] uppercase tracking-widest' }} font-black text-outline">
                                 {{ $locale === 'ar' ? 'طريقة الدفع' : 'Payment Method' }}
                             </label>
                             <div class="grid grid-cols-3 gap-2 sm:gap-3">
@@ -83,6 +86,7 @@
                                     </label>
                                 @endforeach
                             </div>
+                            <p class="mt-2 hidden text-xs text-error" data-topup-error="payment_method"></p>
                             @error('payment_method') <p class="mt-2 text-xs text-error">{{ $message }}</p> @enderror
                         </div>
 
@@ -92,7 +96,7 @@
                                     $instructions = $pm->{"instructions_{$locale}"} ?: $pm->instructions_en;
                                 @endphp
                                 <div class="{{ $selectedMethod === $pm->method ? '' : 'hidden' }}" data-payment-detail="{{ $pm->method }}">
-                                    <div class="font-label text-[9px] font-black uppercase tracking-widest text-outline">{{ $locale === 'ar' ? 'أرسل إلى' : 'Send To' }}</div>
+                                    <div class="font-label {{ $isArabic ? 'text-xs tracking-normal' : 'text-[9px] uppercase tracking-widest' }} font-black text-outline">{{ $locale === 'ar' ? 'أرسل إلى' : 'Send To' }}</div>
                                     <div class="mt-1 break-all font-headline text-base font-black text-primary-container md:text-lg">{{ $pm->account_identifier }}</div>
                                     <p class="mt-3 text-sm leading-relaxed text-on-surface-variant">
                                         {{ $instructions ?: ($locale === 'ar' ? 'ارفع صورة الإيصال بعد إتمام التحويل.' : 'Upload your receipt after completing the transfer.') }}
@@ -105,11 +109,13 @@
                             <div class="sf-field">
                                 <label for="amount_requested">{{ $locale === 'ar' ? 'المبلغ بالدولار' : 'Amount in USD' }}</label>
                                 <input type="number" name="amount_requested" id="amount_requested" min="1" max="10000" step="0.01" required value="{{ old('amount_requested') }}" placeholder="25.00">
+                                <p class="mt-1 hidden text-xs text-error" data-topup-error="amount_requested"></p>
                                 @error('amount_requested') <p class="mt-1 text-xs text-error">{{ $message }}</p> @enderror
                             </div>
                             <div class="sf-field">
                                 <label for="receipt_image">{{ $locale === 'ar' ? 'صورة الإيصال' : 'Receipt Image' }}</label>
                                 <input type="file" name="receipt_image" id="receipt_image" accept="image/*" required class="text-sm text-on-surface-variant">
+                                <p class="mt-1 hidden text-xs text-error" data-topup-error="receipt_image"></p>
                                 @error('receipt_image') <p class="mt-1 text-xs text-error">{{ $message }}</p> @enderror
                             </div>
                         </div>
@@ -122,20 +128,49 @@
                 @endif
             </div>
 
-            @if($pendingTopups->isNotEmpty())
-                <div class="rounded-[1.5rem] border border-outline-variant/15 bg-surface-container-low/80 p-4 md:rounded-[2rem] md:p-5">
-                    <h3 class="mb-3 font-headline text-sm font-black uppercase text-on-surface">{{ $locale === 'ar' ? 'طلبات قيد الانتظار' : 'Pending Top-Ups' }}</h3>
-                    <div class="space-y-2">
-                        @foreach($pendingTopups as $topup)
-                            <div class="flex items-center justify-between gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-3">
-                                <div class="min-w-0">
-                                    <div class="font-headline text-sm font-black text-on-surface">${{ number_format($topup->amount_requested, 2) }}</div>
-                                    <div class="font-label text-[9px] uppercase tracking-widest text-outline">{{ strtoupper($topup->payment_method) }}</div>
+            @if($topupRequests->isNotEmpty())
+                <div id="topup-panel" class="rounded-[1.5rem] border border-outline-variant/15 bg-surface-container-low/80 p-4 md:rounded-[2rem] md:p-5">
+                    <h3 class="mb-3 font-headline text-sm font-black uppercase text-on-surface">{{ $locale === 'ar' ? 'طلبات الشحن' : 'Top-Up Requests' }}</h3>
+                    <div id="topup-list" class="space-y-2">
+                        @foreach($topupRequests as $topup)
+                            @php
+                                $statusStyles = [
+                                    'pending' => 'border-yellow-500/20 bg-yellow-500/10 text-yellow-500',
+                                    'approved' => 'border-emerald-500/20 bg-emerald-500/10 text-emerald-500',
+                                    'rejected' => 'border-rose-500/20 bg-rose-500/10 text-rose-500',
+                                ];
+                                $statusLabels = [
+                                    'pending' => $locale === 'ar' ? 'قيد الانتظار' : 'Pending',
+                                    'approved' => $locale === 'ar' ? 'مقبول' : 'Approved',
+                                    'rejected' => $locale === 'ar' ? 'مرفوض' : 'Rejected',
+                                ];
+                                $receiptUrl = $topup->getReceiptUrl();
+                            @endphp
+                            <div class="flex items-center justify-between gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-3" data-topup-status="{{ $topup->status }}" data-topup-status-label="{{ $statusLabels[$topup->status] ?? ucfirst($topup->status) }}">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    @if($receiptUrl)
+                                        <button type="button" onclick="openLightbox('{{ $receiptUrl }}')" class="group relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-outline-variant/20 transition hover:border-primary-container">
+                                            <img src="{{ $receiptUrl }}" class="h-full w-full object-cover opacity-60 transition group-hover:opacity-100">
+                                            <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100">
+                                                <span class="material-symbols-outlined text-sm text-white">visibility</span>
+                                            </div>
+                                        </button>
+                                    @endif
+                                    <div class="min-w-0">
+                                        <div class="font-headline text-sm font-black text-on-surface">${{ number_format($topup->amount_requested, 2) }}</div>
+                                        <div class="font-label {{ $isArabic ? 'text-xs tracking-normal' : 'text-[9px] uppercase tracking-widest' }} text-outline">{{ strtoupper($topup->payment_method) }}</div>
+                                    </div>
                                 </div>
-                                <span class="shrink-0 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 font-label text-[9px] font-black uppercase tracking-widest text-yellow-500">{{ $locale === 'ar' ? 'قيد الانتظار' : 'Pending' }}</span>
+                                <span class="shrink-0 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 font-label {{ $isArabic ? 'text-xs tracking-normal' : 'text-[9px] uppercase tracking-widest' }} font-black text-yellow-500">{{ $locale === 'ar' ? 'قيد الانتظار' : 'Pending' }}</span>
                             </div>
                         @endforeach
                     </div>
+                </div>
+            @endif
+            @if($topupRequests->isEmpty())
+                <div id="topup-panel" class="hidden rounded-[1.5rem] border border-outline-variant/15 bg-surface-container-low/80 p-4 md:rounded-[2rem] md:p-5">
+                    <h3 class="mb-3 font-headline text-sm font-black uppercase text-on-surface">{{ $locale === 'ar' ? 'طلبات الشحن' : 'Top-Up Requests' }}</h3>
+                    <div id="topup-list" class="space-y-2"></div>
                 </div>
             @endif
         </div>
@@ -158,7 +193,7 @@
                                 </span>
                             </div>
                             <div class="flex items-center justify-between border-t border-outline-variant/10 pt-3">
-                                <span class="font-label text-[9px] font-black uppercase tracking-widest text-outline">{{ $locale === 'ar' ? 'الرصيد بعد' : 'Balance After' }}</span>
+                                <span class="font-label {{ $isArabic ? 'text-xs tracking-normal' : 'text-[9px] uppercase tracking-widest' }} font-black text-outline">{{ $locale === 'ar' ? 'الرصيد بعد' : 'Balance After' }}</span>
                                 <span class="font-headline text-sm font-black text-on-surface">${{ number_format($tx->balance_after, 2) }}</span>
                             </div>
                             <p class="mt-3 text-xs leading-relaxed text-on-surface-variant">{{ $tx->{"description_{$locale}"} ?? $tx->description_en }}</p>
@@ -207,8 +242,54 @@
     </div>
 </div>
 
+    </div>
+</div>
+
+{{-- Lightbox Overlay --}}
+<div id="receipt-lightbox" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/90 p-4 backdrop-blur-md opacity-0 transition-opacity duration-300 pointer-events-none">
+    <div class="relative max-h-[90vh] max-w-[90vw]">
+        <button type="button" onclick="closeLightbox()" class="absolute -top-12 right-0 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        <img id="lightbox-img" src="" class="rounded-2xl shadow-2xl ring-1 ring-white/10 max-h-[85vh] object-contain">
+    </div>
+</div>
+
 @push('scripts')
 <script>
+    function openLightbox(url) {
+        const lightbox = document.getElementById('receipt-lightbox');
+        const img = document.getElementById('lightbox-img');
+        if (!lightbox || !img) return;
+
+        img.src = url;
+        lightbox.classList.remove('hidden');
+        lightbox.classList.add('flex');
+        
+        // Trigger reflow for transition
+        void lightbox.offsetWidth;
+        
+        lightbox.classList.remove('opacity-0', 'pointer-events-none');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+        const lightbox = document.getElementById('receipt-lightbox');
+        if (!lightbox) return;
+
+        lightbox.classList.add('opacity-0', 'pointer-events-none');
+        document.body.style.overflow = '';
+        
+        setTimeout(() => {
+            lightbox.classList.remove('flex');
+            lightbox.classList.add('hidden');
+        }, 300);
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeLightbox();
+    });
+
     document.addEventListener('DOMContentLoaded', () => {
         const radios = document.querySelectorAll('input[name="payment_method"]');
         const details = document.querySelectorAll('[data-payment-detail]');
@@ -227,6 +308,123 @@
         const submitBtn = document.getElementById('topup-submit-btn');
         const btnText = document.getElementById('btn-text');
         const btnIcon = document.getElementById('btn-icon');
+        const responseBox = document.getElementById('topup-response');
+        const topupPanel = document.getElementById('topup-panel');
+        const topupList = document.getElementById('topup-list');
+        const defaultBtnText = btnText?.textContent ?? '';
+        const defaultBtnIcon = btnIcon?.textContent ?? 'bolt';
+        const pendingLabel = @js($locale === 'ar' ? 'قيد الانتظار' : 'Pending');
+        const badgeTextClass = @js($locale === 'ar' ? 'text-xs tracking-normal' : 'text-[9px] uppercase tracking-widest');
+        const methodTextClass = @js($locale === 'ar' ? 'text-xs tracking-normal' : 'text-[9px] uppercase tracking-widest');
+
+        const statusClass = (status) => {
+            if (status === 'approved') return 'border-emerald-500/20 bg-emerald-500/10 text-emerald-500';
+            if (status === 'rejected') return 'border-rose-500/20 bg-rose-500/10 text-rose-500';
+
+            return 'border-yellow-500/20 bg-yellow-500/10 text-yellow-500';
+        };
+
+        const setLoading = (isLoading) => {
+            if (!submitBtn || !btnText || !btnIcon) return;
+
+            submitBtn.disabled = isLoading;
+            btnText.textContent = isLoading ? @js($locale === 'ar' ? 'جاري الإرسال...' : 'Processing...') : defaultBtnText;
+            btnIcon.textContent = isLoading ? 'refresh' : defaultBtnIcon;
+            btnIcon.classList.toggle('animate-spin', isLoading);
+        };
+
+        const clearErrors = () => {
+            form?.querySelectorAll('[data-topup-error]').forEach((error) => {
+                error.textContent = '';
+                error.classList.add('hidden');
+            });
+        };
+
+        const showResponse = (message, type = 'success') => {
+            if (!responseBox) return;
+
+            responseBox.textContent = message;
+            responseBox.className = [
+                'rounded-2xl border px-4 py-3 text-sm',
+                type === 'success' ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-500' : 'border-error/20 bg-error-container/10 text-error',
+            ].join(' ');
+        };
+
+        const showErrors = (errors) => {
+            Object.entries(errors || {}).forEach(([field, messages]) => {
+                const error = form?.querySelector(`[data-topup-error="${field}"]`);
+                if (!error) return;
+
+                error.textContent = Array.isArray(messages) ? messages[0] : messages;
+                error.classList.remove('hidden');
+            });
+        };
+
+        const syncTopupBadges = () => {
+            document.querySelectorAll('[data-topup-status]').forEach((row) => {
+                const badge = row.querySelector('span:last-child');
+                const status = row.dataset.topupStatus || 'pending';
+                const label = row.dataset.topupStatusLabel || status;
+
+                if (!badge) return;
+
+                badge.className = `shrink-0 rounded-full border px-3 py-1 font-label ${badgeTextClass} font-black ${statusClass(status)}`;
+                badge.textContent = label;
+            });
+        };
+
+        const prependTopup = (topup) => {
+            if (!topupList || !topup) return;
+
+            topupPanel?.classList.remove('hidden');
+            topupList.insertAdjacentHTML('afterbegin', `
+                <div class="flex items-center justify-between gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-3" data-topup-status="${topup.status || 'pending'}" data-topup-status-label="${topup.status_label || pendingLabel}">
+                    <div class="min-w-0">
+                        <div class="font-headline text-sm font-black text-on-surface">$${topup.amount_requested}</div>
+                        <div class="font-label ${methodTextClass} text-outline">${topup.payment_method}</div>
+                    </div>
+                    <span class="shrink-0 rounded-full border px-3 py-1 font-label ${badgeTextClass} font-black ${statusClass(topup.status || 'pending')}">${topup.status_label || pendingLabel}</span>
+                </div>
+            `);
+        };
+
+        syncTopupBadges();
+
+        if (form) {
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                clearErrors();
+                setLoading(true);
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: new FormData(form),
+                    });
+                    const payload = await response.json().catch(() => ({}));
+
+                    if (!response.ok) {
+                        showErrors(payload.errors);
+                        showResponse(payload.message || @js($locale === 'ar' ? 'تعذر إرسال طلب الشحن.' : 'Could not submit the top-up request.'), 'error');
+                        return;
+                    }
+
+                    showResponse(payload.message || @js($locale === 'ar' ? 'تم إرسال طلب الشحن.' : 'Top-up request submitted.'));
+                    prependTopup(payload.topup);
+                    form.reset();
+                    syncDetails();
+                } catch (error) {
+                    showResponse(@js($locale === 'ar' ? 'حدث خطأ في الاتصال. حاول مرة أخرى.' : 'Connection error. Please try again.'), 'error');
+                } finally {
+                    setLoading(false);
+                }
+            }, true);
+        }
 
         if (form) {
             form.addEventListener('submit', () => {

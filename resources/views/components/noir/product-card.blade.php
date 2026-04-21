@@ -28,6 +28,24 @@
     } else {
         $price = $model->packages->min('selling_price') ?? $model->selling_price;
     }
+
+    $deliveryType = $model instanceof \App\Models\Subcategory
+        ? $model->delivery_type
+        : ($model->delivery_type ?? $model->subcategory?->delivery_type);
+    $deliveryMinutes = $model instanceof \App\Models\Subcategory
+        ? $model->delivery_time_minutes
+        : ($model->delivery_time_minutes ?? $model->subcategory?->delivery_time_minutes);
+    $deliveryLabels = [
+        'instant' => ['en' => 'Instant', 'ar' => 'فوري'],
+        'fast' => ['en' => 'Fast', 'ar' => 'سريع'],
+        'timed' => ['en' => 'Timed', 'ar' => 'مجدول'],
+        'slow' => ['en' => 'Slow', 'ar' => 'بطيء'],
+        'manual' => ['en' => 'Manual', 'ar' => 'يدوي'],
+    ];
+    $deliveryLabel = $deliveryType ? ($deliveryLabels[$deliveryType][$locale] ?? ucfirst(str_replace('_', ' ', $deliveryType))) : null;
+    if ($deliveryLabel && $deliveryMinutes) {
+        $deliveryLabel .= ' · '.$deliveryMinutes.'m';
+    }
 @endphp
 
 <div {{ $attributes->merge(['class' => 'group overflow-hidden cursor-pointer rounded-xl border border-transparent bg-surface-container-low transition-all duration-300 hover:-translate-y-1 hover:border-primary-container/30 hover:shadow-[0_0_40px_rgba(0,240,255,0.15)] sm:rounded-2xl']) }} data-slug="{{ $model->slug }}" @if($modalSlug)
@@ -46,10 +64,12 @@ onclick="openSubcategoryModal(@js($modalSlug), @js($modalProductId))" @endif>
             </div>
         @endif
 
-        <div
-            class="absolute bottom-2 {{ $locale == 'ar' ? 'right-2 sm:right-3' : 'left-2 sm:left-3' }} rounded border border-primary-container/30 bg-background/60 px-1.5 py-0.5 font-label text-[8px] uppercase tracking-tighter text-primary-container backdrop-blur-md sm:bottom-3 sm:px-2 sm:py-1 sm:text-[10px]">
-            {{ $locale == 'ar' ? 'فوري' : 'Instant' }}
-        </div>
+        @if($deliveryLabel)
+            <div
+                class="absolute bottom-2 {{ $locale == 'ar' ? 'right-2 sm:right-3' : 'left-2 sm:left-3' }} rounded border border-primary-container/30 bg-background/60 px-1.5 py-0.5 font-label text-[8px] uppercase tracking-tighter text-primary-container backdrop-blur-md sm:bottom-3 sm:px-2 sm:py-1 sm:text-[10px]">
+                {{ $deliveryLabel }}
+            </div>
+        @endif
     </div>
 
     <div class="p-2 sm:p-4">

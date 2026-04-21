@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin\Web;
 
 use App\Http\Controllers\Controller;
+use App\Enums\OrderStatus;
+use App\Models\Order;
 use App\Models\User;
 use App\Models\WalletTransaction;
 use App\Services\WalletService;
@@ -20,7 +22,7 @@ class TransactionController extends Controller
         $startDate = $request->filled('from_date') ? $request->date('from_date') : now()->subMonths(2);
         $endDate = $request->filled('to_date') ? $request->date('to_date') : null;
 
-        $transactions = WalletTransaction::query()
+        $transactionQuery = WalletTransaction::query()
             ->with('wallet.user:id,name', 'processor:id,name')
             ->when($request->filled('q'), function ($query) use ($request): void {
                 $q = trim((string) $request->string('q'));
@@ -31,15 +33,49 @@ class TransactionController extends Controller
                 });
             })
             ->when($request->filled('type'), fn ($query) => $query->where('type', $request->string('type')->value()))
+            ->when($request->string('direction')->value() === 'in', fn ($query) => $query->where('amount', '>', 0))
+            ->when($request->string('direction')->value() === 'out', fn ($query) => $query->where('amount', '<', 0))
             ->whereDate('created_at', '>=', $startDate)
-            ->when($endDate, fn ($query) => $query->whereDate('created_at', '<=', $endDate))
+            ->when($endDate, fn ($query) => $query->whereDate('created_at', '<=', $endDate));
+
+        $summaryQuery = clone $transactionQuery;
+
+        $transactions = $transactionQuery
             ->latest('id')
             ->paginate(25)
             ->withQueryString();
 
-        $filters = $request->only(['q', 'type', 'from_date', 'to_date']);
+        $orderQuery = Order::query()
+            ->whereDate('created_at', '>=', $startDate)
+            ->when($endDate, fn ($query) => $query->whereDate('created_at', '<=', $endDate));
 
-        return view('admin.transactions.index', compact('transactions', 'filters'));
+        $completedOrders = (clone $orderQuery)->where('status', OrderStatus::Completed->value);
+        $refundedOrders = (clone $orderQuery)->where('status', OrderStatus::Refunded->value);
+        $pendingOrders = (clone $orderQuery)->whereIn('status', [OrderStatus::Pending->value, OrderStatus::Processing->value]);
+
+        $walletIn = (float) (clone $summaryQuery)->where('amount', '>', 0)->sum('amount');
+        $walletOut = abs((float) (clone $summaryQuery)->where('amount', '<', 0)->sum('amount'));
+        $grossProfit = (float) $completedOrders->sum('profit');
+
+        $summary = [
+            'wallet_in' => $walletIn,
+            'wallet_out' => $walletOut,
+            'net_wallet_flow' => $walletIn - $walletOut,
+            'topups' => (float) (clone $summaryQuery)->where('type', 'topup')->where('amount', '>', 0)->sum('amount'),
+            'purchases' => abs((float) (clone $summaryQuery)->where('type', 'purchase')->where('amount', '<', 0)->sum('amount')),
+            'refunds' => (float) (clone $summaryQuery)->where('type', 'refund')->sum('amount'),
+            'adjustments' => (float) (clone $summaryQuery)->where('type', 'admin_adjustment')->sum('amount'),
+            'revenue' => (float) (clone $orderQuery)->where('status', OrderStatus::Completed->value)->sum('total_price'),
+            'cost' => (float) (clone $orderQuery)->where('status', OrderStatus::Completed->value)->sum('cost_price'),
+            'profit' => $grossProfit,
+            'loss' => $grossProfit < 0 ? abs($grossProfit) : 0.0,
+            'refunded_order_value' => (float) $refundedOrders->sum('total_price'),
+            'pending_order_value' => (float) $pendingOrders->sum('total_price'),
+        ];
+
+        $filters = $request->only(['q', 'type', 'direction', 'from_date', 'to_date']);
+
+        return view('admin.transactions.index', compact('transactions', 'filters', 'summary'));
     }
 
     public function show(WalletTransaction $transaction)

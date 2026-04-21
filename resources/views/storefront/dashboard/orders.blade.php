@@ -5,9 +5,10 @@
 @section('content')
 @php
     $locale = app()->getLocale();
-    $statusOptions = ['pending', 'processing', 'completed', 'refunded', 'failed'];
+    $statusOptions = ['pending', 'processing', 'completed', 'reported', 'refunded', 'failed'];
     $statusClass = static fn (string $status): string => match ($status) {
         'completed' => 'border-emerald-400/25 bg-emerald-400/10 text-emerald-400',
+        'reported' => 'border-rose-400/25 bg-rose-400/10 text-rose-400',
         'pending', 'processing' => 'border-yellow-500/20 bg-yellow-500/10 text-yellow-500',
         default => 'border-red-500/20 bg-red-500/10 text-red-500',
     };
@@ -205,7 +206,7 @@
                 <h3 class="font-headline text-xl font-black uppercase text-on-surface">{{ $locale === 'ar' ? 'لا توجد طلبات بعد' : 'Zero Assets Found' }}</h3>
                 <p class="mt-2 text-sm text-outline">{{ $locale === 'ar' ? 'ابدأ التسوق لتظهر مشترياتك هنا.' : 'Your digital vault is empty. Start shopping to fill it.' }}</p>
             </div>
-            <a href="{{ route('store.home.locale', ['locale' => $locale]) }}" class="mt-4 inline-flex items-center gap-2 rounded-2xl bg-primary-container px-8 py-4 font-headline text-xs font-black uppercase tracking-[0.2em] text-on-primary-container transition hover:scale-105 active:scale-95">
+            <a href="{{ route('store.home') }}" class="mt-4 inline-flex items-center gap-2 rounded-2xl bg-primary-container px-8 py-4 font-headline text-xs font-black uppercase tracking-[0.2em] text-on-primary-container transition hover:scale-105 active:scale-95">
                 {{ $locale === 'ar' ? 'تسوق الآن' : 'Initiate Secure Purchase' }}
                 <span class="material-symbols-outlined text-lg">arrow_forward</span>
             </a>

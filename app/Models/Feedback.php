@@ -15,10 +15,12 @@ class Feedback extends Model
     public function toAdminNotification(): array
     {
         return [
-            'type' => 'New Feedback',
-            'message' => "Order #{$this->order?->order_number} rated {$this->rating}/5 by {$this->user?->name}",
+            'type' => $this->type === 'report' ? 'Order Report' : 'New Feedback',
+            'message' => $this->type === 'report'
+                ? "Order #{$this->order?->order_number} was reported by {$this->user?->name}"
+                : "Order #{$this->order?->order_number} rated {$this->rating}/5 by {$this->user?->name}",
             'link' => route('admin.feedback.show', $this),
-            'icon' => 'star',
+            'icon' => $this->type === 'report' ? 'support_agent' : 'star',
         ];
     }
 
@@ -27,9 +29,23 @@ class Feedback extends Model
     protected $fillable = [
         'user_id',
         'order_id',
+        'type',
         'rating',
         'comment',
+        'issue_type',
+        'status',
+        'admin_response',
+        'resolved_at',
+        'show_on_homepage',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'resolved_at' => 'datetime',
+            'show_on_homepage' => 'boolean',
+        ];
+    }
 
     public function user(): BelongsTo
     {

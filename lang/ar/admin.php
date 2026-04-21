@@ -71,6 +71,7 @@ return [
     'analytics' => [
         'title' => 'الإحصائيات',
         'total_revenue' => 'إجمالي الإيرادات',
+        'total_profit' => 'إجمالي الأرباح',
         'total_orders' => 'إجمالي الطلبات',
         'revenue_trend' => 'مؤشر الإيرادات',
         'profit_vs_cost' => 'الأرباح مقابل التكلفة',

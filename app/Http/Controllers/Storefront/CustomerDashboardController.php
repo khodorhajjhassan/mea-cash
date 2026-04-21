@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\TopupRequest;
 use App\Models\PaymentMethod;
 use App\Notifications\UserNotification;
+use App\Services\SettingsService;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -17,6 +18,7 @@ class CustomerDashboardController extends Controller
 {
     public function __construct(
         private readonly WalletService $walletService,
+        private readonly SettingsService $settingsService,
     ) {}
 
     /**
@@ -100,17 +102,24 @@ class CustomerDashboardController extends Controller
     public function orderDetail(string $orderNumber)
     {
         $order = Order::where('order_number', $orderNumber)
-            ->where('user_id', auth()->id())
-            ->with(['product.subcategory.category', 'package', 'items', 'feedback'])
+            ->with(['product.subcategory.category', 'product.formFields:id,product_id,field_key,label_en,label_ar', 'package', 'items', 'feedback', 'report'])
             ->firstOrFail();
 
-        return view('storefront.dashboard.order-detail', compact('order'));
+        if ((int) $order->user_id !== (int) auth()->id()) {
+            abort_unless((bool) auth()->user()?->is_admin, 404);
+
+            return redirect()->route('admin.orders.show', $order);
+        }
+
+        $supportReportDelayHours = max(0, (int) $this->settingsService->get('support_report_delay_hours', 4));
+
+        return view('storefront.dashboard.order-detail', compact('order', 'supportReportDelayHours'));
     }
 
     public function submitFeedback(Request $request, Order $order)
     {
         abort_unless((int) $order->user_id === (int) auth()->id(), 404);
-        abort_unless($order->status === OrderStatus::Completed, 403);
+        abort_unless(in_array($order->status, [OrderStatus::Completed, OrderStatus::Reported], true), 403);
 
         $validated = $request->validate([
             'rating' => ['required', 'integer', 'min:1', 'max:5'],
@@ -124,11 +133,53 @@ class CustomerDashboardController extends Controller
         Feedback::create([
             'user_id' => auth()->id(),
             'order_id' => $order->id,
+            'type' => 'feedback',
             'rating' => $validated['rating'],
             'comment' => $validated['comment'] ?? null,
         ]);
 
         return back()->with('success', $request->boolean('is_ar') ? 'شكراً لك، تم حفظ تقييمك.' : 'Thank you, your feedback was saved.');
+    }
+
+    public function submitReport(Request $request, Order $order)
+    {
+        abort_unless((int) $order->user_id === (int) auth()->id(), 404);
+        abort_unless(in_array($order->status, [OrderStatus::Completed, OrderStatus::Reported], true), 403);
+
+        if ($order->status === OrderStatus::Refunded || $order->reports()->where('status', 'refunded')->exists()) {
+            return back()->with('error', $request->boolean('is_ar') ? 'لا يمكن فتح بلاغ جديد بعد استرداد الطلب.' : 'A refunded order cannot open a new support report.');
+        }
+
+        $delayHours = max(0, (int) $this->settingsService->get('support_report_delay_hours', 4));
+        $eligibleAt = ($order->fulfilled_at ?? $order->created_at)->copy()->addHours($delayHours);
+        if ($delayHours > 0 && now()->lt($eligibleAt)) {
+            return back()->with('error', $request->boolean('is_ar')
+                ? "يمكنك فتح بلاغ دعم بعد {$delayHours} ساعات من اكتمال الطلب."
+                : "You can open a support report {$delayHours} hours after the order is completed.");
+        }
+
+        $validated = $request->validate([
+            'issue_type' => ['required', 'string', Rule::in(['key_not_working', 'account_problem', 'wrong_details', 'other'])],
+            'comment' => ['required', 'string', 'max:2000'],
+        ]);
+
+        if ($order->reports()->whereIn('status', ['open', 'reviewing'])->exists()) {
+            return back()->with('error', $request->boolean('is_ar') ? 'يوجد بلاغ مفتوح لهذا الطلب بالفعل.' : 'A report is already open for this order.');
+        }
+
+        Feedback::create([
+            'user_id' => auth()->id(),
+            'order_id' => $order->id,
+            'type' => 'report',
+            'rating' => 1,
+            'issue_type' => $validated['issue_type'],
+            'comment' => $validated['comment'],
+            'status' => 'open',
+        ]);
+
+        $order->update(['status' => OrderStatus::Reported]);
+
+        return back()->with('success', $request->boolean('is_ar') ? 'تم إرسال البلاغ إلى الدعم.' : 'Your report was sent to support.');
     }
 
     /**
@@ -143,9 +194,9 @@ class CustomerDashboardController extends Controller
             ->latest('created_at')
             ->paginate(20) ?? collect();
 
-        $pendingTopups = TopupRequest::where('user_id', $user->id)
-            ->where('status', 'pending')
+        $topupRequests = TopupRequest::where('user_id', $user->id)
             ->latest()
+            ->limit(8)
             ->get();
 
         $paymentMethods = PaymentMethod::where('is_active', true)->get();
@@ -153,7 +204,7 @@ class CustomerDashboardController extends Controller
         return view('storefront.dashboard.wallet', compact(
             'balance',
             'transactions',
-            'pendingTopups',
+            'topupRequests',
             'paymentMethods',
         ));
     }
@@ -190,6 +241,19 @@ class CustomerDashboardController extends Controller
             'link' => route('store.wallet'),
             'icon' => 'payments',
         ]));
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => __('storefront.wallet.topup_submitted'),
+                'topup' => [
+                    'id' => $topup->id,
+                    'amount_requested' => number_format((float) $topup->amount_requested, 2),
+                    'payment_method' => strtoupper($topup->payment_method),
+                    'status' => $topup->status,
+                    'status_label' => app()->getLocale() === 'ar' ? 'قيد الانتظار' : 'Pending',
+                ],
+            ], 201);
+        }
 
         return back()->with('success', __('storefront.wallet.topup_submitted'));
     }

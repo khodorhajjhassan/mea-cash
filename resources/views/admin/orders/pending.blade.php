@@ -15,6 +15,7 @@
                 <option value="">All Pending</option>
                 <option value="pending" @selected(($filters['status'] ?? '') === 'pending')>Pending</option>
                 <option value="processing" @selected(($filters['status'] ?? '') === 'processing')>Processing</option>
+                <option value="reported" @selected(($filters['status'] ?? '') === 'reported')>Reported</option>
             </select>
         </div>
         <div class="field">
@@ -75,6 +76,7 @@
                                     'pending' => 'bg-amber-100 text-amber-700',
                                     'processing' => 'bg-blue-100 text-blue-700',
                                     'completed' => 'bg-emerald-100 text-emerald-700',
+                                    'reported' => 'bg-rose-100 text-rose-700',
                                     'failed' => 'bg-rose-100 text-rose-700',
                                     'refunded' => 'bg-rose-100 text-rose-700',
                                 ];
@@ -102,4 +104,3 @@
     <div class="mt-4">{{ $orders->links() }}</div>
 </section>
 @endsection
-

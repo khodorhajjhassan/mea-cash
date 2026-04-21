@@ -39,6 +39,7 @@
                     'pending' => 'bg-amber-100 text-amber-700',
                     'processing' => 'bg-blue-100 text-blue-700',
                     'completed' => 'bg-emerald-100 text-emerald-700',
+                    'reported' => 'bg-rose-100 text-rose-700',
                     'failed' => 'bg-rose-100 text-rose-700',
                     'refunded' => 'bg-rose-100 text-rose-700',
                 ];
@@ -87,10 +88,12 @@
 
         <!-- Fulfillment Flow -->
         <div class="lg:col-span-2 space-y-6">
-            @if($order->status !== App\Enums\OrderStatus::Completed && $order->status !== App\Enums\OrderStatus::Refunded)
+            @php($delivery = $order->getFulfillmentDetails())
+            @php($details = $delivery['data'] ?? [])
+            @if($order->status !== App\Enums\OrderStatus::Refunded)
             <section class="panel border-2 border-indigo-50 leading-relaxed shadow-sm">
                 <div class="panel-head border-b border-slate-100 pb-3">
-                    <h3 class="text-base font-semibold text-indigo-900">Order Fulfillment</h3>
+                    <h3 class="text-base font-semibold text-indigo-900">{{ $order->status === App\Enums\OrderStatus::Completed ? 'Update Fulfillment' : 'Order Fulfillment' }}</h3>
                     <span class="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded uppercase font-bold tracking-tight">
                         {{ str_replace('_', ' ', $order->product?->product_type?->value ?? 'Manual') }}
                     </span>
@@ -105,38 +108,43 @@
                             <input type="hidden" name="fulfillment_type" value="key">
                             <div class="field">
                                 <label class="text-indigo-900 font-semibold">Digital Keys / Codes</label>
-                                <textarea name="keys" rows="5" placeholder="Enter one or multiple keys here..." class="w-full" required></textarea>
-                                <p class="text-xs text-slate-500 mt-1">These will be delivered to the user as pure text/links.</p>
+                                <textarea name="keys" rows="5" placeholder="Enter one or multiple keys here..." class="w-full js-fulfillment-editor">{!! $details['keys'] ?? '' !!}</textarea>
+                                <p class="text-xs text-slate-500 mt-1">These will be delivered to the user exactly as formatted here.</p>
                             </div>
                         @elseif($order->isTypeAccount())
                             <input type="hidden" name="fulfillment_type" value="account">
                             <div class="grid gap-4 md:grid-cols-2">
-                                <div class="field"><label class="text-indigo-900 font-semibold">Account Email/User</label><input type="text" name="account_user" required></div>
-                                <div class="field"><label class="text-indigo-900 font-semibold">Account Password</label><input type="text" name="account_pass" required></div>
-                                <div class="field md:col-span-2"><label class="text-indigo-900 font-semibold">Login Link (Optional)</label><input type="url" name="account_link" placeholder="https://..."></div>
+                                <div class="field"><label class="text-indigo-900 font-semibold">Account Email/User</label><input type="text" name="account_user" value="{{ $details['user'] ?? '' }}" required></div>
+                                <div class="field"><label class="text-indigo-900 font-semibold">Account Password</label><input type="text" name="account_pass" value="{{ $details['pass'] ?? '' }}" required></div>
+                                <div class="field md:col-span-2"><label class="text-indigo-900 font-semibold">Login Link (Optional)</label><input type="url" name="account_link" value="{{ $details['link'] ?? '' }}" placeholder="https://..."></div>
+                                <div class="field md:col-span-2"><label class="text-indigo-900 font-semibold">Account Details / Instructions</label><textarea name="account_details" rows="4" class="js-fulfillment-editor">{!! $details['account_details'] ?? '' !!}</textarea></div>
                             </div>
                         @else
                             <input type="hidden" name="fulfillment_type" value="topup">
                             <div class="space-y-4">
                                 <div class="field">
                                     <label class="text-indigo-900 font-semibold">Transaction Reference / ID</label>
-                                    <input type="text" name="transaction_id" placeholder="e.g. TXN12345678">
+                                    <input type="text" name="transaction_id" value="{{ $details['transaction_id'] ?? '' }}" placeholder="e.g. TXN12345678">
                                     <p class="text-[10px] text-slate-500 mt-1 uppercase">For game IDs or external payment proofs.</p>
                                 </div>
                                 <div class="grid gap-4 md:grid-cols-2">
-                                    <div class="field"><label class="text-indigo-900 font-semibold text-xs">Account Email/User (Optional)</label><input type="text" name="account_user" class="text-xs"></div>
-                                    <div class="field"><label class="text-indigo-900 font-semibold text-xs">Account Password (Optional)</label><input type="text" name="account_pass" class="text-xs"></div>
+                                    <div class="field"><label class="text-indigo-900 font-semibold text-xs">Account Email/User (Optional)</label><input type="text" name="account_user" value="{{ $details['user'] ?? '' }}" class="text-xs"></div>
+                                    <div class="field"><label class="text-indigo-900 font-semibold text-xs">Account Password (Optional)</label><input type="text" name="account_pass" value="{{ $details['pass'] ?? '' }}" class="text-xs"></div>
+                                </div>
+                                <div class="field">
+                                    <label class="text-indigo-900 font-semibold text-xs">Account Details / Instructions (Optional)</label>
+                                    <textarea name="account_details" rows="3" class="text-xs js-fulfillment-editor">{!! $details['account_details'] ?? '' !!}</textarea>
                                 </div>
                                 <div class="field">
                                     <label class="text-indigo-900 font-semibold text-xs">Additional Digital Keys / Codes (Optional)</label>
-                                    <textarea name="keys" rows="2" placeholder="Paste keys here if any..." class="text-xs"></textarea>
+                                    <textarea name="keys" rows="2" placeholder="Paste keys here if any..." class="text-xs js-fulfillment-editor">{!! $details['keys'] ?? '' !!}</textarea>
                                 </div>
                             </div>
                         @endif
 
                         <div class="field mt-4 border-t border-indigo-100 pt-4">
                             <label class="text-indigo-900 font-semibold">Fulfillment Message / Admin Note</label>
-                            <textarea name="admin_note" rows="3" placeholder="This message will be sent to the user..."></textarea>
+                            <textarea name="admin_note" rows="3" placeholder="This message will be sent to the user..." class="js-fulfillment-editor">{!! $delivery['admin_note'] ?? '' !!}</textarea>
                             <p class="text-[10px] text-slate-500 mt-1 uppercase">Include detailed instructions or a thank you message here.</p>
                         </div>
                     </div>
@@ -157,7 +165,7 @@
                     </div>
 
                     <button class="btn-primary w-full py-4 text-base font-bold shadow-lg shadow-indigo-100 ring-4 ring-indigo-50 leading-relaxed uppercase tracking-wider">
-                        Complete & Send Details
+                        {{ $order->status === App\Enums\OrderStatus::Completed ? 'Update & Send Details' : 'Complete & Send Details' }}
                     </button>
                 </form>
             </section>
@@ -224,7 +232,7 @@
                         <div class="field grow">
                             <label>Status</label>
                             <select name="status" class="w-full">
-                                @foreach(['pending', 'processing', 'completed', 'failed', 'refunded'] as $status)
+                                @foreach(['pending', 'processing', 'completed', 'reported', 'failed', 'refunded'] as $status)
                                     <option value="{{ $status }}" @selected($order->status->value === $status)>{{ ucfirst($status) }}</option>
                                 @endforeach
                             </select>
@@ -299,5 +307,43 @@
     </div>
 </div>
 
-@endsection
+@push('scripts')
+<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+<script>
+    const fulfillmentEditors = [];
+    document.querySelectorAll('.js-fulfillment-editor').forEach((textarea) => {
+        ClassicEditor.create(textarea, {
+            toolbar: {
+                items: [
+                    'heading', '|',
+                    'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+                    'outdent', 'indent', '|',
+                    'blockQuote', 'insertTable', 'undo', 'redo'
+                ]
+            }
+        }).then((editor) => fulfillmentEditors.push(editor)).catch((error) => console.error(error));
+    });
 
+    document.querySelectorAll('form[action*="/fulfill"]').forEach((form) => {
+        form.addEventListener('submit', () => {
+            fulfillmentEditors.forEach((editor) => editor.updateSourceElement());
+        });
+    });
+</script>
+<style>
+    .ck-editor__editable {
+        min-height: 160px;
+        border-bottom-left-radius: 12px !important;
+        border-bottom-right-radius: 12px !important;
+        background-color: #f8fafc !important;
+    }
+    .ck-toolbar {
+        border-top-left-radius: 12px !important;
+        border-top-right-radius: 12px !important;
+        border-bottom: 0 !important;
+        background-color: #ffffff !important;
+    }
+</style>
+@endpush
+
+@endsection

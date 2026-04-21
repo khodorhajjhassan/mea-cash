@@ -17,6 +17,8 @@ class StoreSubcategoryRequest extends FormRequest
         return [
             'category_id' => ['required', 'integer', 'exists:categories,id'],
             'product_type_id' => ['nullable', 'integer', 'exists:product_types,id'],
+            'delivery_type' => ['required', 'string', Rule::in(['instant', 'fast', 'timed', 'slow'])],
+            'delivery_time_minutes' => ['nullable', 'integer', 'min:1'],
             'name_ar' => ['required', 'string', 'max:255'],
             'name_en' => ['required', 'string', 'max:255'],
             'description_ar' => ['nullable', 'string'],

@@ -6,6 +6,7 @@ use App\Enums\FulfillmentType;
 use App\Enums\OrderStatus;
 use App\Exceptions\OutOfStockException;
 use App\Mail\OrderFulfilledMail;
+use App\Models\Feedback;
 use App\Models\Order;
 use App\Models\ProductCode;
 use App\Notifications\UserNotification;
@@ -40,12 +41,14 @@ class OrderFulfillmentService
                         'user' => $data['account_user'] ?? '',
                         'pass' => $data['account_pass'] ?? '',
                         'link' => $data['account_link'] ?? '',
+                        'account_details' => $data['account_details'] ?? '',
                     ],
                     FulfillmentType::Topup => [
                         'transaction_id' => $data['transaction_id'] ?? '',
                         'user' => $data['account_user'] ?? '',
                         'pass' => $data['account_pass'] ?? '',
                         'link' => $data['account_link'] ?? '',
+                        'account_details' => $data['account_details'] ?? '',
                         'keys' => $data['keys'] ?? '',
                     ],
                     FulfillmentType::Note => ['note' => $data['admin_note'] ?? ''],
@@ -68,6 +71,19 @@ class OrderFulfillmentService
                 'fulfilled_at' => now(),
                 'fulfillment_data' => array_merge($existingFulfillmentData, ['fulfillment' => $fulfillmentPayload]),
             ]);
+
+            $openReport = Feedback::query()
+                ->where('order_id', $order->id)
+                ->where('type', 'report')
+                ->whereIn('status', ['open', 'reviewing'])
+                ->latest('id')
+                ->first();
+
+            $openReport?->update([
+                    'status' => 'resolved',
+                    'admin_response' => $data['admin_note'] ?? null,
+                    'resolved_at' => now(),
+                ]);
 
             // 4. Notifications
             if (!empty($data['notify_email'])) {

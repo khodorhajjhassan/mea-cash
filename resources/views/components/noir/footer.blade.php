@@ -1,11 +1,11 @@
 @php
     $locale = app()->getLocale();
-    $homeUrl = route('store.home.locale', ['locale' => $locale]);
-    $contactUrl = route('store.contact.locale', ['locale' => $locale]);
-    $aboutUrl = route('store.page.locale', ['locale' => $locale, 'slug' => 'about']);
-    $privacyUrl = route('store.page.locale', ['locale' => $locale, 'slug' => 'privacy-policy']);
-    $termsUrl = route('store.page.locale', ['locale' => $locale, 'slug' => 'terms-and-conditions']);
-    $refundUrl = route('store.page.locale', ['locale' => $locale, 'slug' => 'refund-terms']);
+    $homeUrl = route('store.home');
+    $contactUrl = route('store.contact');
+    $aboutUrl = route('store.page', ['slug' => 'about']);
+    $privacyUrl = route('store.page', ['slug' => 'privacy-policy']);
+    $termsUrl = route('store.page', ['slug' => 'terms-and-conditions']);
+    $refundUrl = route('store.page', ['slug' => 'refund-terms']);
 @endphp
 
 <footer class="relative overflow-hidden border-t border-outline-variant/20 bg-surface-container-lowest">
@@ -20,7 +20,8 @@
             class="mx-auto max-w-md rounded-[1.75rem] border border-outline-variant/10 bg-surface-container-low/55 p-5 text-center">
             <div class="flex items-center justify-center gap-3">
                 <img src="{{ asset('meacash-logo.png') }}" alt="MeaCash" class="h-8 w-auto">
-                <span class="font-headline text-2xl font-black italic tracking-tighter text-primary-container">MEACASH</span>
+                <span
+                    class="font-headline text-2xl font-black italic tracking-tighter text-primary-container">MEACASH</span>
             </div>
 
             <nav class="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-3 font-label text-[10px] font-black uppercase tracking-widest text-on-surface-variant"
@@ -57,7 +58,7 @@
                 <div class="mb-6 flex items-center gap-3">
                     <img src="{{ asset('meacash-logo.png') }}" alt="MeaCash" class="h-10 w-auto">
                     <span
-                        class="inline-block text-xl md:text-3xl font-black italic tracking-tighter text-transparent bg-clip-text px-2 text-white">{{ config('app.name', 'MEACASH') }}</span>
+                        class="inline-block text-xl md:text-3xl font-black italic tracking-tighter text-transparent bg-clip-text px-2 mc-gradient-text">{{ config('app.name', 'MEACASH') }}</span>
                 </div>
                 <p class="mb-8 max-w-sm font-body text-sm leading-relaxed text-on-surface-variant">
                     {{ __('noir.footer_tagline') }}

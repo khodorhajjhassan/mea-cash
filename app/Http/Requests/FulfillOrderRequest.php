@@ -27,6 +27,7 @@ class FulfillOrderRequest extends FormRequest
             'account_user' => ['nullable', 'string'],
             'account_pass' => ['nullable', 'string'],
             'account_link' => ['nullable', 'url'],
+            'account_details' => ['nullable', 'string'],
             'transaction_id' => ['nullable', 'string'],
             'admin_note' => ['nullable', 'string'],
             'notify_email' => ['sometimes', 'boolean'],

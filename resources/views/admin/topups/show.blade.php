@@ -39,10 +39,10 @@
                 </div>
                 <div class="mt-4">
                     @if($receiptUrl)
-                        <a href="{{ $receiptUrl }}" target="_blank" class="block group">
+                        <button type="button" onclick="openLightbox('{{ $receiptUrl }}')" class="block w-full group text-start">
                             <img src="{{ $receiptUrl }}" class="w-full rounded-lg shadow-sm border border-slate-200 group-hover:opacity-90 transition-opacity">
-                            <p class="mt-2 text-center text-xs text-slate-400 font-medium group-hover:text-indigo-500 underline">View Full Image (Secure Link)</p>
-                        </a>
+                            <p class="mt-2 text-center text-xs text-slate-400 font-medium group-hover:text-indigo-500 underline uppercase tracking-widest">Click to Expand Receipt</p>
+                        </button>
                     @else
                         <div class="py-20 text-center bg-slate-50 rounded-lg border-2 border-dashed border-slate-200 text-slate-400 italic">No receipt image uploaded.</div>
                     @endif
@@ -167,6 +167,53 @@
         </form>
     </div>
 </div>
+
+@endsection
+
+{{-- Lightbox Overlay --}}
+<div id="receipt-lightbox" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/90 p-4 backdrop-blur-md opacity-0 transition-opacity duration-300 pointer-events-none">
+    <div class="relative max-h-[90vh] max-w-[90vw]">
+        <button type="button" onclick="closeLightbox()" class="absolute -top-12 right-0 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        <img id="lightbox-img" src="" class="rounded-2xl shadow-2xl ring-1 ring-white/10 max-h-[85vh] object-contain">
+    </div>
+</div>
+
+<script>
+    function openLightbox(url) {
+        const lightbox = document.getElementById('receipt-lightbox');
+        const img = document.getElementById('lightbox-img');
+        if (!lightbox || !img) return;
+
+        img.src = url;
+        lightbox.classList.remove('hidden');
+        lightbox.classList.add('flex');
+        
+        // Trigger reflow for transition
+        void lightbox.offsetWidth;
+        
+        lightbox.classList.remove('opacity-0', 'pointer-events-none');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+        const lightbox = document.getElementById('receipt-lightbox');
+        if (!lightbox) return;
+
+        lightbox.classList.add('opacity-0', 'pointer-events-none');
+        document.body.style.overflow = '';
+        
+        setTimeout(() => {
+            lightbox.classList.remove('flex');
+            lightbox.classList.add('hidden');
+        }, 300);
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeLightbox();
+    });
+</script>
 
 <style>
     .flex-2 { flex: 2; }

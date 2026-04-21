@@ -2,8 +2,52 @@
 @section('title','Transactions')
 @section('header','Wallet Transactions')
 @section('content')
-<section class="panel space-y-6">
-    <form method="GET" action="{{ route('admin.transactions.index') }}" class="grid gap-3 md:grid-cols-5 bg-slate-50 p-4 rounded-xl border border-slate-100">
+@php
+    $money = static fn ($value) => '$'.number_format((float) $value, 2);
+    $summaryCards = [
+        ['label' => 'Wallet In', 'value' => $summary['wallet_in'], 'tone' => 'text-emerald-600', 'hint' => 'Top-ups, refunds, positive adjustments'],
+        ['label' => 'Wallet Out', 'value' => $summary['wallet_out'], 'tone' => 'text-rose-600', 'hint' => 'Purchases and negative adjustments'],
+        ['label' => 'Net Flow', 'value' => $summary['net_wallet_flow'], 'tone' => $summary['net_wallet_flow'] >= 0 ? 'text-emerald-600' : 'text-rose-600', 'hint' => 'In minus out for selected period'],
+        ['label' => 'Profit / Loss', 'value' => $summary['profit'], 'tone' => $summary['profit'] >= 0 ? 'text-indigo-600' : 'text-rose-600', 'hint' => 'Completed order revenue minus cost'],
+    ];
+@endphp
+
+<section class="space-y-6">
+    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        @foreach($summaryCards as $card)
+            <div class="panel">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">{{ $card['label'] }}</p>
+                <p class="mt-2 text-2xl font-black {{ $card['tone'] }}">{{ $money($card['value']) }}</p>
+                <p class="mt-1 text-xs text-slate-500">{{ $card['hint'] }}</p>
+            </div>
+        @endforeach
+    </div>
+
+    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div class="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Top-ups</p>
+            <p class="mt-2 text-lg font-black text-emerald-700">{{ $money($summary['topups']) }}</p>
+        </div>
+        <div class="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-blue-700">Purchases</p>
+            <p class="mt-2 text-lg font-black text-blue-700">{{ $money($summary['purchases']) }}</p>
+        </div>
+        <div class="rounded-2xl border border-amber-100 bg-amber-50 p-4">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-amber-700">Cost</p>
+            <p class="mt-2 text-lg font-black text-amber-700">{{ $money($summary['cost']) }}</p>
+        </div>
+        <div class="rounded-2xl border border-rose-100 bg-rose-50 p-4">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-rose-700">Refunded</p>
+            <p class="mt-2 text-lg font-black text-rose-700">{{ $money($summary['refunded_order_value']) }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-600">Pending Value</p>
+            <p class="mt-2 text-lg font-black text-slate-700">{{ $money($summary['pending_order_value']) }}</p>
+        </div>
+    </div>
+
+    <div class="panel space-y-6">
+    <form method="GET" action="{{ route('admin.transactions.index') }}" class="grid gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100 md:grid-cols-6">
         <div class="field md:col-span-1">
             <label>User / Description</label>
             <input type="text" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="Search...">
@@ -15,6 +59,14 @@
                 @foreach(['topup','purchase','refund','admin_adjustment'] as $type)
                     <option value="{{ $type }}" @selected(($filters['type'] ?? '')===$type)>{{ ucfirst(str_replace('_',' ',$type)) }}</option>
                 @endforeach
+            </select>
+        </div>
+        <div class="field">
+            <label>Direction</label>
+            <select name="direction">
+                <option value="">In & Out</option>
+                <option value="in" @selected(($filters['direction'] ?? '') === 'in')>Money In</option>
+                <option value="out" @selected(($filters['direction'] ?? '') === 'out')>Money Out</option>
             </select>
         </div>
         <div class="field">
@@ -92,5 +144,6 @@
         </table>
     </div>
     <div class="mt-4">{{ $transactions->links() }}</div>
+    </div>
 </section>
 @endsection

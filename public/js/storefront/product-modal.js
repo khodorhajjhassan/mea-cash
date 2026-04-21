@@ -38,12 +38,32 @@ const localized = (item, key = 'name') => item?.[`${key}_${isRtl() ? 'ar' : 'en'
 const imageUrl = (item, fallback = '/meacash-logo.png') => item?.image || fallback;
 const descriptionOf = (item) => localized(item, 'description');
 const selectedImage = () => selectedPackage?.image || selectedProduct?.image || currentSubcategory?.image || '/meacash-logo.png';
-const friendlyType = (product) => {
-    const delivery = product?.delivery_type ? String(product.delivery_type).replace(/_/g, ' ') : '';
-    if (delivery) return delivery;
+const deliveryLabel = (item) => {
+    const type = item?.delivery_type || '';
+    if (!type) return '';
 
+    const labels = {
+        instant: { en: 'Instant', ar: 'فوري' },
+        fast: { en: 'Fast', ar: 'سريع' },
+        timed: { en: 'Timed', ar: 'مجدول' },
+        slow: { en: 'Slow', ar: 'بطيء' },
+        manual: { en: 'Manual', ar: 'يدوي' },
+    };
+    const label = labels[type]?.[currentLocale()] || String(type).replace(/_/g, ' ');
+    const minutes = item?.delivery_time_minutes || '';
+
+    return minutes ? `${label} · ${minutes}m` : label;
+};
+
+const orderTypeLabel = (product) => {
     const type = product?.product_type ? String(product.product_type).replace(/_/g, ' ') : '';
-    return type === 'fixed package' ? 'Digital asset' : (type || 'Digital asset');
+    if (!type) return '';
+
+    return type === 'fixed package' ? 'Fixed package' : type;
+};
+
+const friendlyType = (product) => {
+    return [orderTypeLabel(product), deliveryLabel(product)].filter(Boolean).join(' / ');
 };
 const compactNumber = (value) => {
     const number = Number(value);
@@ -202,7 +222,7 @@ function renderHeader() {
     if (!header || !currentSubcategory) return;
 
     const name = localized(currentSubcategory);
-    const categoryName = currentSubcategory.category?.name || currentSubcategory.category_name || 'Digital Assets';
+    const categoryName = currentSubcategory.category?.name || currentSubcategory.category_name || '';
     const subcategoryDescription = descriptionOf(currentSubcategory);
 
     header.innerHTML = `
@@ -212,7 +232,7 @@ function renderHeader() {
                 ${escapeHtml(name)} <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-container to-secondary-container">Vault</span>
             </h1>
             <p class="mt-2 font-label text-[10px] uppercase tracking-[0.24em] text-outline">
-                ${escapeHtml(categoryName)} / ${escapeHtml(currentSubcategory.products?.length || 0)} assets
+                ${[categoryName, `${currentSubcategory.products?.length || 0} assets`].filter(Boolean).map(escapeHtml).join(' / ')}
             </p>
             ${subcategoryDescription ? `<p class="mt-2 line-clamp-2 max-w-xl text-xs leading-relaxed text-on-surface-variant/70">${escapeHtml(subcategoryDescription)}</p>` : ''}
         </div>
@@ -335,6 +355,18 @@ function renderQuantity() {
 
 function renderField(field) {
     const label = `${escapeHtml(field.label)}${field.required ? ' <span class="text-secondary-container">*</span>' : ''}`;
+    const isNumber = field.type === 'number';
+    const min = field.min !== null && field.min !== undefined && field.min !== '' ? Number(field.min) : null;
+    const max = field.max !== null && field.max !== undefined && field.max !== '' ? Number(field.max) : null;
+    const numberAttrs = isNumber
+        ? `${Number.isFinite(min) ? ` min="${escapeHtml(min)}"` : ''}${Number.isFinite(max) ? ` max="${escapeHtml(max)}"` : ''} inputmode="decimal"`
+        : '';
+    const rangeHint = isNumber && (Number.isFinite(min) || Number.isFinite(max))
+        ? `<p class="mt-1 ms-1 font-label text-[9px] uppercase tracking-widest text-outline">${[
+            Number.isFinite(min) ? `Min: ${escapeHtml(compactNumber(min))}` : '',
+            Number.isFinite(max) ? `Max: ${escapeHtml(compactNumber(max))}` : '',
+        ].filter(Boolean).join(' / ')}</p>`
+        : '';
 
     if (field.type === 'select') {
         const options = (field.options || []).map((option) => {
@@ -359,10 +391,11 @@ function renderField(field) {
         <div class="group">
             <label class="mb-2 ms-1 block font-label text-[10px] font-bold uppercase tracking-widest text-outline">${label}</label>
             <div class="relative">
-                <input type="${escapeHtml(field.type || 'text')}" name="form_data[${escapeHtml(field.key)}]" placeholder="${escapeHtml(field.placeholder || '')}"
+                <input type="${escapeHtml(field.type || 'text')}" name="form_data[${escapeHtml(field.key)}]" placeholder="${escapeHtml(field.placeholder || '')}"${numberAttrs}
                     class="w-full rounded-xl border-0 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface placeholder:text-outline-variant outline-none">
                 <div class="absolute bottom-0 start-0 h-[2px] w-0 bg-gradient-to-r from-primary-container to-secondary-container transition-all duration-500 group-focus-within:w-full"></div>
             </div>
+            ${rangeHint}
             <div id="err-${escapeHtml(field.key)}" class="mt-1 hidden font-label text-[10px] uppercase tracking-widest text-secondary-container"></div>
         </div>
     `;
@@ -441,6 +474,32 @@ function bindEvents() {
             if (livePrice) livePrice.textContent = money(selectedUnitPrice());
         });
     }
+
+    document.querySelectorAll('[name^="form_data"][type="number"]').forEach((input) => {
+        input.addEventListener('input', () => {
+            const min = input.min !== '' ? Number(input.min) : null;
+            const max = input.max !== '' ? Number(input.max) : null;
+            const value = Number(input.value);
+            const match = input.name.match(/\[(.*?)\]/);
+            const error = match ? document.getElementById(`err-${match[1]}`) : null;
+
+            if (!error || input.value === '') {
+                error?.classList.add('hidden');
+                return;
+            }
+
+            if ((Number.isFinite(min) && value < min) || (Number.isFinite(max) && value > max)) {
+                error.textContent = [
+                    Number.isFinite(min) ? `Min: ${compactNumber(min)}` : '',
+                    Number.isFinite(max) ? `Max: ${compactNumber(max)}` : '',
+                ].filter(Boolean).join(' / ');
+                error.classList.remove('hidden');
+            } else {
+                error.textContent = '';
+                error.classList.add('hidden');
+            }
+        });
+    });
 
     document.getElementById('purchase-now-btn')?.addEventListener('click', handlePurchaseNow);
     document.getElementById('share-btn')?.addEventListener('click', handleShare);

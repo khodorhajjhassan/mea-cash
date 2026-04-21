@@ -27,7 +27,10 @@ class TopupRequest extends Model
         'payment_method',
         'amount_requested',
         'receipt_image_path',
+        'status',
         'admin_note',
+        'processed_by',
+        'processed_at',
     ];
 
     protected function casts(): array
@@ -46,5 +49,29 @@ class TopupRequest extends Model
     public function processor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'processed_by');
+    }
+
+    public function getReceiptUrl(): ?string
+    {
+        if (!$this->receipt_image_path) {
+            return null;
+        }
+
+        try {
+            if (\Illuminate\Support\Facades\Storage::disk('private')->exists($this->receipt_image_path)) {
+                return \Illuminate\Support\Facades\Storage::disk('private')->temporaryUrl(
+                    $this->receipt_image_path,
+                    now()->addMinutes(30)
+                );
+            }
+        } catch (\Throwable $e) {
+            // Fallback to public if private fails (backward compatibility)
+        }
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($this->receipt_image_path)) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->url($this->receipt_image_path);
+        }
+
+        return null;
     }
 }

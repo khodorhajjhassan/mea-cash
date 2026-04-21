@@ -14,6 +14,8 @@ class Subcategory extends Model
     protected $fillable = [
         'category_id',
         'product_type_id',
+        'delivery_type',
+        'delivery_time_minutes',
         'name_ar',
         'name_en',
         'slug',
@@ -34,6 +36,7 @@ class Subcategory extends Model
         return [
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
+            'delivery_time_minutes' => 'integer',
         ];
     }
 
