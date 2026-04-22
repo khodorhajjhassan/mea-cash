@@ -48,13 +48,17 @@
                 <div class="carousel-inner h-full w-full flex transition-transform duration-700 ease-in-out" dir="ltr">
                     @forelse($banners as $banner)
                         <div class="carousel-item min-w-full h-full relative sf-skeleton">
-                            <img class="w-full h-full object-cover sf-img-loading"
-                                src="{{ \Illuminate\Support\Facades\Storage::disk(config('media.disk'))->url($banner->image_path) }}"
-                                alt="{{ $banner->{"title_$locale"} }}"
-                                width="1440" height="720"
-                                fetchpriority="{{ $loop->first ? 'high' : 'auto' }}"
-                                loading="{{ $loop->first ? 'eager' : 'lazy' }}" decoding="{{ $loop->first ? 'sync' : 'async' }}"
-                                onload="this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');">
+                            <picture>
+                                <source media="(max-width: 768px)" srcset="{{ $banner->mobileImageUrl() }}">
+                                <img class="w-full h-full object-cover sf-img-loading"
+                                    src="{{ $banner->imageUrl() }}"
+                                    alt="{{ $banner->{"title_$locale"} }}"
+                                    width="1440" height="720"
+                                    sizes="100vw"
+                                    fetchpriority="{{ $loop->first ? 'high' : 'auto' }}"
+                                    loading="{{ $loop->first ? 'eager' : 'lazy' }}" decoding="{{ $loop->first ? 'sync' : 'async' }}"
+                                    onload="this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');">
+                            </picture>
                             <div
                                 class="mc-carousel-overlay absolute inset-0 bg-gradient-to-t md:bg-gradient-to-s from-background via-background/20 to-transparent">
                             </div>
@@ -695,6 +699,8 @@
                     const indicators = carousel.querySelectorAll('.carousel-indicator');
                     let currentIndex = 0;
                     const totalSlides = items.length;
+                    let autoSlideId = null;
+                    let carouselInView = true;
 
                     function updateCarousel() {
                         inner.style.transform = `translateX(-${currentIndex * 100}%)`;
@@ -711,6 +717,23 @@
                         ctas.forEach((cta, i) => {
                             cta.classList.toggle('hidden', i !== currentIndex);
                         });
+                    }
+
+                    function stopAutoSlide() {
+                        if (autoSlideId !== null) {
+                            window.clearInterval(autoSlideId);
+                            autoSlideId = null;
+                        }
+                    }
+
+                    function startAutoSlide() {
+                        if (autoSlideId !== null || totalSlides <= 1 || !carouselInView || document.hidden) {
+                            return;
+                        }
+
+                        autoSlideId = window.setInterval(() => {
+                            window.nextSlide();
+                        }, 5000);
                     }
 
                     window.nextSlide = function () {
@@ -736,7 +759,35 @@
                         });
                     });
 
-                    setInterval(nextSlide, 5000);
+                    if ('IntersectionObserver' in window) {
+                        const carouselObserver = new IntersectionObserver((entries) => {
+                            entries.forEach((entry) => {
+                                carouselInView = entry.isIntersecting;
+                                if (carouselInView) {
+                                    startAutoSlide();
+                                } else {
+                                    stopAutoSlide();
+                                }
+                            });
+                        }, { threshold: 0.25 });
+
+                        carouselObserver.observe(carousel);
+                    }
+
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.hidden) {
+                            stopAutoSlide();
+                        } else {
+                            startAutoSlide();
+                        }
+                    });
+
+                    carousel.addEventListener('mouseenter', stopAutoSlide);
+                    carousel.addEventListener('mouseleave', startAutoSlide);
+                    carousel.addEventListener('touchstart', stopAutoSlide, { passive: true });
+                    carousel.addEventListener('touchend', startAutoSlide, { passive: true });
+
+                    startAutoSlide();
                     updateCarousel();
                 }
             });

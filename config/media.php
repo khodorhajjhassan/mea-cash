@@ -8,4 +8,8 @@ return [
     'image_webp_quality' => (int) env('IMAGE_WEBP_QUALITY', 82),
 
     'image_max_width' => (int) env('IMAGE_MAX_WIDTH', 2000),
+
+    'banner_max_width' => (int) env('BANNER_MAX_WIDTH', 1600),
+
+    'banner_mobile_max_width' => (int) env('BANNER_MOBILE_MAX_WIDTH', 768),
 ];

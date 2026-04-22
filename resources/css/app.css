@@ -62,6 +62,10 @@
 }
 
 @layer base {
+    * {
+        -webkit-overflow-scrolling: touch;
+    }
+
     :root,
     html[data-theme="dark"] {
         color-scheme: dark;
@@ -159,6 +163,10 @@
         transition-duration: 0s !important;
     }
 
+    html {
+        scroll-behavior: smooth;
+    }
+
     body {
         @apply antialiased bg-background text-on-surface;
     }
@@ -176,6 +184,8 @@
         background-color: var(--mc-header-bg);
         border-color: color-mix(in srgb, var(--mc-card-border) 55%, transparent);
         box-shadow: 0 8px 32px var(--mc-shadow-strong);
+        transform: translateZ(0);
+        will-change: transform;
     }
 
     .mc-nav-link {
@@ -270,6 +280,8 @@
     .mc-mobile-nav {
         background-color: var(--mc-nav-bg);
         box-shadow: 0 -18px 60px var(--mc-shadow-strong);
+        transform: translateZ(0);
+        will-change: transform;
     }
 
     .mc-hero-shell {
@@ -780,11 +792,13 @@
         display: flex;
         width: fit-content;
         animation: marquee 30s linear infinite;
+        will-change: transform;
     }
     .animate-marquee-rtl {
         display: flex;
         width: fit-content;
         animation: marquee-rtl 30s linear infinite;
+        will-change: transform;
     }
     .animate-marquee:hover {
         animation-play-state: paused;
@@ -2320,18 +2334,20 @@
     z-index: 0;
     pointer-events: none;
     overflow: hidden;
-    opacity: 0.9;
+    opacity: 0.72;
+    contain: layout paint;
 }
 
 .sf-home-orb {
     position: absolute;
-    width: 34rem;
-    height: 34rem;
+    width: 28rem;
+    height: 28rem;
     border-radius: 9999px;
-    filter: blur(90px);
-    opacity: 0.18;
+    filter: blur(72px);
+    opacity: 0.14;
     mix-blend-mode: screen;
     animation: sf-home-orb-drift 16s ease-in-out infinite alternate;
+    will-change: transform;
 }
 
 .sf-home-orb-cyan {
@@ -2359,6 +2375,7 @@
     transform: translate3d(0, 0, 0);
     will-change: transform;
     animation: sf-home-grid-drift 28s linear infinite;
+    opacity: 0.8;
 }
 
 .sf-home-square-field span {
@@ -2369,7 +2386,7 @@
     top: calc(8% + ((var(--i) * 11%) % 84%));
     border: 1px solid rgba(0, 240, 255, 0.22);
     background: rgba(17, 19, 25, 0.28);
-    box-shadow: 0 0 22px rgba(0, 240, 255, 0.08);
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.06);
     transform: rotate(calc(var(--i) * 11deg));
     animation: sf-home-square-float calc(10s + (var(--i) * 0.65s)) ease-in-out infinite;
     animation-delay: calc(var(--i) * -0.7s);
@@ -2377,7 +2394,24 @@
 
 .sf-home-square-field span:nth-child(3n) {
     border-color: rgba(254, 0, 254, 0.22);
-    box-shadow: 0 0 24px rgba(254, 0, 254, 0.08);
+    box-shadow: 0 0 14px rgba(254, 0, 254, 0.06);
+}
+
+.is-paused,
+.is-paused::before,
+.is-paused::after {
+    animation-play-state: paused !important;
+}
+
+.sf-home-atmosphere.is-paused .sf-home-orb,
+.sf-home-atmosphere.is-paused .sf-home-dot-field,
+.sf-home-atmosphere.is-paused .sf-home-square-field span {
+    animation-play-state: paused !important;
+}
+
+.sf-category-strip {
+    transform: translateZ(0);
+    will-change: transform;
 }
 
 @keyframes sf-home-orb-drift {
@@ -2400,6 +2434,29 @@
     .sf-home-dot-field,
     .sf-home-square-field span {
         animation: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .sf-home-atmosphere {
+        opacity: 0.52;
+    }
+
+    .sf-home-orb {
+        width: 20rem;
+        height: 20rem;
+        filter: blur(52px);
+        opacity: 0.1;
+    }
+
+    .sf-home-dot-field {
+        inset: -40px;
+        background-size: 64px 64px, 112px 112px;
+        opacity: 0.48;
+    }
+
+    .sf-home-square-field span:nth-child(n + 10) {
+        display: none;
     }
 }
 

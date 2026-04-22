@@ -42,7 +42,7 @@ class BannerController extends Controller
  
         try {
             if ($request->hasFile('image')) {
-                $data['image_path'] = $this->imageStorage->storeAsWebp($request->file('image'), 'banners');
+                $data['image_path'] = $this->imageStorage->storeBannerAsWebp($request->file('image'));
             }
  
             $data['is_active'] = $request->boolean('is_active', true);
@@ -78,7 +78,7 @@ class BannerController extends Controller
  
         try {
             if ($request->hasFile('image')) {
-                $data['image_path'] = $this->imageStorage->storeAsWebp($request->file('image'), 'banners', $banner->image_path);
+                $data['image_path'] = $this->imageStorage->storeBannerAsWebp($request->file('image'), $banner->image_path);
             }
  
             $data['is_active'] = $request->boolean('is_active', $banner->is_active);
@@ -95,7 +95,7 @@ class BannerController extends Controller
     public function destroy(Banner $banner)
     {
         try {
-            $this->imageStorage->delete($banner->image_path);
+            $this->imageStorage->deleteBannerImage($banner->image_path);
             $banner->delete();
             return redirect()->route('admin.banners.index')->with('success', 'Banner deleted successfully.');
         } catch (Exception $e) {

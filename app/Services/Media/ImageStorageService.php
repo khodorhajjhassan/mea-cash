@@ -5,6 +5,7 @@ namespace App\Services\Media;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use GdImage;
 use RuntimeException;
 
 class ImageStorageService
@@ -31,34 +32,8 @@ class ImageStorageService
         $sourceHeight = imagesy($sourceImage);
 
         [$targetWidth, $targetHeight] = $this->targetDimensions($sourceWidth, $sourceHeight);
-
-        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
-        imagealphablending($canvas, false);
-        imagesavealpha($canvas, true);
-
-        $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
-        imagefilledrectangle($canvas, 0, 0, $targetWidth, $targetHeight, $transparent);
-
-        imagecopyresampled(
-            $canvas,
-            $sourceImage,
-            0,
-            0,
-            0,
-            0,
-            $targetWidth,
-            $targetHeight,
-            $sourceWidth,
-            $sourceHeight
-        );
-
-        ob_start();
-        $quality = max(1, min(100, (int) config('media.image_webp_quality', 82)));
-        imagewebp($canvas, null, $quality);
-        $webpBinary = ob_get_clean();
-
+        $webpBinary = $this->encodeResizedWebp($sourceImage, $sourceWidth, $sourceHeight, $targetWidth, $targetHeight);
         imagedestroy($sourceImage);
-        imagedestroy($canvas);
 
         if (! is_string($webpBinary) || $webpBinary === '') {
             throw new RuntimeException('Failed to encode image as WebP.');
@@ -79,6 +54,115 @@ class ImageStorageService
         }
 
         return $path;
+    }
+
+    public function storeBannerAsWebp(UploadedFile $file, ?string $oldPath = null): string
+    {
+        if (! function_exists('imagewebp') || ! function_exists('imagecreatefromstring')) {
+            throw new RuntimeException('GD with WebP support is required to optimize images.');
+        }
+
+        $sourceBinary = file_get_contents($file->getRealPath());
+
+        if ($sourceBinary === false) {
+            throw new RuntimeException('Unable to read uploaded image.');
+        }
+
+        $sourceImage = @imagecreatefromstring($sourceBinary);
+
+        if ($sourceImage === false) {
+            throw new RuntimeException('Unsupported or invalid image content.');
+        }
+
+        $sourceWidth = imagesx($sourceImage);
+        $sourceHeight = imagesy($sourceImage);
+
+        [$desktopWidth, $desktopHeight] = $this->dimensionsForWidth(
+            $sourceWidth,
+            $sourceHeight,
+            max(1, (int) config('media.banner_max_width', 1600))
+        );
+        [$mobileWidth, $mobileHeight] = $this->dimensionsForWidth(
+            $sourceWidth,
+            $sourceHeight,
+            max(1, (int) config('media.banner_mobile_max_width', 768))
+        );
+
+        $desktopBinary = $this->encodeResizedWebp($sourceImage, $sourceWidth, $sourceHeight, $desktopWidth, $desktopHeight);
+        $mobileBinary = $this->encodeResizedWebp($sourceImage, $sourceWidth, $sourceHeight, $mobileWidth, $mobileHeight);
+        imagedestroy($sourceImage);
+
+        if (! is_string($desktopBinary) || $desktopBinary === '' || ! is_string($mobileBinary) || $mobileBinary === '') {
+            throw new RuntimeException('Failed to encode banner image as WebP.');
+        }
+
+        $disk = config('media.disk', config('filesystems.default'));
+        $basePath = 'banners/'.Str::uuid()->toString().'.webp';
+
+        $this->putWebp($disk, $basePath, $desktopBinary);
+        $this->putWebp($disk, $this->variantPath($basePath, 'mobile'), $mobileBinary);
+
+        if ($oldPath !== null) {
+            $this->deleteBannerImage($oldPath);
+        }
+
+        return $basePath;
+    }
+
+    public function ensureBannerMobileVariant(string $path): bool
+    {
+        if ($path === '' || Str::startsWith($path, ['http://', 'https://'])) {
+            return false;
+        }
+
+        $disk = config('media.disk', config('filesystems.default'));
+        $variantPath = $this->variantPath($path, 'mobile');
+
+        if (Storage::disk($disk)->exists($variantPath)) {
+            return true;
+        }
+
+        if (! Storage::disk($disk)->exists($path)) {
+            return false;
+        }
+
+        $sourceBinary = Storage::disk($disk)->get($path);
+        $sourceImage = @imagecreatefromstring($sourceBinary);
+
+        if ($sourceImage === false) {
+            return false;
+        }
+
+        $sourceWidth = imagesx($sourceImage);
+        $sourceHeight = imagesy($sourceImage);
+        [$mobileWidth, $mobileHeight] = $this->dimensionsForWidth(
+            $sourceWidth,
+            $sourceHeight,
+            max(1, (int) config('media.banner_mobile_max_width', 768))
+        );
+
+        $mobileBinary = $this->encodeResizedWebp($sourceImage, $sourceWidth, $sourceHeight, $mobileWidth, $mobileHeight);
+        imagedestroy($sourceImage);
+
+        if (! is_string($mobileBinary) || $mobileBinary === '') {
+            return false;
+        }
+
+        $this->putWebp($disk, $variantPath, $mobileBinary);
+
+        return true;
+    }
+
+    public function deleteBannerImage(?string $path): void
+    {
+        $this->delete($path);
+
+        if ($path === null || $path === '' || Str::startsWith($path, ['http://', 'https://'])) {
+            return;
+        }
+
+        $disk = config('media.disk', config('filesystems.default'));
+        Storage::disk($disk)->delete($this->variantPath($path, 'mobile'));
     }
 
     public function delete(?string $path): void
@@ -110,6 +194,11 @@ class ImageStorageService
         return Storage::disk($disk)->url($path);
     }
 
+    public function variantPath(string $path, string $variant): string
+    {
+        return preg_replace('/(\.[^.]+)$/', sprintf('.%s$1', $variant), $path) ?? $path;
+    }
+
     /**
      * @return array{int, int}
      */
@@ -128,5 +217,63 @@ class ImageStorageService
         $ratio = $height / $width;
 
         return [$maxWidth, (int) round($maxWidth * $ratio)];
+    }
+
+    /**
+     * @return array{int, int}
+     */
+    private function dimensionsForWidth(int $width, int $height, int $maxWidth): array
+    {
+        if ($width <= $maxWidth) {
+            return [$width, $height];
+        }
+
+        $ratio = $height / $width;
+
+        return [$maxWidth, (int) round($maxWidth * $ratio)];
+    }
+
+    private function encodeResizedWebp(GdImage $sourceImage, int $sourceWidth, int $sourceHeight, int $targetWidth, int $targetHeight): string
+    {
+        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+        imagealphablending($canvas, false);
+        imagesavealpha($canvas, true);
+
+        $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+        imagefilledrectangle($canvas, 0, 0, $targetWidth, $targetHeight, $transparent);
+
+        imagecopyresampled(
+            $canvas,
+            $sourceImage,
+            0,
+            0,
+            0,
+            0,
+            $targetWidth,
+            $targetHeight,
+            $sourceWidth,
+            $sourceHeight
+        );
+
+        ob_start();
+        $quality = max(1, min(100, (int) config('media.image_webp_quality', 82)));
+        imagewebp($canvas, null, $quality);
+        $webpBinary = ob_get_clean();
+        imagedestroy($canvas);
+
+        if (! is_string($webpBinary) || $webpBinary === '') {
+            throw new RuntimeException('Failed to encode image as WebP.');
+        }
+
+        return $webpBinary;
+    }
+
+    private function putWebp(string $disk, string $path, string $binary): void
+    {
+        Storage::disk($disk)->put($path, $binary, [
+            'visibility' => 'public',
+            'ContentType' => 'image/webp',
+            'CacheControl' => 'public, max-age=31536000, immutable',
+        ]);
     }
 }
