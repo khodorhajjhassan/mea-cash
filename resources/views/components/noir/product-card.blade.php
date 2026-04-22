@@ -53,7 +53,7 @@ onclick="openSubcategoryModal(@js($modalSlug), @js($modalProductId))" @endif>
 
     <div class="relative aspect-square overflow-hidden bg-surface-container-lowest sf-skeleton">
         <img class="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-110 sm:p-6 sf-img-loading"
-            src="{{ $image }}" alt="{{ $name }}" loading="lazy" decoding="async"
+            src="{{ $image }}" alt="{{ $name }}" width="512" height="512" loading="lazy" decoding="async"
             onload="this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');"
             onerror="this.onerror=null;this.src=@js($fallbackImage); this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');">
 

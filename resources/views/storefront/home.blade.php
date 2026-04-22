@@ -36,7 +36,7 @@
                     </a>
                 </div>
                 <div class="mc-hero-product-stage" aria-hidden="true">
-                    <img src="{{ asset('meacash-logo.png') }}" alt="" loading="lazy" decoding="async">
+                    <img src="{{ asset('meacash-logo.png') }}" alt="" loading="lazy" decoding="async" width="351" height="351">
                     <span class="material-symbols-outlined">sports_esports</span>
                     <span class="material-symbols-outlined">redeem</span>
                     <span class="material-symbols-outlined">bolt</span>
@@ -51,6 +51,8 @@
                             <img class="w-full h-full object-cover sf-img-loading"
                                 src="{{ \Illuminate\Support\Facades\Storage::disk(config('media.disk'))->url($banner->image_path) }}"
                                 alt="{{ $banner->{"title_$locale"} }}"
+                                width="1440" height="720"
+                                fetchpriority="{{ $loop->first ? 'high' : 'auto' }}"
                                 loading="{{ $loop->first ? 'eager' : 'lazy' }}" decoding="{{ $loop->first ? 'sync' : 'async' }}"
                                 onload="this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');">
                             <div
@@ -74,7 +76,7 @@
                         <div class="carousel-item min-w-full h-full relative">
                             <img class="w-full h-full object-cover"
                                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDrlznlKgHHa63HOhVKSNWE8C5o6YWGzqxbSrsVKR6imUOq2BDzZoRlqJg_aBtStZO89zUqnzPz4cUR1Ar_9KPYAsyplUSUhl7Cu69sWYscBbkmZv8_Z23wFHRJUsaHoWrCgTg_AZAPtY_FpHMiau3uk0SCMp2vwzAl9Sk5ydgPkW2up5bhPyu8FmcOIpMoaTLYNwC-ofII6e2sndmu9_tc47MTiFoRRkToqSy-lC4CowcwR89nZBqQxnz4mrEdSPnNMxpTJO40tQ"
-                                alt="Default Hero Image" loading="lazy" decoding="async">
+                                alt="Default Hero Image" width="1440" height="720" fetchpriority="high" loading="eager" decoding="sync">
                             <div class="mc-carousel-overlay absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
                         </div>
                     @endforelse
@@ -88,7 +90,8 @@
                             @foreach($banners as $index => $banner)
                                 <button
                                     class="carousel-indicator w-2 h-2 rounded-full border border-white/20 transition-all hover:scale-125 {{ $index === 0 ? 'bg-primary-container border-primary-container w-6' : '' }}"
-                                    data-index="{{ $index }}"></button>
+                                    data-index="{{ $index }}"
+                                    aria-label="{{ __('Show banner') }} {{ $index + 1 }}"></button>
                             @endforeach
                         </div>
 
@@ -105,12 +108,14 @@
                     </div>
                     <button
                         class="absolute top-1/2 left-6 -translate-y-1/2 w-12 h-12 rounded-full glass-panel hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10"
-                        onclick="prevSlide()">
+                        onclick="prevSlide()"
+                        aria-label="{{ __('Previous banner') }}">
                         <span class="material-symbols-outlined">chevron_left</span>
                     </button>
                     <button
                         class="absolute top-1/2 right-6 -translate-y-1/2 w-12 h-12 rounded-full glass-panel hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10"
-                        onclick="nextSlide()">
+                        onclick="nextSlide()"
+                        aria-label="{{ __('Next banner') }}">
                         <span class="material-symbols-outlined">chevron_right</span>
                     </button>
                 @endif
@@ -449,7 +454,7 @@
                 <div class="relative w-full aspect-video rounded-3xl overflow-hidden glass-panel p-1">
                     <img class="w-full h-full object-cover rounded-2xl"
                         src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRQAeS2ZAoyahfL86240LJ26Ih0F4jliE9yad411iOINSt87VdX-bC4PHrU3QM1Adrs0iP357z99aoZCjSU3nFCwUWmTM_s2eT7SuL7kOi_DKdnxIM6GIOY-2X_tF4VSNlfVXvriKPLiCfXsKRvkQWvt859u-jl6ttPOLclU_DS4fM30A_DKjIq0EMg9EYY-npcbrfJe_2EYoFqxxmkHvPmM8_zgN48QvwTGRH6HlTqawlZ2Zy8GgGWkv24yDT8m5RKMpWX3x4Nd4"
-                        alt="Security Visualization">
+                        alt="Security Visualization" width="1280" height="720" loading="lazy" decoding="async">
                     <div
                         class="absolute inset-0 bg-gradient-to-tr from-primary-container/20 to-transparent pointer-events-none">
                     </div>

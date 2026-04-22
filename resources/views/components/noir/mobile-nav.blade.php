@@ -46,7 +46,7 @@
 
 <div id="mobile-nav-backdrop" class="fixed inset-0 z-[90] hidden bg-background/70 backdrop-blur-sm md:hidden" data-mobile-nav-close></div>
 
-<div id="mobile-drawer-categories" class="mobile-drawer" aria-hidden="true">
+<div id="mobile-drawer-categories" class="mobile-drawer" aria-hidden="true" inert>
     <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-outline-variant/40"></div>
     <div class="mb-5 flex items-start justify-between gap-4">
         <div>
@@ -98,6 +98,7 @@
                             data-mobile-open-subcategory="{{ $subcategory->slug }}">
                             <span class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-outline-variant/15 bg-surface-container-low p-1 sf-skeleton">
                                 <img src="{{ $catalogImageUrl($subcategory->image) }}" alt="{{ $subcategory->{"name_{$locale}"} ?: $subcategory->name_en }}" 
+                                    width="40" height="40"
                                     class="h-full w-full object-contain sf-img-loading" 
                                     loading="lazy" 
                                     onerror="this.src='{{ asset('meacash-logo.png') }}'; this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');"
@@ -113,7 +114,7 @@
     </div>
 </div>
 
-<div id="mobile-drawer-search" class="mobile-drawer" aria-hidden="true">
+<div id="mobile-drawer-search" class="mobile-drawer" aria-hidden="true" inert>
     <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-outline-variant/40"></div>
     <div class="mb-5 flex items-start justify-between gap-4">
         <div>
@@ -138,7 +139,7 @@
     </div>
 </div>
 
-<div id="mobile-drawer-profile" class="mobile-drawer" aria-hidden="true">
+<div id="mobile-drawer-profile" class="mobile-drawer" aria-hidden="true" inert>
     <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-outline-variant/40"></div>
     <div class="mb-5 flex items-start justify-between gap-4">
         <div>
@@ -188,7 +189,7 @@
             </a>
             <a href="{{ $languageSwitchUrl }}" class="mobile-profile-link">
                 <span class="mc-language-flag flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-outline-variant/20">
-                    <img src="{{ $targetLocale === 'ar' ? 'https://flagcdn.com/lb.svg' : 'https://flagcdn.com/gb.svg' }}" alt="{{ $targetLocale }}" class="h-full w-full object-cover">
+                    <img src="{{ $targetLocale === 'ar' ? 'https://flagcdn.com/lb.svg' : 'https://flagcdn.com/gb.svg' }}" alt="" width="24" height="24" class="h-full w-full object-cover">
                 </span>
                 <span class="font-headline text-sm font-black uppercase text-on-surface">{{ $targetLocale === 'ar' ? 'العربية' : 'English' }}</span>
             </a>
@@ -207,7 +208,7 @@
             <a href="{{ route('store.register') }}" class="mobile-profile-link"><span class="material-symbols-outlined">person_add</span><span>{{ __('Create Account') }}</span></a>
             <a href="{{ $languageSwitchUrl }}" class="mobile-profile-link">
                 <span class="mc-language-flag flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-outline-variant/20">
-                    <img src="{{ $targetLocale === 'ar' ? 'https://flagcdn.com/lb.svg' : 'https://flagcdn.com/gb.svg' }}" alt="{{ $targetLocale }}" class="h-full w-full object-cover">
+                    <img src="{{ $targetLocale === 'ar' ? 'https://flagcdn.com/lb.svg' : 'https://flagcdn.com/gb.svg' }}" alt="" width="24" height="24" class="h-full w-full object-cover">
                 </span>
                 <span>{{ $targetLocale === 'ar' ? 'العربية' : 'English' }}</span>
             </a>
@@ -282,6 +283,7 @@
                     });
                     drawer.classList.add('mobile-drawer-open');
                     drawer.setAttribute('aria-hidden', 'false');
+                    drawer.removeAttribute('inert');
 
                     if (name === 'search') {
                         setTimeout(() => searchInput?.focus(), 180);
@@ -300,6 +302,7 @@
                     Object.values(drawers).forEach((item) => {
                         item?.classList.remove('mobile-drawer-open');
                         item?.setAttribute('aria-hidden', 'true');
+                        item?.setAttribute('inert', '');
                     });
                     document.body.style.overflow = previousBodyOverflow;
 
@@ -371,7 +374,7 @@
                                 data-mobile-search-open="${escapeHtml(item.slug || '')}"
                                 data-mobile-search-product="${Number(item.id || item.product_id || 0)}">
                                 <span class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-outline-variant/15 bg-surface-container-lowest p-1 sf-skeleton">
-                                    <img src="${escapeHtml(item.image || '/meacash-logo.png')}" alt="" class="h-full w-full object-contain sf-img-loading" 
+                                    <img src="${escapeHtml(item.image || '/meacash-logo.png')}" alt="" width="56" height="56" class="h-full w-full object-contain sf-img-loading" 
                                         onerror="this.src='/meacash-logo.png'; this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');"
                                         onload="this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');">
                                 </span>
