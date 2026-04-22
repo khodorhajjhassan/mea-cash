@@ -22,40 +22,36 @@ class RolePermissionSeeder extends Seeder
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         // 1. Define Permissions
-        $permissions = [
-            // Catalog
-            'categories.index', 'categories.create', 'categories.edit', 'categories.delete',
-            'subcategories.index', 'subcategories.create', 'subcategories.edit', 'subcategories.delete',
-            'products.index', 'products.create', 'products.edit', 'products.delete', 'products.toggle-availability',
-            'codes.index', 'codes.import', 'codes.delete',
-
-            // Orders
-            'orders.index', 'orders.show', 'orders.update-status', 'orders.fulfill', 'orders.refund', 'orders.pending',
-
-            // Wallet
-            'topups.index', 'topups.show', 'topups.approve', 'topups.reject',
-            'transactions.index', 'transactions.adjust',
-
-            // Users
-            'users.index', 'users.show', 'users.edit', 'users.toggle-status', 'users.credit-wallet', 'users.vip',
-
-            // Finance
-            'payment-methods.index', 'payment-methods.edit', 'payment-methods.toggle',
-            'suppliers.index', 'suppliers.create', 'suppliers.edit', 'suppliers.delete',
-
-            // Analytics
-            'analytics.index', 'analytics.export',
-
-            // Support
-            'contact.index', 'contact.show', 'contact.delete',
-            'feedback.index', 'feedback.show', 'feedback.delete',
-
-            // Settings
-            'settings.general', 'settings.seo', 'settings.payment', 'settings.appearance', 'settings.security',
-
-            // Roles
-            'roles.index', 'roles.create', 'roles.edit', 'roles.delete', 'roles.assign',
+        $permissionGroups = [
+            'categories' => ['index', 'create', 'edit', 'delete'],
+            'subcategories' => ['index', 'create', 'edit', 'delete'],
+            'product-types' => ['index', 'create', 'edit', 'delete'],
+            'products' => ['index', 'create', 'edit', 'delete'],
+            'codes' => ['index', 'import', 'delete'],
+            'orders' => ['index', 'show', 'edit', 'pending'],
+            'topups' => ['index', 'show', 'approve', 'reject'],
+            'transactions' => ['index', 'show', 'adjust'],
+            'users' => ['index', 'show', 'edit', 'toggle-status', 'credit-wallet', 'vip'],
+            'payment-methods' => ['index', 'edit', 'toggle'],
+            'suppliers' => ['index', 'create', 'edit', 'delete'],
+            'analytics' => ['index', 'export'],
+            'contact' => ['index', 'show', 'delete'],
+            'feedback' => ['index', 'show', 'edit', 'delete'],
+            'homepage-sections' => ['index', 'create', 'edit', 'delete'],
+            'banners' => ['index', 'create', 'edit', 'delete'],
+            'faqs' => ['index', 'create', 'edit', 'delete'],
+            'pages' => ['edit'],
+            'notifications' => ['index'],
+            'settings' => ['general', 'seo', 'payment', 'appearance', 'security'],
+            'roles' => ['index', 'create', 'edit', 'delete', 'assign'],
         ];
+
+        $permissions = collect($permissionGroups)
+            ->flatMap(fn (array $actions, string $group) => collect($actions)->map(
+                fn (string $action) => "{$group}.{$action}"
+            ))
+            ->values()
+            ->all();
 
         $now = now();
         Permission::query()->upsert(
@@ -99,6 +95,7 @@ class RolePermissionSeeder extends Seeder
             'orders.index',
             'orders.show',
             'transactions.index',
+            'transactions.show',
             'analytics.index',
             'analytics.export',
             'topups.index',

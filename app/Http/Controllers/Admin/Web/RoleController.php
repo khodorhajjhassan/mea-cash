@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Admin\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
+    private const PROTECTED_ROLES = ['super-admin', 'admin'];
+
     /**
      * Display a listing of the resource.
      */
@@ -24,9 +27,7 @@ class RoleController extends Controller
      */
     public function create()
     {
-        $permissions = Permission::all()->groupBy(function($perm) {
-            return explode('.', $perm->name)[0];
-        });
+        $permissions = $this->groupedPermissions();
 
         return view('admin.roles.create', compact('permissions'));
     }
@@ -38,7 +39,8 @@ class RoleController extends Controller
     {
         $request->validate([
             'name' => 'required|unique:roles,name',
-            'permissions' => 'required|array'
+            'permissions' => 'required|array',
+            'permissions.*' => 'exists:permissions,name',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -60,9 +62,7 @@ class RoleController extends Controller
                 ->with('error', 'The super-admin role has all access and cannot be edited.');
         }
 
-        $permissions = Permission::all()->groupBy(function($perm) {
-            return explode('.', $perm->name)[0];
-        });
+        $permissions = $this->groupedPermissions();
 
         $rolePermissions = $role->permissions->pluck('name')->toArray();
 
@@ -81,7 +81,8 @@ class RoleController extends Controller
 
         $request->validate([
             'name' => 'required|unique:roles,name,' . $role->id,
-            'permissions' => 'required|array'
+            'permissions' => 'required|array',
+            'permissions.*' => 'exists:permissions,name',
         ]);
 
         DB::transaction(function () use ($request, $role) {
@@ -101,7 +102,7 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
-        if (in_array($role->name, ['super-admin', 'admin'])) {
+        if (in_array($role->name, self::PROTECTED_ROLES, true)) {
             return back()->with('error', __('roles.messages.cannot_delete_protected'));
         }
 
@@ -116,7 +117,7 @@ class RoleController extends Controller
      */
     public function assignments(Request $request)
     {
-        $query = \App\Models\User::query();
+        $query = User::query()->with('roles');
 
         if ($request->has('search')) {
             $search = $request->search;
@@ -127,7 +128,7 @@ class RoleController extends Controller
         }
 
         $users = $query->paginate(20);
-        $roles = Role::all();
+        $roles = Role::query()->orderBy('name')->get();
 
         return view('admin.roles.assignments', compact('users', 'roles'));
     }
@@ -135,18 +136,37 @@ class RoleController extends Controller
     /**
      * Update user roles.
      */
-    public function updateAssignments(Request $request, \App\Models\User $user)
+    public function updateAssignments(Request $request, User $user)
     {
+        $request->validate([
+            'roles' => 'nullable|array',
+            'roles.*' => 'exists:roles,name',
+        ]);
+
+        $requestedRoles = collect($request->input('roles', []))->values();
+
         // Protection against removing last super-admin
-        if ($user->hasRole('super-admin') && !in_array('super-admin', $request->roles ?? [])) {
-            $superAdminCount = \App\Models\User::role('super-admin')->count();
+        if ($user->hasRole('super-admin') && ! $requestedRoles->contains('super-admin')) {
+            $superAdminCount = User::role('super-admin')->count();
             if ($superAdminCount <= 1) {
                 return back()->with('error', 'Cannot remove the last super-admin.');
             }
         }
 
-        $user->syncRoles($request->roles);
+        if ($user->hasRole('super-admin') && ! $requestedRoles->contains('super-admin')) {
+            return back()->with('error', 'Super-admin assignment is protected for this user.');
+        }
+
+        $user->syncRoles($requestedRoles->all());
 
         return back()->with('success', __('roles.messages.assignment_updated'));
+    }
+
+    private function groupedPermissions()
+    {
+        return Permission::query()
+            ->orderBy('name')
+            ->get()
+            ->groupBy(fn (Permission $permission) => explode('.', $permission->name)[0]);
     }
 }

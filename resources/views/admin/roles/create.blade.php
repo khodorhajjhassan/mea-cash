@@ -40,7 +40,7 @@
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
                         <div class="p-4 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
                             <h4 class="font-bold text-slate-800 capitalize">
-                                {{ __('roles.modules.' . $group) ?? $group }}
+                                {{ trans()->has('roles.modules.' . $group) ? __('roles.modules.' . $group) : \Illuminate\Support\Str::headline(str_replace('-', ' ', $group)) }}
                             </h4>
                             <div class="flex gap-2">
                                 <button type="button" 
@@ -66,7 +66,7 @@
                                     </div>
                                     <div class="ms-3 text-sm">
                                         <span class="font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">
-                                            {{ str_replace($group . '.', '', $permission->name) }}
+                                            {{ \Illuminate\Support\Str::headline(str_replace(['-', $group . '.'], [' ', ''], $permission->name)) }}
                                         </span>
                                     </div>
                                 </label>

@@ -29,7 +29,7 @@
                 <span>{{ __('admin.sidebar.dashboard') }}</span>
             </a>
 
-            @canany(['categories.index', 'products.index'])
+            @canany(['categories.index', 'subcategories.index', 'product-types.index', 'products.index'])
                 <details class="group" {{ $groupOpen('admin.categories.*', 'admin.subcategories.*', 'admin.product-types.*', 'admin.products.*') ? 'open' : '' }}>
                     <summary class="section-label flex cursor-pointer list-none items-center justify-between rounded-xl px-3 py-2 hover:bg-slate-100 [&::-webkit-details-marker]:hidden">
                         <span class="flex items-center gap-2 font-bold text-slate-700">
@@ -43,7 +43,7 @@
                         </svg>
                     </summary>
                     <div class="mt-1 space-y-1">
-                        @can('categories.index')
+                        @canany(['categories.index', 'subcategories.index', 'product-types.index'])
                             <a href="{{ route('admin.categories.index') }}"
                                 class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -51,6 +51,8 @@
                                 </svg>
                                 <span>{{ __('admin.sidebar.categories') }}</span>
                             </a>
+                        @endcanany
+                        @can('subcategories.index')
                             <a href="{{ route('admin.subcategories.index') }}"
                                 class="nav-link {{ request()->routeIs('admin.subcategories.*') ? 'active' : '' }}">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -58,6 +60,8 @@
                                 </svg>
                                 <span>{{ __('admin.sidebar.subcategories') }}</span>
                             </a>
+                        @endcan
+                        @can('product-types.index')
                             <a href="{{ route('admin.product-types.index') }}"
                                 class="nav-link {{ request()->routeIs('admin.product-types.*') ? 'active' : '' }}">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -79,7 +83,7 @@
                 </details>
             @endcanany
 
-            @canany(['categories.index', 'settings.general'])
+            @canany(['homepage-sections.index', 'banners.index', 'faqs.index', 'pages.edit'])
                 <details class="group" {{ $groupOpen('admin.banners.*', 'admin.faqs.*', 'admin.homepage-sections.*', 'admin.pages.*') ? 'open' : '' }}>
                     <summary class="section-label flex cursor-pointer list-none items-center justify-between rounded-xl px-3 py-2 hover:bg-slate-100 [&::-webkit-details-marker]:hidden">
                         <span class="flex items-center gap-2 font-bold text-slate-700">
@@ -93,7 +97,7 @@
                         </svg>
                     </summary>
                     <div class="mt-1 space-y-1">
-                        @can('categories.index')
+                        @can('homepage-sections.index')
                             <a href="{{ route('admin.homepage-sections.index') }}"
                                 class="nav-link {{ request()->routeIs('admin.homepage-sections.*') ? 'active' : '' }}">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -101,6 +105,8 @@
                                 </svg>
                                 <span>{{ __('admin.sidebar.homepage_sections') }}</span>
                             </a>
+                        @endcan
+                        @can('banners.index')
                             <a href="{{ route('admin.banners.index') }}"
                                 class="nav-link {{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -108,6 +114,8 @@
                                 </svg>
                                 <span>{{ __('admin.sidebar.banners') }}</span>
                             </a>
+                        @endcan
+                        @can('faqs.index')
                             <a href="{{ route('admin.faqs.index') }}"
                                 class="nav-link {{ request()->routeIs('admin.faqs.*') ? 'active' : '' }}">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -116,7 +124,7 @@
                                 <span>{{ __('admin.sidebar.faqs') }}</span>
                             </a>
                         @endcan
-                        @can('settings.general')
+                        @can('pages.edit')
                             <a href="{{ route('admin.pages.edit') }}"
                                 class="nav-link {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -333,7 +341,7 @@
                 </details>
             @endcanany
 
-            @canany(['settings.general', 'roles.index'])
+            @canany(['notifications.index', 'roles.index', 'settings.general'])
                 <details class="group" {{ $groupOpen('admin.notifications.*', 'admin.roles.*', 'admin.settings.*') ? 'open' : '' }}>
                     <summary class="section-label flex cursor-pointer list-none items-center justify-between rounded-xl px-3 py-2 hover:bg-slate-100 [&::-webkit-details-marker]:hidden">
                         <span class="flex items-center gap-2 font-bold text-slate-700">
@@ -347,13 +355,15 @@
                         </svg>
                     </summary>
                     <div class="mt-1 space-y-1">
-                        <a href="{{ route('admin.notifications.index') }}"
-                            class="nav-link {{ request()->routeIs('admin.notifications.*') ? 'active' : '' }}">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                            </svg>
-                            <span>{{ __('admin.sidebar.alerts') }}</span>
-                        </a>
+                        @can('notifications.index')
+                            <a href="{{ route('admin.notifications.index') }}"
+                                class="nav-link {{ request()->routeIs('admin.notifications.*') ? 'active' : '' }}">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                <span>{{ __('admin.sidebar.alerts') }}</span>
+                            </a>
+                        @endcan
                         @can('roles.index')
                             <a href="{{ route('admin.roles.index') }}"
                                 class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">

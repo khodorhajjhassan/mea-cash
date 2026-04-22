@@ -118,10 +118,26 @@ Route::prefix('{locale}')
                 Route::middleware(['auth', 'admin'])->group(function (): void {
                     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-                    Route::resource('categories', CategoryController::class)->middleware('permission:categories.index');
-                    Route::resource('subcategories', SubcategoryController::class)->middleware('permission:categories.index');
-                    Route::resource('product-types', ProductTypeController::class)->middleware('permission:categories.index');
-                    Route::resource('products', ProductController::class)->middleware('permission:products.index');
+                    Route::resource('categories', CategoryController::class)
+                        ->middleware('permission:categories.index')
+                        ->middlewareFor(['create', 'store'], 'permission:categories.create')
+                        ->middlewareFor(['edit', 'update'], 'permission:categories.edit')
+                        ->middlewareFor('destroy', 'permission:categories.delete');
+                    Route::resource('subcategories', SubcategoryController::class)
+                        ->middleware('permission:subcategories.index')
+                        ->middlewareFor(['create', 'store'], 'permission:subcategories.create')
+                        ->middlewareFor(['edit', 'update'], 'permission:subcategories.edit')
+                        ->middlewareFor('destroy', 'permission:subcategories.delete');
+                    Route::resource('product-types', ProductTypeController::class)
+                        ->middleware('permission:product-types.index')
+                        ->middlewareFor(['create', 'store'], 'permission:product-types.create')
+                        ->middlewareFor(['edit', 'update'], 'permission:product-types.edit')
+                        ->middlewareFor('destroy', 'permission:product-types.delete');
+                    Route::resource('products', ProductController::class)
+                        ->middleware('permission:products.index')
+                        ->middlewareFor(['create', 'store'], 'permission:products.create')
+                        ->middlewareFor(['edit', 'update'], 'permission:products.edit')
+                        ->middlewareFor('destroy', 'permission:products.delete');
                     
                     Route::get('orders/pending', [OrderController::class, 'pending'])->middleware('permission:orders.pending')->name('orders.pending');
                     Route::resource('orders', OrderController::class)->only(['index', 'show'])->middleware('permission:orders.index');
@@ -130,33 +146,55 @@ Route::prefix('{locale}')
                     Route::post('orders/{order}/fulfill', [OrderController::class, 'fulfill'])->middleware('permission:orders.edit')->name('orders.fulfill');
                     Route::post('orders/{order}/fail', [OrderController::class, 'fail'])->middleware('permission:orders.edit')->name('orders.fail');
 
-                    Route::resource('topups', TopupController::class)->only(['index', 'show'])->middleware('permission:topups.index');
+                    Route::resource('topups', TopupController::class)
+                        ->only(['index', 'show'])
+                        ->middleware('permission:topups.index')
+                        ->middlewareFor('show', 'permission:topups.show');
                     Route::post('topups/{topup}/approve', [TopupController::class, 'approve'])->middleware('permission:topups.approve')->name('topups.approve');
                     Route::post('topups/{topup}/reject', [TopupController::class, 'reject'])->middleware('permission:topups.reject')->name('topups.reject');
 
                     Route::get('transactions/user/{user}', [TransactionController::class, 'user'])->middleware('permission:transactions.index')->name('transactions.user');
-                    Route::resource('transactions', TransactionController::class)->only(['index', 'show'])->middleware('permission:transactions.index');
+                    Route::resource('transactions', TransactionController::class)
+                        ->only(['index', 'show'])
+                        ->middleware('permission:transactions.index')
+                        ->middlewareFor('show', 'permission:transactions.show');
                     Route::post('users/{user}/credit', [UserController::class, 'credit'])->middleware('permission:users.credit-wallet')->name('users.credit');
-                    Route::resource('users', UserController::class)->middleware('permission:users.index');
+                    Route::resource('users', UserController::class)
+                        ->middleware('permission:users.index')
+                        ->middlewareFor(['edit', 'update'], 'permission:users.edit');
 
                     Route::post('payment-methods/{paymentMethod}/toggle', [PaymentMethodController::class, 'toggle'])
-                        ->middleware('permission:payment-methods.index')
+                        ->middleware('permission:payment-methods.edit')
                         ->name('payment-methods.toggle');
                     Route::resource('payment-methods', PaymentMethodController::class)
                         ->only(['index', 'update'])
-                        ->middleware('permission:payment-methods.index');
-                    Route::resource('suppliers', SupplierController::class)->except(['show'])->middleware('permission:suppliers.index');
+                        ->middleware('permission:payment-methods.index')
+                        ->middlewareFor('update', 'permission:payment-methods.edit');
+                    Route::resource('suppliers', SupplierController::class)
+                        ->except(['show'])
+                        ->middleware('permission:suppliers.index')
+                        ->middlewareFor(['create', 'store'], 'permission:suppliers.create')
+                        ->middlewareFor(['edit', 'update'], 'permission:suppliers.edit')
+                        ->middlewareFor('destroy', 'permission:suppliers.delete');
                     Route::get('analytics', [AnalyticsController::class, 'index'])->middleware('permission:analytics.index')->name('analytics.index');
                     Route::get('analytics/revenue', [AnalyticsController::class, 'revenue'])->middleware('permission:analytics.index')->name('analytics.revenue');
                     Route::get('analytics/products', [AnalyticsController::class, 'products'])->middleware('permission:analytics.index')->name('analytics.products');
                     Route::get('analytics/users', [AnalyticsController::class, 'users'])->middleware('permission:analytics.index')->name('analytics.users');
                     Route::get('analytics/profit', [AnalyticsController::class, 'profit'])->middleware('permission:analytics.index')->name('analytics.profit');
-                    Route::resource('contact', ContactController::class)->only(['index', 'show', 'destroy'])->middleware('permission:contact.index');
-                    Route::resource('feedback', FeedbackController::class)->only(['index', 'show', 'destroy'])->middleware('permission:feedback.index');
-                    Route::post('feedback/{feedback}/status', [FeedbackController::class, 'updateStatus'])->middleware('permission:feedback.index')->name('feedback.status');
-                    Route::post('feedback/{feedback}/toggle-featured', [FeedbackController::class, 'toggleFeatured'])->middleware('permission:feedback.index')->name('feedback.toggle-featured');
-                    Route::get('pages/edit', [PageController::class, 'edit'])->middleware('permission:settings.general')->name('pages.edit');
-                    Route::post('pages', [PageController::class, 'update'])->middleware('permission:settings.general')->name('pages.update');
+                    Route::resource('contact', ContactController::class)
+                        ->only(['index', 'show', 'destroy'])
+                        ->middleware('permission:contact.index')
+                        ->middlewareFor('show', 'permission:contact.show')
+                        ->middlewareFor('destroy', 'permission:contact.delete');
+                    Route::resource('feedback', FeedbackController::class)
+                        ->only(['index', 'show', 'destroy'])
+                        ->middleware('permission:feedback.index')
+                        ->middlewareFor('show', 'permission:feedback.show')
+                        ->middlewareFor('destroy', 'permission:feedback.delete');
+                    Route::post('feedback/{feedback}/status', [FeedbackController::class, 'updateStatus'])->middleware('permission:feedback.edit')->name('feedback.status');
+                    Route::post('feedback/{feedback}/toggle-featured', [FeedbackController::class, 'toggleFeatured'])->middleware('permission:feedback.edit')->name('feedback.toggle-featured');
+                    Route::get('pages/edit', [PageController::class, 'edit'])->middleware('permission:pages.edit')->name('pages.edit');
+                    Route::post('pages', [PageController::class, 'update'])->middleware('permission:pages.edit')->name('pages.update');
                     
                     Route::get('settings', [SettingController::class, 'index'])->middleware('permission:settings.general')->name('settings.index');
                     Route::get('settings/general', [SettingController::class, 'general'])->middleware('permission:settings.general')->name('settings.general');
@@ -164,9 +202,9 @@ Route::prefix('{locale}')
                     Route::post('settings', [SettingController::class, 'update'])->middleware('permission:settings.general')->name('settings.update');
                     Route::post('settings/seo', [SettingController::class, 'updateSeo'])->middleware('permission:settings.general')->name('settings.seo.update');
 
-                    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
-                    Route::get('notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
-                    Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+                    Route::get('notifications', [NotificationController::class, 'index'])->middleware('permission:notifications.index')->name('notifications.index');
+                    Route::get('notifications/{id}/read', [NotificationController::class, 'read'])->middleware('permission:notifications.index')->name('notifications.read');
+                    Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->middleware('permission:notifications.index')->name('notifications.read-all');
 
                     Route::get('roles', [RoleController::class, 'index'])->middleware('permission:roles.index')->name('roles.index');
                     Route::get('roles/create', [RoleController::class, 'create'])->middleware('permission:roles.create')->name('roles.create');
@@ -181,14 +219,27 @@ Route::prefix('{locale}')
                     Route::post('products/{product}/packages', [ProductController::class, 'storePackage'])->middleware('permission:products.edit')->name('products.packages.store');
                     Route::put('products/packages/{package}', [ProductController::class, 'updatePackage'])->middleware('permission:products.edit')->name('products.packages.update');
                     Route::post('products/{product}/fields', [ProductController::class, 'storeField'])->middleware('permission:products.edit')->name('products.fields.store');
-                    Route::resource('banners', BannerController::class)->except(['show'])->middleware('permission:categories.index');
-                    Route::resource('faqs', FaqController::class)->except(['show'])->middleware('permission:categories.index');
+                    Route::resource('banners', BannerController::class)
+                        ->except(['show'])
+                        ->middleware('permission:banners.index')
+                        ->middlewareFor(['create', 'store'], 'permission:banners.create')
+                        ->middlewareFor(['edit', 'update'], 'permission:banners.edit')
+                        ->middlewareFor('destroy', 'permission:banners.delete');
+                    Route::resource('faqs', FaqController::class)
+                        ->except(['show'])
+                        ->middleware('permission:faqs.index')
+                        ->middlewareFor(['create', 'store'], 'permission:faqs.create')
+                        ->middlewareFor(['edit', 'update'], 'permission:faqs.edit')
+                        ->middlewareFor('destroy', 'permission:faqs.delete');
                     Route::resource('homepage-sections', HomepageSectionController::class)
                         ->except(['show'])
-                        ->middleware('permission:categories.index');
+                        ->middleware('permission:homepage-sections.index')
+                        ->middlewareFor(['create', 'store'], 'permission:homepage-sections.create')
+                        ->middlewareFor(['edit', 'update'], 'permission:homepage-sections.edit')
+                        ->middlewareFor('destroy', 'permission:homepage-sections.delete');
 
-                    Route::post('categories/reorder', [CategoryController::class, 'reorder'])->middleware('permission:categories.index')->name('categories.reorder');
-                    Route::post('products/reorder', [ProductController::class, 'reorder'])->middleware('permission:products.index')->name('products.reorder');
+                    Route::post('categories/reorder', [CategoryController::class, 'reorder'])->middleware('permission:categories.edit')->name('categories.reorder');
+                    Route::post('products/reorder', [ProductController::class, 'reorder'])->middleware('permission:products.edit')->name('products.reorder');
 
                     Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->middleware('permission:products.create')->name('products.duplicate');
                 });
