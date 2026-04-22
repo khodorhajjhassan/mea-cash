@@ -50,6 +50,7 @@ if [ "$SKIP_GIT_PULL" != "true" ]; then
   git pull --ff-only origin "$BRANCH"
 fi
 
+export COMPOSER_ALLOW_SUPERUSER=1
 "$COMPOSER_BIN" install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
 if [ "$NODE_BUILD" = "true" ]; then
