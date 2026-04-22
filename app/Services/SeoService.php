@@ -25,7 +25,7 @@ class SeoService
             'title' => $resolvedTitle,
             'description' => $description ?? $this->settingsService->get('seo_default_description'),
             'keywords' => $this->settingsService->get('seo_default_keywords'),
-            'image' => $image ? (str_starts_with($image, 'http') ? $image : asset('storage/' . $image)) : $this->getOgImageUrl(),
+            'image' => $this->resolveImageUrl($image),
             'type' => $type,
             'url' => Request::fullUrl(),
             'canonical' => $this->settingsService->get('seo_canonical_domain', url('/')) . Request::getPathInfo(),
@@ -51,9 +51,15 @@ class SeoService
         $locale = app()->getLocale();
         $title = $product->seo_title ?: $product->{"name_{$locale}"};
         $description = $product->seo_description ?: $product->{"description_{$locale}"};
-        $image = $product->seo_image ?: $product->image;
+        $image = $product->seo_image
+            ?: $product->image
+            ?: $product->subcategory?->seo_image
+            ?: $product->subcategory?->image;
 
-        return $this->forPage($title, $description, $image, 'product');
+        $data = $this->forPage($title, $description, $image, 'product');
+        $data['keywords'] = $product->seo_keywords ?: $data['keywords'];
+
+        return $data;
     }
 
     /**
@@ -63,10 +69,13 @@ class SeoService
     {
         $locale = app()->getLocale();
         $title = $category->seo_title ?: $category->{"name_{$locale}"};
-        $description = $category->seo_description ?: null;
+        $description = $category->seo_description ?: ($category->{"description_{$locale}"} ?? null);
         $image = $category->seo_image ?: $category->image;
 
-        return $this->forPage($title, $description, $image);
+        $data = $this->forPage($title, $description, $image);
+        $data['keywords'] = $category->seo_keywords ?: $data['keywords'];
+
+        return $data;
     }
 
     /**
@@ -115,6 +124,23 @@ class SeoService
     private function getOgImageUrl(): ?string
     {
         $path = $this->settingsService->get('og_default_image');
-        return $path ? asset('storage/' . $path) : null;
+        return $path ? asset('storage/' . $path) : asset('meacash-logo.png');
+    }
+
+    private function resolveImageUrl(?string $image): string
+    {
+        if (! $image) {
+            return $this->getOgImageUrl();
+        }
+
+        if (str_starts_with($image, 'http')) {
+            return $image;
+        }
+
+        if (str_starts_with($image, 'storage/')) {
+            return asset($image);
+        }
+
+        return asset('storage/' . ltrim($image, '/'));
     }
 }

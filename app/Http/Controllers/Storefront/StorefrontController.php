@@ -126,7 +126,7 @@ class StorefrontController extends Controller
             ->orderBy('sort_order')
             ->get();
  
-        $seo = $this->seoService->forPage('MeaCash');
+        $seo = $this->seoForSharedStorefrontLink($request) ?? $this->seoService->forPage('MeaCash');
         $homepageSections = $this->homepageSections->activeSections();
 
         $featuredFeedbacks = \App\Models\Feedback::query()
@@ -282,6 +282,37 @@ class StorefrontController extends Controller
                 ->orWhereRaw("LOWER(COALESCE(description_en, '')) LIKE ?", [$needle])
                 ->orWhereRaw("LOWER(COALESCE(description_ar, '')) LIKE ?", [$needle]);
         });
+    }
+
+    private function seoForSharedStorefrontLink(Request $request): ?array
+    {
+        if (! $request->filled('subcategory')) {
+            return null;
+        }
+
+        $subcategory = Subcategory::query()
+            ->where('slug', (string) $request->input('subcategory'))
+            ->where('is_active', true)
+            ->first();
+
+        if (! $subcategory) {
+            return null;
+        }
+
+        if ($request->filled('product')) {
+            $product = Product::query()
+                ->whereKey((int) $request->input('product'))
+                ->where('subcategory_id', $subcategory->id)
+                ->where('is_active', true)
+                ->with('subcategory')
+                ->first();
+
+            if ($product) {
+                return $this->seoService->forProduct($product);
+            }
+        }
+
+        return $this->seoService->forCategory($subcategory);
     }
  
     /**
