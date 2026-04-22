@@ -12,6 +12,7 @@
         })();
     </script>
     <title>@yield('title', config('app.name', 'MeaCash'))</title>
+    <x-favicon />
 
     {{-- SEO --}}
     @hasSection('seo')

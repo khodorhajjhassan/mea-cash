@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <x-seo-head :seo="$seo ?? null" />
+    <x-favicon />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
