@@ -43,8 +43,8 @@
 
     <main class="flex-grow relative overflow-hidden">
         {{-- Background Light Leaks --}}
-        <div class="fixed top-[-10%] start-[-10%] w-[600px] h-[600px] light-leak-cyan pointer-events-none z-0"></div>
-        <div class="fixed bottom-[-10%] end-[-10%] w-[600px] h-[600px] light-leak-magenta pointer-events-none z-0"></div>
+        <div class="absolute top-[-10%] start-[-10%] w-[600px] h-[600px] light-leak-cyan pointer-events-none z-0"></div>
+        <div class="absolute bottom-[-10%] end-[-10%] w-[600px] h-[600px] light-leak-magenta pointer-events-none z-0"></div>
 
         <div class="relative z-10 max-w-[1440px] mx-auto">
             {{-- Flash Messages --}}
@@ -75,7 +75,7 @@
     {{-- Product Modal (Placeholder for now, will redesign next) --}}
     @include('storefront.partials.product-modal')
 
-    <script src="{{ asset('js/storefront/product-modal.js') }}" defer></script>
+    <script src="{{ asset('js/storefront/product-modal.js') }}?v={{ filemtime(public_path('js/storefront/product-modal.js')) }}" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const handleImage = (img) => {

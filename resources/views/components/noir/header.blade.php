@@ -20,7 +20,7 @@
 @endphp
 
 <header
-    class="mc-store-header backdrop-blur-xl sticky top-0 z-50 border-b">
+    class="mc-store-header backdrop-blur-md sticky top-0 z-50 border-b" style="transform: translateZ(0); -webkit-transform: translateZ(0);">
     <nav class="flex justify-between items-center w-full max-w-[1440px] mx-auto px-4 md:px-8 h-20">
         <div class="flex items-center gap-4 md:gap-8">
             <a href="{{ route('store.home') }}" class="flex items-center gap-3 group">

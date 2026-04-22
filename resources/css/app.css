@@ -660,7 +660,7 @@
     /* --- Kinetic Noir Design System --- */
     .glass-panel {
         background: rgba(51, 52, 59, 0.4);
-        backdrop-filter: blur(20px);
+        backdrop-filter: blur(8px);
         border: 1px solid rgba(59, 73, 75, 0.15);
     }
     
@@ -798,6 +798,12 @@
     details[open] summary .expand-icon { transform: rotate(180deg); }
 
     /* RTL Utilities (Tailwind 4.0 logical properties alternative) */
+
+/* --- Performance Utilities --- */
+.is-paused, .is-paused * {
+    animation-play-state: paused !important;
+}
+
     [dir="rtl"] .animate-marquee {
         animation-name: marquee-rtl;
     }
@@ -2315,7 +2321,7 @@
 
 /* --- Home Animated Atmosphere --- */
 .sf-home-atmosphere {
-    position: fixed;
+    position: absolute;
     inset: 0;
     z-index: 0;
     pointer-events: none;

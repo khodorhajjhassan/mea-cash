@@ -51,6 +51,7 @@
                             <img class="w-full h-full object-cover sf-img-loading"
                                 src="{{ \Illuminate\Support\Facades\Storage::disk(config('media.disk'))->url($banner->image_path) }}"
                                 alt="{{ $banner->{"title_$locale"} }}"
+                                loading="{{ $loop->first ? 'eager' : 'lazy' }}" decoding="{{ $loop->first ? 'sync' : 'async' }}"
                                 onload="this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');">
                             <div
                                 class="mc-carousel-overlay absolute inset-0 bg-gradient-to-t md:bg-gradient-to-s from-background via-background/20 to-transparent">
@@ -73,7 +74,7 @@
                         <div class="carousel-item min-w-full h-full relative">
                             <img class="w-full h-full object-cover"
                                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDrlznlKgHHa63HOhVKSNWE8C5o6YWGzqxbSrsVKR6imUOq2BDzZoRlqJg_aBtStZO89zUqnzPz4cUR1Ar_9KPYAsyplUSUhl7Cu69sWYscBbkmZv8_Z23wFHRJUsaHoWrCgTg_AZAPtY_FpHMiau3uk0SCMp2vwzAl9Sk5ydgPkW2up5bhPyu8FmcOIpMoaTLYNwC-ofII6e2sndmu9_tc47MTiFoRRkToqSy-lC4CowcwR89nZBqQxnz4mrEdSPnNMxpTJO40tQ"
-                                alt="Default Hero Image">
+                                alt="Default Hero Image" loading="lazy" decoding="async">
                             <div class="mc-carousel-overlay absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
                         </div>
                     @endforelse
@@ -144,7 +145,7 @@
                     <div onclick="window.openSubcategoryModal('{{ $sub->slug }}')"
                         class="sf-brand-card group flex h-28 w-28 md:h-32 md:w-32 shrink-0 flex-col items-center justify-center rounded-2xl border border-outline-variant/10 bg-surface-container/55 p-4 transition-all duration-300 hover:border-primary-container/70 hover:bg-surface-container-high hover:shadow-[0_0_30px_rgba(0,240,255,0.12)] cursor-pointer">
                         <div class="sf-brand-card-icon-shell mb-3 flex h-12 w-12 items-center justify-center rounded-2xl">
-                            <img src="{{ $subImage }}" alt="{{ $subName }}" loading="lazy"
+                            <img src="{{ $subImage }}" alt="{{ $subName }}" loading="lazy" width="36" height="36" decoding="async"
                                 class="sf-brand-card-icon h-9 w-9 object-contain opacity-90 transition-all duration-300 group-hover:scale-110 group-hover:opacity-100"
                                 onerror="this.src='{{ asset('meacash-logo.png') }}';">
                         </div>
@@ -174,7 +175,7 @@
                 @endphp
                 <div onclick="window.openSubcategoryModal('{{ $sub->slug }}')"
                     class="sf-brand-marquee-item flex items-center gap-3 group/brand cursor-pointer opacity-70 hover:opacity-100 transition-all duration-500 shrink-0">
-                    <img src="{{ $subImage }}" alt="{{ $subName }}"
+                    <img src="{{ $subImage }}" alt="{{ $subName }}" loading="lazy" width="28" height="28" decoding="async"
                         class="sf-brand-marquee-icon h-7 w-7 object-contain transition-transform group-hover/brand:scale-110"
                         onerror="this.src='{{ asset('meacash-logo.png') }}';">
                     <span
@@ -189,7 +190,7 @@
     {{-- High-Fidelity Circular Category Bar --}}
     @if($categories->isNotEmpty())
         <section
-            class="sf-category-strip sticky top-20 z-40 hidden px-4 py-8 bg-background/90 backdrop-blur-xl border-b border-outline-variant/5 sf-reveal-section md:block md:px-8">
+            class="sf-category-strip sticky top-20 z-40 hidden px-4 py-8 bg-background/90 backdrop-blur-md border-b border-outline-variant/5 sf-reveal-section md:block md:px-8">
             <div class="flex justify-center">
                 <div
                     class="flex items-center gap-6 md:gap-10 overflow-x-auto no-scrollbar pb-2 w-full max-w-[1440px] justify-start">
@@ -328,7 +329,7 @@
                         $feedbackCards = $featuredFeedbacks->count() < 6 ? $featuredFeedbacks->concat($featuredFeedbacks) : $featuredFeedbacks;
                     @endphp
                     @foreach($feedbackCards as $fb)
-                        <div class="sf-feedback-card group w-72 md:w-96 p-6 rounded-3xl border border-outline-variant/15 bg-surface-container/60 backdrop-blur-xl flex flex-col justify-between transition-all duration-500 hover:border-primary-container/40 hover:bg-surface-container-high hover:shadow-[0_0_40px_rgba(0,240,255,0.08)]">
+                        <div class="sf-feedback-card group w-72 md:w-96 p-6 rounded-3xl border border-outline-variant/15 bg-surface-container/60 backdrop-blur-md flex flex-col justify-between transition-all duration-500 hover:border-primary-container/40 hover:bg-surface-container-high hover:shadow-[0_0_40px_rgba(0,240,255,0.08)]">
                             <div>
                                 <div class="flex items-center justify-between mb-4">
                                     <div class="flex items-center gap-3">
@@ -367,7 +368,7 @@
     @if(false)
     {{-- Static Why MeaCash Section --}}
     <section class="px-4 md:px-8 py-16 md:py-20 relative z-10 sf-reveal-section">
-        <div class="mx-auto max-w-7xl rounded-[2rem] border border-outline-variant/15 bg-surface-container-low/55 p-6 shadow-2xl backdrop-blur-xl md:p-10">
+        <div class="mx-auto max-w-7xl rounded-[2rem] border border-outline-variant/15 bg-surface-container-low/55 p-6 shadow-2xl backdrop-blur-md md:p-10">
             <div class="grid gap-8 lg:grid-cols-[0.9fr_1.4fr] lg:items-center">
                 <div>
                     <span class="inline-flex items-center gap-2 rounded-full border border-primary-container/25 bg-primary-container/10 px-3 py-1 font-label text-[10px] font-black uppercase tracking-[0.24em] text-primary-container">
@@ -510,6 +511,22 @@
                         target.style.setProperty('--sf-reveal-delay', `${Math.min(index % 8, 7) * 55}ms`);
                         revealObserver.observe(target);
                     });
+                    
+                    // IntersectionObserver to pause heavy animations when out of view
+                    const animObserver = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.remove('is-paused');
+                            } else {
+                                entry.target.classList.add('is-paused');
+                            }
+                        });
+                    }, { threshold: 0 });
+                    
+                    document.querySelectorAll('.animate-marquee, .animate-marquee-rtl, .sf-home-atmosphere').forEach(el => {
+                        animObserver.observe(el);
+                    });
+
                 } else {
                     revealTargets.forEach((target) => target.classList.add('sf-in-view'));
                 }
