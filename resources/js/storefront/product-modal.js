@@ -5,8 +5,10 @@
  * This file is maintained for synchronization and fallback purposes.
  */
 
-const CART_ADD_URL = '/cart/add';
-const API_BASE = '/api/product/';
+const currentLocale = () => (isRtl() ? 'ar' : 'en');
+const localizedPath = (path) => `/${currentLocale()}${path}`;
+const CART_ADD_URL = () => localizedPath('/cart/add');
+const API_BASE = () => localizedPath('/api/product/');
 
 let currentProduct = null;
 let selectedPackageId = null;
@@ -70,7 +72,7 @@ async function loadProduct(slug) {
     openModal();
 
     try {
-        const res = await fetch(API_BASE + slug, {
+        const res = await fetch(API_BASE() + slug, {
             headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
         });
         if (!res.ok) throw new Error('Product not found');

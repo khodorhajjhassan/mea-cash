@@ -27,7 +27,7 @@
                 <tr>
                     <td>#{{ $banner->sort_order }}</td>
                     <td>
-                        <img src="{{ \Illuminate\Support\Facades\Storage::disk($disk)->url($banner->image_path) }}" alt="Banner" class="h-12 w-24 rounded-lg object-cover">
+                        <x-admin.image :path="$banner->image_path" alt="Banner" class="h-12 w-24 rounded-lg object-cover" />
                     </td>
                     <td>
                         <div class="font-medium text-slate-900">{{ $banner->title_en ?: 'No Title' }}</div>

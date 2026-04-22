@@ -14,7 +14,7 @@ use Illuminate\Notifications\Notifiable;
 
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'phone', 'password', 'preferred_language', 'is_active'])]
+#[Fillable(['name', 'email', 'phone', 'password', 'preferred_language', 'is_active', 'email_verified_at', 'email_verification_code', 'email_verification_expires_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -30,6 +30,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'email_verification_expires_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
             'is_admin' => 'boolean',

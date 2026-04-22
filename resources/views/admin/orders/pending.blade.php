@@ -48,7 +48,7 @@
                         <td>
                             <div class="flex items-center gap-3">
                                 @if($order->product?->image)
-                                    <img src="{{ \Illuminate\Support\Facades\Storage::url($order->product->image) }}" class="h-8 w-8 rounded object-cover shadow-sm border border-slate-100">
+                                    <x-admin.image :path="$order->product->image" class="h-8 w-8 rounded object-cover shadow-sm border border-slate-100" />
                                 @endif
                                 <div>
                                     <p class="font-medium text-slate-800 leading-tight">{{ $order->product?->name_en ?? 'Unknown Product' }}</p>

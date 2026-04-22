@@ -20,7 +20,7 @@
     <div class="mt-4 grid gap-4 md:grid-cols-3">
         <div class="md:col-span-1">
             @if($product->image)
-                <img src="{{ \Illuminate\Support\Facades\Storage::disk($disk)->url($product->image) }}" alt="{{ $product->name_en }}" class="h-56 w-full rounded-xl object-cover">
+                <x-admin.image :path="$product->image" :alt="$product->name_en" class="h-56 w-full rounded-xl object-cover" />
             @else
                 <div class="flex h-56 items-center justify-center rounded-xl border border-dashed border-slate-300 text-sm text-slate-500">No image</div>
             @endif
@@ -39,7 +39,6 @@
             <div><p class="text-xs text-slate-500">Selling Price</p><p class="font-medium text-slate-900">${{ number_format((float) $product->selling_price, 2) }}</p></div>
             <div><p class="text-xs text-slate-500">Cost Price</p><p class="font-medium text-slate-900">${{ number_format((float) $product->cost_price, 2) }}</p></div>
             <div><p class="text-xs text-slate-500">Price Per Unit</p><p class="font-medium text-slate-900">{{ $product->price_per_unit !== null ? '$'.number_format((float)$product->price_per_unit, 4) : '-' }}</p></div>
-            <div><p class="text-xs text-slate-500">Min / Max Quantity</p><p class="font-medium text-slate-900">{{ $product->min_quantity }} / {{ $product->max_quantity ?? '-' }}</p></div>
             <div><p class="text-xs text-slate-500">Stock Alert Threshold</p><p class="font-medium text-slate-900">{{ $product->stock_alert_threshold }}</p></div>
             <div><p class="text-xs text-slate-500">Sort Order</p><p class="font-medium text-slate-900">{{ $product->sort_order }}</p></div>
         </div>

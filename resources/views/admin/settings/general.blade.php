@@ -60,12 +60,12 @@
                 <input type="hidden" name="group" value="support">
                 <input type="hidden" name="key" value="support_report_delay_hours">
                 <div class="field">
-                    <label>Support Report Delay (Hours)</label>
+                    <label>Support Report Window (Hours)</label>
                     <div class="flex gap-2">
                         <input type="number" name="value" min="0" max="720" step="1" value="{{ $settings['support_report_delay_hours'] ?? 4 }}" placeholder="4">
                         <button class="btn-primary py-2 px-6">{{ __('admin.common.save') }}</button>
                     </div>
-                    <p class="mt-1 text-xs text-slate-500">Customers can open an order support report only after this many hours from fulfillment. Use 0 to allow immediately.</p>
+                    <p class="mt-1 text-xs text-slate-500">Customers can open a report immediately after fulfillment until this many hours pass. Use 0 for no time limit.</p>
                 </div>
             </form>
         </div>

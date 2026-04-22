@@ -15,7 +15,7 @@
     <div class="mt-4 grid gap-4 md:grid-cols-3">
         <div class="md:col-span-1">
             @if($subcategory->image)
-                <img src="{{ \Illuminate\Support\Facades\Storage::disk($disk)->url($subcategory->image) }}" alt="{{ $subcategory->name_en }}" class="h-56 w-full rounded-xl object-cover">
+                <x-admin.image :path="$subcategory->image" :alt="$subcategory->name_en" class="h-56 w-full rounded-xl object-cover" />
             @else
                 <div class="flex h-56 items-center justify-center rounded-xl border border-dashed border-slate-300 text-sm text-slate-500">No image</div>
             @endif
@@ -31,4 +31,3 @@
     </div>
 </section>
 @endsection
-

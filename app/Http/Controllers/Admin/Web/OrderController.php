@@ -10,12 +10,16 @@ use Illuminate\Support\Facades\DB;
 
 use App\Http\Requests\FulfillOrderRequest;
 use App\Services\OrderFulfillmentService;
+use App\Services\EmailNotificationService;
 use App\Enums\OrderStatus;
 use App\Notifications\UserNotification;
 
 class OrderController extends Controller
 {
-    public function __construct(private readonly OrderFulfillmentService $fulfillmentService)
+    public function __construct(
+        private readonly OrderFulfillmentService $fulfillmentService,
+        private readonly EmailNotificationService $emails,
+    )
     {
     }
 
@@ -91,6 +95,7 @@ class OrderController extends Controller
     {
         $data = $request->validate([
             'status' => ['required', new \Illuminate\Validation\Rules\Enum(OrderStatus::class)],
+            'notify_email' => ['sometimes', 'boolean'],
         ]);
 
         try {
@@ -104,6 +109,25 @@ class OrderController extends Controller
                 'link' => route('store.orders.detail', $order->order_number),
                 'icon' => 'inventory_2',
             ]));
+
+            if (!empty($data['notify_email']) && $order->user) {
+                $this->emails->toUser($order->user, [
+                    'en' => [
+                        'subject' => "Order Status Updated: #{$order->order_number}",
+                        'title' => 'Order status updated',
+                        'message' => "Your order status changed to {$status}.",
+                        'action_url' => route('store.orders.detail', $order->order_number),
+                        'action_text' => 'View Order',
+                    ],
+                    'ar' => [
+                        'subject' => "تم تحديث حالة الطلب: #{$order->order_number}",
+                        'title' => 'تم تحديث حالة الطلب',
+                        'message' => "تم تغيير حالة طلبك إلى {$status}.",
+                        'action_url' => route('store.orders.detail', $order->order_number),
+                        'action_text' => 'عرض الطلب',
+                    ],
+                ]);
+            }
 
             return back()->with('success', 'Order status updated.');
         } catch (Exception $exception) {
@@ -140,8 +164,12 @@ class OrderController extends Controller
         }
     }
 
-    public function fail(Order $order)
+    public function fail(Request $request, Order $order)
     {
+        $data = $request->validate([
+            'notify_email' => ['sometimes', 'boolean'],
+        ]);
+
         try {
             $this->fulfillmentService->markAsFailed($order);
             $order->loadMissing('user');
@@ -151,6 +179,25 @@ class OrderController extends Controller
                 'link' => route('store.orders.detail', $order->order_number),
                 'icon' => 'error',
             ]));
+
+            if (!empty($data['notify_email']) && $order->user) {
+                $this->emails->toUser($order->user, [
+                    'en' => [
+                        'subject' => "Order Failed: #{$order->order_number}",
+                        'title' => 'Order marked as failed',
+                        'message' => 'Your order was marked as failed. Please contact support if you need help.',
+                        'action_url' => route('store.orders.detail', $order->order_number),
+                        'action_text' => 'View Order',
+                    ],
+                    'ar' => [
+                        'subject' => "فشل الطلب: #{$order->order_number}",
+                        'title' => 'تم وضع الطلب كفاشل',
+                        'message' => 'تم وضع طلبك كفاشل. يرجى التواصل مع الدعم إذا كنت بحاجة للمساعدة.',
+                        'action_url' => route('store.orders.detail', $order->order_number),
+                        'action_text' => 'عرض الطلب',
+                    ],
+                ]);
+            }
 
             return back()->with('success', 'Order marked as failed.');
         } catch (Exception $exception) {
@@ -192,4 +239,3 @@ class OrderController extends Controller
         }
     }
 }
-

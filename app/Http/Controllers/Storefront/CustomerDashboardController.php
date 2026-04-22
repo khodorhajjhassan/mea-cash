@@ -10,6 +10,7 @@ use App\Models\TopupRequest;
 use App\Models\PaymentMethod;
 use App\Notifications\UserNotification;
 use App\Services\SettingsService;
+use App\Services\EmailNotificationService;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -19,6 +20,7 @@ class CustomerDashboardController extends Controller
     public function __construct(
         private readonly WalletService $walletService,
         private readonly SettingsService $settingsService,
+        private readonly EmailNotificationService $emails,
     ) {}
 
     /**
@@ -130,7 +132,7 @@ class CustomerDashboardController extends Controller
             return back()->with('error', $request->boolean('is_ar') ? 'تم إرسال تقييم لهذا الطلب مسبقاً.' : 'Feedback was already submitted for this order.');
         }
 
-        Feedback::create([
+        $report = Feedback::create([
             'user_id' => auth()->id(),
             'order_id' => $order->id,
             'type' => 'feedback',
@@ -150,12 +152,15 @@ class CustomerDashboardController extends Controller
             return back()->with('error', $request->boolean('is_ar') ? 'لا يمكن فتح بلاغ جديد بعد استرداد الطلب.' : 'A refunded order cannot open a new support report.');
         }
 
-        $delayHours = max(0, (int) $this->settingsService->get('support_report_delay_hours', 4));
-        $eligibleAt = ($order->fulfilled_at ?? $order->created_at)->copy()->addHours($delayHours);
-        if ($delayHours > 0 && now()->lt($eligibleAt)) {
+        $windowHours = max(0, (int) $this->settingsService->get('support_report_delay_hours', 4));
+        $expiresAt = $windowHours > 0
+            ? ($order->fulfilled_at ?? $order->created_at)->copy()->addHours($windowHours)
+            : null;
+
+        if ($expiresAt !== null && now()->gt($expiresAt)) {
             return back()->with('error', $request->boolean('is_ar')
-                ? "يمكنك فتح بلاغ دعم بعد {$delayHours} ساعات من اكتمال الطلب."
-                : "You can open a support report {$delayHours} hours after the order is completed.");
+                ? 'انتهت مدة فتح بلاغ الدعم لهذا الطلب.'
+                : 'The support report window for this order has expired.');
         }
 
         $validated = $request->validate([
@@ -178,6 +183,32 @@ class CustomerDashboardController extends Controller
         ]);
 
         $order->update(['status' => OrderStatus::Reported]);
+
+        $order->loadMissing('product', 'user');
+        $this->emails->toUser($order->user, [
+            'en' => [
+                'subject' => "Support Report Received: #{$order->order_number}",
+                'title' => 'We received your report',
+                'message' => 'Our support team received your order report and will review it as soon as possible.',
+                'action_url' => route('store.orders.detail', $order->order_number),
+                'action_text' => 'View Reported Order',
+                'details' => [
+                    'Order' => '#'.$order->order_number,
+                    'Issue' => str_replace('_', ' ', $report->issue_type ?? ''),
+                ],
+            ],
+            'ar' => [
+                'subject' => "تم استلام البلاغ: #{$order->order_number}",
+                'title' => 'تم استلام بلاغك',
+                'message' => 'استلم فريق الدعم بلاغك وسيتم مراجعته في أقرب وقت ممكن.',
+                'action_url' => route('store.orders.detail', $order->order_number),
+                'action_text' => 'عرض الطلب',
+                'details' => [
+                    'الطلب' => '#'.$order->order_number,
+                    'المشكلة' => str_replace('_', ' ', $report->issue_type ?? ''),
+                ],
+            ],
+        ]);
 
         return back()->with('success', $request->boolean('is_ar') ? 'تم إرسال البلاغ إلى الدعم.' : 'Your report was sent to support.');
     }
@@ -241,6 +272,31 @@ class CustomerDashboardController extends Controller
             'link' => route('store.wallet'),
             'icon' => 'payments',
         ]));
+
+        $this->emails->toUser(auth()->user(), [
+            'en' => [
+                'subject' => "Top-up Submitted: #{$topup->id}",
+                'title' => 'Your top-up is pending',
+                'message' => 'We received your wallet top-up request and it is pending admin review.',
+                'action_url' => route('store.wallet'),
+                'action_text' => 'View Wallet',
+                'details' => [
+                    'Amount' => '$'.number_format((float) $topup->amount_requested, 2),
+                    'Payment method' => strtoupper($topup->payment_method),
+                ],
+            ],
+            'ar' => [
+                'subject' => "تم إرسال طلب الشحن: #{$topup->id}",
+                'title' => 'طلب شحن المحفظة قيد الانتظار',
+                'message' => 'استلمنا طلب شحن المحفظة وهو بانتظار مراجعة الإدارة.',
+                'action_url' => route('store.wallet'),
+                'action_text' => 'عرض المحفظة',
+                'details' => [
+                    'المبلغ' => '$'.number_format((float) $topup->amount_requested, 2),
+                    'طريقة الدفع' => strtoupper($topup->payment_method),
+                ],
+            ],
+        ]);
 
         if ($request->expectsJson()) {
             return response()->json([

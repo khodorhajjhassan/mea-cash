@@ -15,7 +15,7 @@ class EnsureCustomerIsActive
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect()->route('store.login')
+            return redirect()->route('login', ['locale' => app()->getLocale()])
                 ->withErrors(['email' => 'Your account is inactive. Please contact support.']);
         }
 

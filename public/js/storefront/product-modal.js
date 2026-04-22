@@ -4,9 +4,12 @@
  * with the Laravel validation rules.
  */
 
-const API_BASE = '/api/subcategory/';
-const PURCHASE_URL = '/cart/add';
-const CHECKOUT_URL = '/checkout';
+const localizedPath = (path) => `/${currentLocale()}${path}`;
+const apiPath = (path) => localizedPath(path);
+const API_BASE = () => apiPath('/api/subcategory/');
+const PURCHASE_URL = () => localizedPath('/cart/add');
+const CHECKOUT_URL = () => localizedPath('/checkout');
+const LOGIN_URL = () => localizedPath('/auth/login');
 
 let currentSubcategory = null;
 let selectedProduct = null;
@@ -178,7 +181,7 @@ async function loadSubcategory(slug, productId = null) {
     if (footer) footer.innerHTML = '';
 
     try {
-        const res = await fetch(API_BASE + encodeURIComponent(slug), {
+        const res = await fetch(API_BASE() + encodeURIComponent(slug), {
             headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         });
 
@@ -414,7 +417,7 @@ function renderFooter() {
     if (!isAuthenticated()) {
         footer.innerHTML = `
             <div class="flex gap-3">
-                <a href="/auth/login" class="flex flex-1 items-center justify-center gap-3 rounded-2xl border border-primary-container/30 bg-surface-container-high py-4 font-headline text-sm font-black uppercase tracking-[0.22em] text-primary-container shadow-[0_0_28px_rgba(0,240,255,0.12)] transition-all hover:border-primary-container hover:bg-primary-container hover:text-on-primary-container">
+                <a href="${LOGIN_URL()}" class="flex flex-1 items-center justify-center gap-3 rounded-2xl border border-primary-container/30 bg-surface-container-high py-4 font-headline text-sm font-black uppercase tracking-[0.22em] text-primary-container shadow-[0_0_28px_rgba(0,240,255,0.12)] transition-all hover:border-primary-container hover:bg-primary-container hover:text-on-primary-container">
                     <span class="material-symbols-outlined text-lg">lock</span>
                     <span>${isRtl() ? 'سجل الدخول أولاً' : 'Login First'}</span>
                 </a>
@@ -573,7 +576,7 @@ async function handlePurchaseNow() {
     button.innerHTML = `<span class="animate-pulse">${isRtl() ? 'جاري المعالجة...' : 'Processing...'}</span>`;
 
     try {
-        const res = await fetch(PURCHASE_URL, {
+        const res = await fetch(PURCHASE_URL(), {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -585,7 +588,7 @@ async function handlePurchaseNow() {
         });
 
         if (res.status === 401) {
-            window.location.href = '/auth/login';
+            window.location.href = LOGIN_URL();
             return;
         }
 
@@ -602,7 +605,7 @@ async function handlePurchaseNow() {
 
         button.innerHTML = `<span class="animate-pulse">${isRtl() ? 'جاري تأكيد الطلب...' : 'Confirming order...'}</span>`;
 
-        const checkoutRes = await fetch(CHECKOUT_URL, {
+        const checkoutRes = await fetch(CHECKOUT_URL(), {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -625,7 +628,7 @@ async function handlePurchaseNow() {
             return;
         }
 
-        window.location.href = checkoutData.redirect_url || data.redirect_url || '/checkout';
+        window.location.href = checkoutData.redirect_url || data.redirect_url || CHECKOUT_URL();
     } catch (error) {
         console.error('Purchase Error:', error);
         currentToast = `<div class="mt-5 rounded-xl border border-error/30 bg-error-container/10 p-3 font-label text-xs uppercase tracking-widest text-error">Could not start purchase. Please try again.</div>`;

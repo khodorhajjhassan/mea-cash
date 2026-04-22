@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests\UpdateUserRequest;
 use App\Enums\OrderStatus;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -124,6 +125,25 @@ class UserController extends Controller
             report($exception);
 
             return back()->with('error', 'Failed to credit wallet: ' . $exception->getMessage());
+        }
+    }
+
+    public function destroy(User $user)
+    {
+        if ((int) $user->id === (int) auth()->id()) {
+            return back()->with('error', 'You cannot delete your own account while you are logged in.');
+        }
+
+        try {
+            DB::transaction(function () use ($user): void {
+                $user->delete();
+            });
+
+            return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
+        } catch (Exception $exception) {
+            report($exception);
+
+            return back()->with('error', 'Failed to delete user. Please review linked records and try again.');
         }
     }
 

@@ -4,7 +4,7 @@
         <input type="file" name="image" id="image" accept="image/*" @if(!isset($banner)) required @endif>
         @if(isset($banner) && $banner->image_path)
             <div class="mt-2">
-                <img src="{{ \Illuminate\Support\Facades\Storage::disk(config('media.disk'))->url($banner->image_path) }}" alt="Current image" class="h-24 w-auto rounded border">
+                <x-admin.image :path="$banner->image_path" alt="Current image" class="h-24 w-auto rounded border" />
             </div>
         @endif
         <p class="text-xs text-slate-500 mt-1">Images are automatically converted to WebP and optimized.</p>

@@ -19,13 +19,20 @@
     <div class="field"><label>Cost Price</label><input type="number" step="0.0001" min="0" name="cost_price" value="{{ old('cost_price', $product->cost_price ?? 0) }}"></div>
     <div class="field"><label>Selling Price</label><input type="number" step="0.0001" min="0" name="selling_price" value="{{ old('selling_price', $product->selling_price ?? 0) }}"></div>
     <div class="field"><label>Price per Unit</label><input type="number" step="0.0001" min="0" name="price_per_unit" value="{{ old('price_per_unit', $product->price_per_unit ?? '') }}"></div>
-    <div class="field"><label>Min Quantity</label><input type="number" min="1" name="min_quantity" value="{{ old('min_quantity', $product->min_quantity ?? 1) }}"></div>
-    <div class="field"><label>Max Quantity</label><input type="number" min="1" name="max_quantity" value="{{ old('max_quantity', $product->max_quantity ?? '') }}"></div>
     <div class="field"><label>Stock Alert Threshold</label><input type="number" min="0" name="stock_alert_threshold" value="{{ old('stock_alert_threshold', $product->stock_alert_threshold ?? 5) }}"></div>
     <div class="field"><label>Sort Order</label><input type="number" min="0" name="sort_order" value="{{ old('sort_order', $product->sort_order ?? 0) }}"></div>
     <div class="field"><label>Status</label><select name="is_active"><option value="1" @selected(old('is_active', $product->is_active ?? true)==1)>Active</option><option value="0" @selected(old('is_active', $product->is_active ?? true)==0)>Disabled</option></select></div>
     <div class="field"><label>Featured</label><select name="is_featured"><option value="1" @selected(old('is_featured', $product->is_featured ?? false)==1)>Yes</option><option value="0" @selected(old('is_featured', $product->is_featured ?? false)==0)>No</option></select></div>
-    <div class="field"><label>Image</label><input type="file" name="image" accept="image/*">@if($editing && $product->image)<p class="hint">Uploading a new image will replace the current one.</p>@endif</div>
+    <div class="field">
+        <label>Image</label>
+        <input type="file" name="image" accept="image/*">
+        @if($editing && $product->image)
+            <div class="mt-2 h-20 w-32 rounded border border-slate-200 overflow-hidden shadow-sm bg-white">
+                <x-admin.image :path="$product->image" class="h-full w-full object-cover" />
+            </div>
+            <p class="hint">Uploading a new image will replace the current one.</p>
+        @endif
+    </div>
 </div>
 
 <div class="mt-8 border-t border-slate-100 pt-8" x-data="{ open: false }">
@@ -54,7 +61,7 @@
             <input type="file" name="seo_image" accept="image/*" class="text-xs">
             @if($editing && $product->seo_image)
                 <div class="mt-2 h-20 w-32 rounded border border-slate-200 overflow-hidden shadow-sm bg-white">
-                    <img src="{{ asset('storage/' . $product->seo_image) }}" class="h-full w-full object-cover">
+                    <x-admin.image :path="$product->seo_image" class="h-full w-full object-cover" />
                 </div>
             @endif
         </div>

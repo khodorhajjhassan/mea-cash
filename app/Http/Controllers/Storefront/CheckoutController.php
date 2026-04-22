@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductPackage;
 use App\Services\CartService;
+use App\Services\EmailNotificationService;
 use App\Services\WalletService;
 use App\Notifications\UserNotification;
 use App\Exceptions\InsufficientBalanceException;
@@ -20,6 +21,7 @@ class CheckoutController extends Controller
     public function __construct(
         private readonly CartService $cartService,
         private readonly WalletService $walletService,
+        private readonly EmailNotificationService $emails,
     ) {}
 
     /**
@@ -115,6 +117,31 @@ class CheckoutController extends Controller
                         'link' => route('store.orders.detail', $orderNumber),
                         'icon' => 'receipt_long',
                     ]));
+
+                    $this->emails->toUser($user, [
+                        'en' => [
+                            'subject' => "Order Created: #{$orderNumber}",
+                            'title' => 'Your order was created',
+                            'message' => "Your order #{$orderNumber} is pending review. We will notify you when it is completed.",
+                            'action_url' => route('store.orders.detail', $orderNumber),
+                            'action_text' => 'View Order',
+                            'details' => [
+                                'Product' => $product->name_en,
+                                'Total' => '$'.number_format((float) $totalPrice, 2),
+                            ],
+                        ],
+                        'ar' => [
+                            'subject' => "تم إنشاء الطلب: #{$orderNumber}",
+                            'title' => 'تم إنشاء طلبك',
+                            'message' => "طلبك #{$orderNumber} قيد المراجعة. سنخبرك عند اكتماله.",
+                            'action_url' => route('store.orders.detail', $orderNumber),
+                            'action_text' => 'عرض الطلب',
+                            'details' => [
+                                'المنتج' => $product->name_ar ?: $product->name_en,
+                                'المجموع' => '$'.number_format((float) $totalPrice, 2),
+                            ],
+                        ],
+                    ]);
 
                     $createdOrders[] = $order;
                 }

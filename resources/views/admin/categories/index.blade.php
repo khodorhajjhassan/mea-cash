@@ -44,7 +44,7 @@
                     <td>#{{ $category->id }}</td>
                     <td>
                         @if($category->image)
-                            <img src="{{ str_starts_with($category->image, 'http') ? $category->image : \Illuminate\Support\Facades\Storage::disk($disk)->url($category->image) }}" alt="{{ $category->name_en }}" class="h-10 w-10 rounded-lg object-cover">
+                            <x-admin.image :path="$category->image" :alt="$category->name_en" class="h-10 w-10 rounded-lg object-cover" />
                         @else
                             <span class="text-xs text-slate-400">No image</span>
                         @endif

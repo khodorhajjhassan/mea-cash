@@ -41,6 +41,16 @@ class AdminAuthController extends Controller
                 ]);
             }
 
+            if (! Auth::user()?->is_active) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withInput()->withErrors([
+                    'email' => 'Your account is inactive. Contact support.',
+                ]);
+            }
+
             return redirect()->route('admin.dashboard')->with('success', 'Welcome back, admin.');
         } catch (\Exception $exception) {
             report($exception);

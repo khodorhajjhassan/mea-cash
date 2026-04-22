@@ -23,7 +23,18 @@
         </div>
 
         <div class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <div><p class="text-xs text-slate-500">User</p><p class="font-medium text-slate-900">{{ $topup->user?->name ?? 'Unknown' }}</p></div>
+            <div>
+                <p class="text-xs text-slate-500">User</p>
+                <p class="font-medium text-slate-900">
+                    @if($topup->user_id)
+                        <a href="{{ route('admin.users.show', $topup->user_id) }}" class="text-indigo-600 hover:underline">
+                            {{ $topup->user?->name ?? 'Unknown' }}
+                        </a>
+                    @else
+                        {{ $topup->user?->name ?? 'Unknown' }}
+                    @endif
+                </p>
+            </div>
             <div><p class="text-xs text-slate-500">Payment Method</p><p class="font-medium text-slate-900 uppercase">{{ $topup->payment_method ?: '-' }}</p></div>
             <div><p class="text-xs text-slate-500">Requested Amount</p><p class="font-semibold text-indigo-600">${{ number_format((float)$topup->amount_requested, 2) }}</p></div>
             <div><p class="text-xs text-slate-500">Submitted At</p><p class="font-medium text-slate-900">{{ $topup->created_at->format('Y-m-d H:i') }}</p></div>
@@ -160,6 +171,12 @@
                 <label class="text-slate-900 font-bold">Rejection Reason</label>
                 <textarea name="admin_note" rows="4" required placeholder="Evidence not clear, mismatch in amount, etc..."></textarea>
             </div>
+            <div class="bg-slate-50 p-4 rounded-xl space-y-3">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="notify_email" value="1" checked class="h-4 w-4 rounded text-red-600">
+                    <span class="text-sm font-medium text-slate-700">Notify user by Email</span>
+                </label>
+            </div>
             <div class="flex gap-3">
                 <button type="button" onclick="document.getElementById('rejectModal').classList.add('hidden')" class="btn-ghost flex-1 py-3">Cancel</button>
                 <button type="submit" class="btn-danger w-full text-white bg-red-600 hover:bg-red-700 py-3 rounded-lg font-bold uppercase">Reject Permanently</button>
@@ -167,8 +184,6 @@
         </form>
     </div>
 </div>
-
-@endsection
 
 {{-- Lightbox Overlay --}}
 <div id="receipt-lightbox" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/90 p-4 backdrop-blur-md opacity-0 transition-opacity duration-300 pointer-events-none">

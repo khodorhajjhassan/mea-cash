@@ -72,6 +72,9 @@ Route::prefix('{locale}')
         Route::middleware('guest')->group(function (): void {
             Route::get('/register', [CustomerAuthController::class, 'showRegister'])->name('store.register');
             Route::post('/register', [CustomerAuthController::class, 'register'])->name('store.register.store');
+            Route::get('/register/verify', [CustomerAuthController::class, 'showVerifyOtp'])->name('store.register.verify');
+            Route::post('/register/verify', [CustomerAuthController::class, 'verifyOtp'])->name('store.register.verify.store');
+            Route::post('/register/resend', [CustomerAuthController::class, 'resendOtp'])->name('store.register.resend');
         });
         Route::post('/customer/logout', [CustomerAuthController::class, 'logout'])->name('store.logout')->middleware('auth');
 
@@ -134,7 +137,7 @@ Route::prefix('{locale}')
                     Route::get('transactions/user/{user}', [TransactionController::class, 'user'])->middleware('permission:transactions.index')->name('transactions.user');
                     Route::resource('transactions', TransactionController::class)->only(['index', 'show'])->middleware('permission:transactions.index');
                     Route::post('users/{user}/credit', [UserController::class, 'credit'])->middleware('permission:users.credit-wallet')->name('users.credit');
-                    Route::resource('users', UserController::class)->except(['destroy'])->middleware('permission:users.index');
+                    Route::resource('users', UserController::class)->middleware('permission:users.index');
 
                     Route::post('payment-methods/{paymentMethod}/toggle', [PaymentMethodController::class, 'toggle'])
                         ->middleware('permission:payment-methods.index')

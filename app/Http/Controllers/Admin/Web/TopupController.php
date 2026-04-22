@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TopupRequest;
 use App\Models\WalletTransaction;
 use App\Services\WalletService;
+use App\Services\EmailNotificationService;
 use App\Notifications\UserNotification;
 use Exception;
 use Illuminate\Http\Request;
@@ -14,7 +15,10 @@ use Throwable;
 
 class TopupController extends Controller
 {
-    public function __construct(private readonly WalletService $walletService)
+    public function __construct(
+        private readonly WalletService $walletService,
+        private readonly EmailNotificationService $emails,
+    )
     {
     }
 
@@ -127,7 +131,30 @@ class TopupController extends Controller
             ]));
 
             if (!empty($data['notify_email'])) {
-                \Illuminate\Support\Facades\Mail::to($topup->user->email)->send(new \App\Mail\TopupApprovedMail($topup, $amount));
+                $this->emails->toUser($topup->user, [
+                'en' => [
+                    'subject' => 'Top-up Approved: $'.number_format($amount, 2),
+                    'title' => 'Your top-up was approved',
+                    'message' => 'Your wallet balance has been updated.',
+                    'action_url' => route('store.wallet'),
+                    'action_text' => 'View Wallet',
+                    'details' => [
+                        'Amount credited' => '$'.number_format($amount, 2),
+                        'Request' => '#'.$topup->id,
+                    ],
+                ],
+                'ar' => [
+                    'subject' => 'تمت الموافقة على الشحن: $'.number_format($amount, 2),
+                    'title' => 'تمت الموافقة على شحن محفظتك',
+                    'message' => 'تم تحديث رصيد محفظتك.',
+                    'action_url' => route('store.wallet'),
+                    'action_text' => 'عرض المحفظة',
+                    'details' => [
+                        'المبلغ المضاف' => '$'.number_format($amount, 2),
+                        'الطلب' => '#'.$topup->id,
+                    ],
+                ],
+                ]);
             }
 
             $response = back()->with('success', 'Top-up approved and wallet credited.');
@@ -151,6 +178,7 @@ class TopupController extends Controller
     {
         $data = $request->validate([
             'admin_note' => ['required', 'string'],
+            'notify_email' => ['sometimes', 'boolean'],
         ]);
 
         try {
@@ -188,6 +216,33 @@ class TopupController extends Controller
                 'link' => route('store.wallet'),
                 'icon' => 'report',
             ]));
+
+            if (!empty($data['notify_email'])) {
+                $this->emails->toUser($topup->user, [
+                'en' => [
+                    'subject' => "Top-up Rejected: #{$topup->id}",
+                    'title' => 'Your top-up was rejected',
+                    'message' => 'Your wallet top-up request was rejected by the admin team.',
+                    'action_url' => route('store.wallet'),
+                    'action_text' => 'View Wallet',
+                    'details' => [
+                        'Request' => '#'.$topup->id,
+                        'Reason' => $data['admin_note'],
+                    ],
+                ],
+                'ar' => [
+                    'subject' => "تم رفض طلب الشحن: #{$topup->id}",
+                    'title' => 'تم رفض طلب شحن المحفظة',
+                    'message' => 'تم رفض طلب شحن المحفظة من قبل فريق الإدارة.',
+                    'action_url' => route('store.wallet'),
+                    'action_text' => 'عرض المحفظة',
+                    'details' => [
+                        'الطلب' => '#'.$topup->id,
+                        'السبب' => $data['admin_note'],
+                    ],
+                ],
+                ]);
+            }
 
             return back()->with('success', 'Top-up request rejected.');
         } catch (Exception $exception) {

@@ -161,7 +161,9 @@
                                         <div class="font-label {{ $isArabic ? 'text-xs tracking-normal' : 'text-[9px] uppercase tracking-widest' }} text-outline">{{ strtoupper($topup->payment_method) }}</div>
                                     </div>
                                 </div>
-                                <span class="shrink-0 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 font-label {{ $isArabic ? 'text-xs tracking-normal' : 'text-[9px] uppercase tracking-widest' }} font-black text-yellow-500">{{ $locale === 'ar' ? 'قيد الانتظار' : 'Pending' }}</span>
+                                <span class="shrink-0 rounded-full border px-3 py-1 font-label {{ $isArabic ? 'text-xs tracking-normal' : 'text-[9px] uppercase tracking-widest' }} font-black {{ $statusStyles[$topup->status] ?? $statusStyles['pending'] }}">
+                                    {{ $statusLabels[$topup->status] ?? ucfirst($topup->status) }}
+                                </span>
                             </div>
                         @endforeach
                     </div>

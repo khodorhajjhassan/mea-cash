@@ -55,6 +55,11 @@ class RoleController extends Controller
      */
     public function edit(Role $role)
     {
+        if ($role->name === 'super-admin') {
+            return redirect()->route('admin.roles.index')
+                ->with('error', 'The super-admin role has all access and cannot be edited.');
+        }
+
         $permissions = Permission::all()->groupBy(function($perm) {
             return explode('.', $perm->name)[0];
         });
@@ -69,13 +74,21 @@ class RoleController extends Controller
      */
     public function update(Request $request, Role $role)
     {
+        if ($role->name === 'super-admin') {
+            return redirect()->route('admin.roles.index')
+                ->with('error', 'The super-admin role has all access and cannot be edited.');
+        }
+
         $request->validate([
             'name' => 'required|unique:roles,name,' . $role->id,
             'permissions' => 'required|array'
         ]);
 
         DB::transaction(function () use ($request, $role) {
-            $role->update(['name' => $request->name]);
+            if ($role->name !== 'admin') {
+                $role->update(['name' => $request->name]);
+            }
+
             $role->syncPermissions($request->permissions);
         });
 

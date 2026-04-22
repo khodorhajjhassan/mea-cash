@@ -106,14 +106,16 @@
     $userInput = array_filter($order->getUserInput(), fn ($value) => filled($value));
     $formFields = $order->product?->formFields ?? collect();
     $canShowCompletedOrderActions = in_array($status, ['completed', 'reported'], true) && !$isRefunded;
-    $supportReportDelayHours = $supportReportDelayHours ?? 4;
-    $supportReportEligibleAt = ($order->fulfilled_at ?? $order->created_at)->copy()->addHours($supportReportDelayHours);
-    $supportReportDelayPassed = $supportReportDelayHours <= 0 || now()->gte($supportReportEligibleAt);
+    $supportReportWindowHours = $supportReportDelayHours ?? 4;
+    $supportReportExpiresAt = $supportReportWindowHours > 0
+        ? ($order->fulfilled_at ?? $order->created_at)->copy()->addHours($supportReportWindowHours)
+        : null;
+    $supportReportWindowOpen = $supportReportExpiresAt === null || now()->lte($supportReportExpiresAt);
     $blockingReportOpen = $hasReport && in_array($reportStatus, ['open', 'reviewing'], true);
     $canOpenSupportReport = $canShowCompletedOrderActions
         && !$blockingReportOpen
         && !$isRefunded
-        && $supportReportDelayPassed;
+        && $supportReportWindowOpen;
 @endphp
 
 <div class="relative mx-auto max-w-[1440px] px-4 py-10 md:px-8 animate-fade-in">
@@ -404,9 +406,9 @@
                         <button type="button" onclick="document.getElementById('reportModal').classList.remove('hidden')" class="font-headline text-[10px] font-black uppercase tracking-widest text-primary-container hover:underline">
                             {{ $locale === 'ar' ? 'فتح بلاغ دعم' : 'Open Support Report' }}
                         </button>
-                @elseif($canShowCompletedOrderActions && !$supportReportDelayPassed)
+                @elseif($canShowCompletedOrderActions && !$supportReportWindowOpen)
                     <span class="max-w-md text-end text-xs leading-relaxed text-on-surface-variant">
-                        {{ $locale === 'ar' ? "يمكن فتح بلاغ دعم بعد {$supportReportDelayHours} ساعات من اكتمال الطلب." : "Support reports open {$supportReportDelayHours} hours after fulfillment." }}
+                        {{ $locale === 'ar' ? "انتهت مدة فتح بلاغ الدعم لهذا الطلب." : "The support report window for this order has expired." }}
                     </span>
                 @else
                     <a href="{{ route('store.contact') }}" class="font-headline text-[10px] font-black uppercase tracking-widest text-primary-container hover:underline">

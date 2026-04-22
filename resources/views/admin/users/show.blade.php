@@ -26,10 +26,19 @@
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                         {{ $user->phone ?: 'No phone' }}
                     </div>
+                    <div class="flex items-center gap-1.5 text-sm text-slate-500">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 0h7M11 21l5-10 5 10m-8.5-4h7M5 9a18.03 18.03 0 005.5 7.5M5 9a18.03 18.03 0 01-2 2.5"/></svg>
+                        {{ $user->preferred_language === 'ar' ? 'Arabic' : 'English' }}
+                    </div>
                 </div>
             </div>
-            <div class="text-right">
+            <div class="flex flex-col gap-2 text-right">
                 <a href="{{ route('admin.users.edit', $user) }}" class="btn-ghost text-xs uppercase font-bold">Edit Profile</a>
+                @if((int) $user->id !== (int) auth()->id())
+                    <button type="button" onclick="document.getElementById('deleteUserModal').classList.remove('hidden')" class="btn-danger-outline text-xs uppercase font-bold">
+                        Delete User
+                    </button>
+                @endif
             </div>
         </section>
 
@@ -169,6 +178,38 @@
         </div>
     </div>
 </div>
+
+@if((int) $user->id !== (int) auth()->id())
+<div id="deleteUserModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+        <div class="border-b border-rose-100 bg-rose-50 p-6 text-center">
+            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
+                <span class="material-symbols-outlined">delete_forever</span>
+            </div>
+            <h3 class="text-xl font-black text-slate-900">Delete User</h3>
+            <p class="mt-2 text-sm leading-relaxed text-slate-600">
+                This will permanently delete {{ $user->name }} and linked wallet, orders, top-ups, and feedback.
+            </p>
+        </div>
+
+        <form method="POST" action="{{ route('admin.users.destroy', $user) }}" class="p-6">
+            @csrf
+            @method('DELETE')
+            <div class="rounded-xl border border-rose-100 bg-rose-50/60 p-4 text-sm text-rose-700">
+                This action cannot be undone.
+            </div>
+            <div class="mt-6 flex gap-3">
+                <button type="button" onclick="document.getElementById('deleteUserModal').classList.add('hidden')" class="btn-ghost flex-1 py-3">
+                    Cancel
+                </button>
+                <button type="submit" class="btn-danger flex-[2] rounded-lg bg-rose-600 py-3 font-bold uppercase tracking-wider text-white hover:bg-rose-700">
+                    Delete Permanently
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
 
 <!-- Refill Modal -->
 <div id="refillModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">

@@ -26,7 +26,7 @@
         <div class="panel-head">
             <div class="flex items-center gap-4">
                 @if($order->product?->image)
-                    <img src="{{ \Illuminate\Support\Facades\Storage::url($order->product->image) }}" class="h-12 w-12 rounded-lg object-cover shadow-sm border border-slate-100">
+                    <x-admin.image :path="$order->product->image" class="h-12 w-12 rounded-lg object-cover shadow-sm border border-slate-100" />
                 @endif
                 <div>
                     <h2 class="text-lg font-semibold text-slate-900">Order #{{ $order->order_number ?: $order->id }}</h2>
@@ -237,6 +237,10 @@
                                 @endforeach
                             </select>
                         </div>
+                        <label class="flex items-center gap-2 pb-3 cursor-pointer select-none">
+                            <input type="checkbox" name="notify_email" value="1" class="h-4 w-4 rounded text-indigo-600">
+                            <span class="text-xs font-medium text-slate-700">Email</span>
+                        </label>
                         <button class="btn-primary">Save</button>
                     </form>
                 </section>

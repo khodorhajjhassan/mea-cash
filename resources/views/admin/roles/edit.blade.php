@@ -25,8 +25,12 @@
             <div class="max-w-md">
                 <label for="name" class="block text-sm font-bold text-slate-700 uppercase tracking-wide">{{ __('roles.name') }}</label>
                 <input type="text" name="name" id="name" value="{{ old('name', $role->name) }}" 
-                       class="mt-2 block w-full rounded-xl border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 bg-slate-50"
+                       @readonly($role->name === 'admin')
+                       class="mt-2 block w-full rounded-xl border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 bg-slate-50 {{ $role->name === 'admin' ? 'cursor-not-allowed opacity-70' : '' }}"
                        placeholder="{{ __('roles.role_name_placeholder') }}" required>
+                @if($role->name === 'admin')
+                    <p class="mt-2 text-xs font-medium text-slate-500">The admin role name is protected. You can update its permissions only.</p>
+                @endif
                 @error('name')
                     <p class="mt-2 text-sm text-rose-600 font-medium">{{ $message }}</p>
                 @enderror

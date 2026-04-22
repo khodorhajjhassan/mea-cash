@@ -10,7 +10,16 @@ class EnsureUserIsAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->user() || ! $request->user()->is_admin) {
+        if (! $request->user() || ! $request->user()->is_admin || ! $request->user()->is_active) {
+            if ($request->user() && ! $request->user()->is_active) {
+                auth()->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->route('admin.login')
+                    ->withErrors(['email' => 'Your account is inactive. Please contact support.']);
+            }
+
             abort(403, 'Unauthorized admin access.');
         }
 

@@ -10,15 +10,19 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class OrderRefundedMail extends Mailable
+class OrderRefundedMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
+
+    public string $mailLocale;
 
     /**
      * Create a new message instance.
      */
     public function __construct(public \App\Models\Order $order)
     {
+        $this->order->loadMissing('user');
+        $this->mailLocale = $this->getMailLocale();
     }
 
     /**
@@ -27,7 +31,9 @@ class OrderRefundedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Order Refunded: #'.($this->order->order_number ?: $this->order->id),
+            subject: $this->getMailLocale() === 'ar'
+                ? 'تم استرداد الطلب: #'.($this->order->order_number ?: $this->order->id)
+                : 'Order Refunded: #'.($this->order->order_number ?: $this->order->id),
         );
     }
 
@@ -49,5 +55,10 @@ class OrderRefundedMail extends Mailable
     public function attachments(): array
     {
         return [];
+    }
+
+    private function getMailLocale(): string
+    {
+        return $this->order->user?->preferred_language ?: app()->getLocale();
     }
 }

@@ -10,4 +10,13 @@
     <div class="field"><label>Sort Order</label><input type="number" min="0" name="sort_order" value="{{ old('sort_order', $productPackage->sort_order ?? 0) }}"></div>
     <div class="field"><label>Status</label><select name="is_available"><option value="1" @selected(old('is_available', $productPackage->is_available ?? true)==1)>Available</option><option value="0" @selected(old('is_available', $productPackage->is_available ?? true)==0)>Unavailable</option></select></div>
 </div>
-<div class="field mt-4"><label>Image</label><input type="file" name="image" accept="image/*">@if($editing && $productPackage->image)<p class="hint">Uploading a new image will replace the current one.</p>@endif</div>
+<div class="field mt-4">
+    <label>Image</label>
+    <input type="file" name="image" accept="image/*">
+    @if($editing && $productPackage->image)
+        <div class="mt-2 h-20 w-32 rounded border border-slate-200 overflow-hidden shadow-sm bg-white">
+            <x-admin.image :path="$productPackage->image" class="h-full w-full object-cover" />
+        </div>
+        <p class="hint">Uploading a new image will replace the current one.</p>
+    @endif
+</div>

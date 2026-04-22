@@ -12,6 +12,7 @@ use App\Models\ProductCode;
 use App\Notifications\UserNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+
 class OrderFulfillmentService
 {
     public function __construct(private readonly WalletService $walletService)
@@ -86,11 +87,11 @@ class OrderFulfillmentService
                 ]);
 
             // 4. Notifications
-            if (!empty($data['notify_email'])) {
-                Mail::to($order->user->email)->send(new OrderFulfilledMail($order));
+            $order->loadMissing('user');
+            if (!empty($data['notify_email']) && $order->user?->email) {
+                Mail::to($order->user->email)->queue((new OrderFulfilledMail($order))->afterCommit());
             }
 
-            $order->loadMissing('user');
             $order->user?->notify(new UserNotification([
                 'type' => 'Order Completed',
                 'message' => "Order #{$order->order_number} is completed. Your delivery details are ready.",
@@ -159,8 +160,8 @@ class OrderFulfillmentService
                 );
 
                 // 3. Optional Email Notification
-                if ($notifyEmail) {
-                    \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\OrderRefundedMail($order));
+                if ($notifyEmail && $order->user->email) {
+                    \Illuminate\Support\Facades\Mail::to($order->user->email)->queue((new \App\Mail\OrderRefundedMail($order))->afterCommit());
                 }
 
                 $order->user->notify(new UserNotification([

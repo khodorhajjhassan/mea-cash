@@ -29,8 +29,6 @@ class StoreProductRequest extends FormRequest
             'cost_price' => ['nullable', 'numeric', 'min:0'],
             'selling_price' => ['nullable', 'numeric', 'min:0'],
             'price_per_unit' => ['nullable', 'numeric', 'min:0'],
-            'min_quantity' => ['nullable', 'integer', 'min:1'],
-            'max_quantity' => ['nullable', 'integer', 'min:1'],
             'image' => ['nullable', 'image', 'max:5120'],
             'is_active' => ['sometimes', 'boolean'],
             'is_featured' => ['sometimes', 'boolean'],

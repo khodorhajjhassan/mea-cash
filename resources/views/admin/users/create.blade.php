@@ -27,7 +27,7 @@
             <div class="field">
                 <label>Preferred Language</label>
                 <select name="preferred_language" required>
-                    <option value="en" @selected(old('preferred_language') == 'en')>English</option>
+                    <option value="en" @selected(old('preferred_language', 'en') == 'en')>English</option>
                     <option value="ar" @selected(old('preferred_language') == 'ar')>Arabic</option>
                 </select>
             </div>
