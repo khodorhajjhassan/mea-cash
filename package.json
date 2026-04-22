@@ -7,7 +7,6 @@
         "dev": "vite"
     },
     "devDependencies": {
-        "@rolldown/binding-win32-x64-msvc": "^1.0.0-rc.15",
         "@tailwindcss/vite": "^4.0.0",
         "axios": ">=1.11.0 <=1.14.0",
         "concurrently": "^9.0.1",

@@ -3,10 +3,11 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
 {
@@ -18,7 +19,7 @@ class RolePermissionSeeder extends Seeder
     public function run(): void
     {
         // Reset cached roles and permissions
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         // 1. Define Permissions
         $permissions = [
@@ -56,9 +57,26 @@ class RolePermissionSeeder extends Seeder
             'roles.index', 'roles.create', 'roles.edit', 'roles.delete', 'roles.assign',
         ];
 
-        foreach ($permissions as $permission) {
-            Permission::findOrCreate($permission, self::GUARD);
-        }
+        $now = now();
+        Permission::query()->upsert(
+            collect($permissions)->map(fn (string $permission) => [
+                'name' => $permission,
+                'guard_name' => self::GUARD,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])->all(),
+            ['name', 'guard_name'],
+            ['updated_at']
+        );
+
+        // Ensure new permissions are available to sync operations.
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $permissionModels = Permission::query()
+            ->where('guard_name', self::GUARD)
+            ->whereIn('name', $permissions)
+            ->get()
+            ->keyBy('name');
 
         // 2. Create Roles and Assign Permissions
 
@@ -68,24 +86,25 @@ class RolePermissionSeeder extends Seeder
 
         // Admin
         $admin = Role::findOrCreate('admin', self::GUARD);
-        $adminPermissions = collect($permissions)->filter(fn($p) => !in_array($p, [
+        $adminPermissionNames = collect($permissions)->filter(fn ($p) => !in_array($p, [
             'settings.security',
             'roles.delete',
             'transactions.adjust'
-        ]))->toArray();
-        $admin->syncPermissions($adminPermissions);
+        ]))->values();
+        $admin->syncPermissions($permissionModels->only($adminPermissionNames->all())->values());
 
         // Accountant
         $accountant = Role::findOrCreate('accountant', self::GUARD);
-        $accountant->syncPermissions([
+        $accountantPermissionNames = collect([
             'orders.index',
             'orders.show',
             'transactions.index',
             'analytics.index',
             'analytics.export',
             'topups.index',
-            'topups.show'
+            'topups.show',
         ]);
+        $accountant->syncPermissions($permissionModels->only($accountantPermissionNames->all())->values());
 
         // 3. Create Initial Super Admin User (Idempotent)
         $email = strtolower((string) env('SUPER_ADMIN_EMAIL', 'admin@meacash.com'));
