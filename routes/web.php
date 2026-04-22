@@ -206,15 +206,15 @@ Route::prefix('{locale}')
                     Route::get('notifications/{id}/read', [NotificationController::class, 'read'])->middleware('permission:notifications.index')->name('notifications.read');
                     Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->middleware('permission:notifications.index')->name('notifications.read-all');
 
-                    Route::get('roles', [RoleController::class, 'index'])->middleware('permission:roles.index')->name('roles.index');
-                    Route::get('roles/create', [RoleController::class, 'create'])->middleware('permission:roles.create')->name('roles.create');
-                    Route::post('roles', [RoleController::class, 'store'])->middleware('permission:roles.create')->name('roles.store');
-                    Route::get('roles/{role}/edit', [RoleController::class, 'edit'])->middleware('permission:roles.edit')->name('roles.edit');
-                    Route::put('roles/{role}', [RoleController::class, 'update'])->middleware('permission:roles.edit')->name('roles.update');
-                    Route::delete('roles/{role}', [RoleController::class, 'destroy'])->middleware('permission:roles.delete')->name('roles.destroy');
+                    Route::get('roles', [RoleController::class, 'index'])->middleware(['role:super-admin', 'permission:roles.index'])->name('roles.index');
+                    Route::get('roles/create', [RoleController::class, 'create'])->middleware(['role:super-admin', 'permission:roles.create'])->name('roles.create');
+                    Route::post('roles', [RoleController::class, 'store'])->middleware(['role:super-admin', 'permission:roles.create'])->name('roles.store');
+                    Route::get('roles/{role}/edit', [RoleController::class, 'edit'])->middleware(['role:super-admin', 'permission:roles.edit'])->name('roles.edit');
+                    Route::put('roles/{role}', [RoleController::class, 'update'])->middleware(['role:super-admin', 'permission:roles.edit'])->name('roles.update');
+                    Route::delete('roles/{role}', [RoleController::class, 'destroy'])->middleware(['role:super-admin', 'permission:roles.delete'])->name('roles.destroy');
 
-                    Route::get('roles/assignments', [RoleController::class, 'assignments'])->middleware('permission:roles.assign')->name('roles.assignments');
-                    Route::put('roles/assignments/{user}', [RoleController::class, 'updateAssignments'])->middleware('permission:roles.assign')->name('roles.assignments.update');
+                    Route::get('roles/assignments', [RoleController::class, 'assignments'])->middleware(['role:super-admin', 'permission:roles.assign'])->name('roles.assignments');
+                    Route::put('roles/assignments/{user}', [RoleController::class, 'updateAssignments'])->middleware(['role:super-admin', 'permission:roles.assign'])->name('roles.assignments.update');
 
                     Route::post('products/{product}/packages', [ProductController::class, 'storePackage'])->middleware('permission:products.edit')->name('products.packages.store');
                     Route::put('products/packages/{package}', [ProductController::class, 'updatePackage'])->middleware('permission:products.edit')->name('products.packages.update');

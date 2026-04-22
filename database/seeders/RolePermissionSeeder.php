@@ -26,9 +26,9 @@ class RolePermissionSeeder extends Seeder
             'categories' => ['index', 'create', 'edit', 'delete'],
             'subcategories' => ['index', 'create', 'edit', 'delete'],
             'product-types' => ['index', 'create', 'edit', 'delete'],
-            'products' => ['index', 'create', 'edit', 'delete'],
+            'products' => ['index', 'create', 'edit', 'delete', 'toggle-availability'],
             'codes' => ['index', 'import', 'delete'],
-            'orders' => ['index', 'show', 'edit', 'pending'],
+            'orders' => ['index', 'show', 'edit', 'pending', 'refund', 'fulfill', 'fail', 'update-status'],
             'topups' => ['index', 'show', 'approve', 'reject'],
             'transactions' => ['index', 'show', 'adjust'],
             'users' => ['index', 'show', 'edit', 'toggle-status', 'credit-wallet', 'vip'],
@@ -84,9 +84,8 @@ class RolePermissionSeeder extends Seeder
         $admin = Role::findOrCreate('admin', self::GUARD);
         $adminPermissionNames = collect($permissions)->filter(fn ($p) => !in_array($p, [
             'settings.security',
-            'roles.delete',
             'transactions.adjust'
-        ]))->values();
+        ]) && !str_starts_with($p, 'roles.'))->values();
         $admin->syncPermissions($permissionModels->only($adminPermissionNames->all())->values());
 
         // Accountant

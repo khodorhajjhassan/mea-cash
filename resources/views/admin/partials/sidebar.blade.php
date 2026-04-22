@@ -2,6 +2,8 @@
     $hasPendingOrders = \App\Models\Order::where('status', 'pending')->exists();
     $hasPendingTopups = \App\Models\TopupRequest::where('status', 'pending')->exists();
     $hasUnreadContacts = \App\Models\ContactMessage::where('is_read', false)->exists();
+    $canManageRoles = auth()->check() && auth()->user()->hasRole('super-admin');
+    $showSystemGroup = $canManageRoles || (auth()->check() && auth()->user()->canAny(['notifications.index', 'settings.general']));
     $groupOpen = fn (...$patterns) => request()->routeIs(...$patterns);
 @endphp
 
@@ -43,7 +45,7 @@
                         </svg>
                     </summary>
                     <div class="mt-1 space-y-1">
-                        @canany(['categories.index', 'subcategories.index', 'product-types.index'])
+                        @can('categories.index')
                             <a href="{{ route('admin.categories.index') }}"
                                 class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -51,7 +53,7 @@
                                 </svg>
                                 <span>{{ __('admin.sidebar.categories') }}</span>
                             </a>
-                        @endcanany
+                        @endcan
                         @can('subcategories.index')
                             <a href="{{ route('admin.subcategories.index') }}"
                                 class="nav-link {{ request()->routeIs('admin.subcategories.*') ? 'active' : '' }}">
@@ -341,7 +343,7 @@
                 </details>
             @endcanany
 
-            @canany(['notifications.index', 'roles.index', 'settings.general'])
+            @if($showSystemGroup)
                 <details class="group" {{ $groupOpen('admin.notifications.*', 'admin.roles.*', 'admin.settings.*') ? 'open' : '' }}>
                     <summary class="section-label flex cursor-pointer list-none items-center justify-between rounded-xl px-3 py-2 hover:bg-slate-100 [&::-webkit-details-marker]:hidden">
                         <span class="flex items-center gap-2 font-bold text-slate-700">
@@ -364,7 +366,7 @@
                                 <span>{{ __('admin.sidebar.alerts') }}</span>
                             </a>
                         @endcan
-                        @can('roles.index')
+                        @if($canManageRoles)
                             <a href="{{ route('admin.roles.index') }}"
                                 class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
                                 <svg class="h-4 w-4" fill="none" viewBox="1 0 24 24" stroke="currentColor">
@@ -372,7 +374,7 @@
                                 </svg>
                                 <span>{{ __('admin.sidebar.roles') }}</span>
                             </a>
-                        @endcan
+                        @endif
                         @can('settings.general')
                             <a href="{{ route('admin.settings.index') }}"
                                 class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
@@ -385,7 +387,7 @@
                         @endcan
                     </div>
                 </details>
-            @endcanany
+            @endif
         </nav>
     </div>
 
