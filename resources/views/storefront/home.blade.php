@@ -171,8 +171,8 @@
     </div>
     {{-- Unified Infinite Brand Marquee --}}
     <section
-        class="sf-brand-marquee w-full py-8 border-y border-outline-variant/10 bg-surface-container-lowest/50 backdrop-blur-sm overflow-hidden z-10 relative sf-reveal-section sf-lazy-section">
-        <div class="flex items-center gap-16 md:gap-32 w-max {{ $locale === 'ar' ? 'animate-marquee-rtl' : 'animate-marquee' }}"
+        class="sf-brand-marquee w-full py-4 md:py-8 border-y border-outline-variant/10 bg-surface-container-lowest/50 backdrop-blur-sm overflow-hidden z-10 relative sf-reveal-section sf-lazy-section">
+        <div class="flex items-center gap-10 md:gap-32 w-max {{ $locale === 'ar' ? 'animate-marquee-rtl' : 'animate-marquee' }}"
             dir="ltr">
             @php
                 $marqueeItems = $featuredSubcategories->count() > 0
