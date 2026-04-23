@@ -16,10 +16,10 @@
     </button>
 
     <div class="px-4 py-8 md:hidden">
-        <div
+            <div
             class="mx-auto max-w-md rounded-[1.75rem] border border-outline-variant/10 bg-surface-container-low/55 p-5 text-center">
             <div class="flex items-center justify-center gap-3">
-                <img src="{{ asset('meacash-logo.png') }}" alt="MeaCash" class="h-8 w-auto">
+                <x-noir.logo alt="MeaCash" class="h-8 w-8" sizes="32px" />
                 <span
                     class="font-headline text-2xl font-black italic tracking-tighter text-primary-container">MEACASH</span>
             </div>
@@ -56,7 +56,7 @@
         <div class="mx-auto grid max-w-[1440px] grid-cols-1 gap-10 px-8 md:grid-cols-2 lg:grid-cols-5 lg:gap-8">
             <div class="lg:col-span-2">
                 <div class="mb-6 flex items-center gap-3">
-                    <img src="{{ asset('meacash-logo.png') }}" alt="MeaCash" class="h-10 w-auto">
+                    <x-noir.logo alt="MeaCash" class="h-10 w-10" sizes="40px" />
                     <span
                         class="inline-block text-xl md:text-3xl font-black italic tracking-tighter text-transparent bg-clip-text px-2 mc-gradient-text">{{ config('app.name', 'MEACASH') }}</span>
                 </div>

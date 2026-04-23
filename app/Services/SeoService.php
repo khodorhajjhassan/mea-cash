@@ -124,7 +124,7 @@ class SeoService
     private function getOgImageUrl(): ?string
     {
         $path = $this->settingsService->get('og_default_image');
-        return $path ? asset('storage/' . $path) : asset('meacash-logo.png');
+        return $path ? asset('storage/' . $path) : asset('meacash-logo-128.png');
     }
 
     private function resolveImageUrl(?string $image): string

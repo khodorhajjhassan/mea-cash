@@ -28,7 +28,7 @@
         <div class="mc-hero-shell mx-auto grid w-full max-w-[1440px] overflow-hidden rounded-[24px] shadow-2xl lg:grid-cols-[0.9fr_1.65fr_0.9fr] lg:rounded-[32px]">
             <aside class="mc-hero-side-panel mc-hero-side-shop hidden min-h-[420px] flex-col justify-between p-8 lg:flex">
                 <div>
-                    <p class="font-headline text-3xl font-light text-on-surface">{{ __('Shop') }}</p>
+                <p class="font-headline text-3xl font-light text-on-surface">{{ __('Shop') }}</p>
                     <h2 class="mt-2 max-w-xs font-headline text-4xl font-black leading-tight text-on-surface">{{ __('Digital Products') }}</h2>
                     <p class="mt-4 text-sm text-on-surface-variant">{{ __('Fast delivery · Secure checkout · Best deals') }}</p>
                     <a href="#products-section" class="mt-6 inline-flex rounded-full bg-primary-container px-7 py-3 font-headline text-xs font-black uppercase tracking-widest text-on-primary-container shadow-lg transition hover:scale-105">
@@ -36,7 +36,12 @@
                     </a>
                 </div>
                 <div class="mc-hero-product-stage" aria-hidden="true">
-                    <img src="{{ asset('meacash-logo.png') }}" alt="" loading="lazy" decoding="async" width="351" height="351">
+                    <x-noir.logo
+                        alt=""
+                        class="mc-logo"
+                        sizes="176px"
+                        loading="eager"
+                        fetchpriority="high" />
                     <span class="material-symbols-outlined">sports_esports</span>
                     <span class="material-symbols-outlined">redeem</span>
                     <span class="material-symbols-outlined">bolt</span>
@@ -148,7 +153,7 @@
             <div class="{{ $locale === 'ar' ? 'animate-marquee-rtl' : 'animate-marquee' }} flex w-max items-center gap-3 md:gap-4 py-2" dir="ltr">
                 @foreach($brandTiles as $sub)
                     @php
-                        $subImage = $sub->image ? (str_starts_with($sub->image, 'http') ? $sub->image : \Illuminate\Support\Facades\Storage::url($sub->image)) : asset('meacash-logo.png');
+                        $subImage = $sub->image ? (str_starts_with($sub->image, 'http') ? $sub->image : \Illuminate\Support\Facades\Storage::url($sub->image)) : asset('meacash-logo-128.png');
                         $subName = $sub->{"name_$locale"} ?: $sub->name_en;
                     @endphp
                     <div onclick="window.openSubcategoryModal('{{ $sub->slug }}')"
@@ -156,7 +161,7 @@
                         <div class="sf-brand-card-icon-shell mb-3 flex h-12 w-12 items-center justify-center rounded-2xl">
                             <img src="{{ $subImage }}" alt="{{ $subName }}" loading="lazy" width="36" height="36" decoding="async"
                                 class="sf-brand-card-icon h-9 w-9 object-contain opacity-90 transition-all duration-300 group-hover:scale-110 group-hover:opacity-100"
-                                onerror="this.src='{{ asset('meacash-logo.png') }}';">
+                                onerror="this.src='{{ asset('meacash-logo-128.png') }}';">
                         </div>
                         <span
                             class="sf-brand-card-label w-full truncate text-center font-headline text-[9px] font-black uppercase tracking-widest text-on-surface/45 transition-colors group-hover:text-primary-container">
@@ -179,14 +184,14 @@
             @endphp
             @foreach($marqueeItems as $sub)
                 @php
-                    $subImage = $sub->image ? (str_starts_with($sub->image, 'http') ? $sub->image : \Illuminate\Support\Facades\Storage::url($sub->image)) : asset('meacash-logo.png');
+                    $subImage = $sub->image ? (str_starts_with($sub->image, 'http') ? $sub->image : \Illuminate\Support\Facades\Storage::url($sub->image)) : asset('meacash-logo-128.png');
                     $subName = $sub->{"name_$locale"} ?: $sub->name_en;
                 @endphp
                 <div onclick="window.openSubcategoryModal('{{ $sub->slug }}')"
                     class="sf-brand-marquee-item flex items-center gap-3 group/brand cursor-pointer opacity-70 hover:opacity-100 transition-all duration-500 shrink-0">
                     <img src="{{ $subImage }}" alt="{{ $subName }}" loading="lazy" width="28" height="28" decoding="async"
                         class="sf-brand-marquee-icon h-7 w-7 object-contain transition-transform group-hover/brand:scale-110"
-                        onerror="this.src='{{ asset('meacash-logo.png') }}';">
+                        onerror="this.src='{{ asset('meacash-logo-128.png') }}';">
                     <span
                         class="sf-brand-marquee-label font-headline font-black text-xl tracking-widest uppercase italic text-on-surface/50 group-hover/brand:text-primary-container">
                         {{ $subName }}

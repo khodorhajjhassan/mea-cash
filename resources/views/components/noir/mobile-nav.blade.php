@@ -35,7 +35,7 @@
 
     $catalogImageUrl = static function (?string $path): string {
         if (! $path) {
-            return asset('meacash-logo.png');
+            return asset('meacash-logo-128.png');
         }
 
         return str_starts_with($path, 'http')
@@ -101,7 +101,7 @@
                                     width="40" height="40"
                                     class="h-full w-full object-contain sf-img-loading" 
                                     loading="lazy" 
-                                    onerror="this.src='{{ asset('meacash-logo.png') }}'; this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');"
+                                    onerror="this.src='{{ asset('meacash-logo-128.png') }}'; this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');"
                                     onload="this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');">
                             </span>
                             <span class="min-w-0 flex-1 truncate font-label text-[10px] font-black uppercase tracking-widest text-on-surface-variant">{{ $subcategory->{"name_{$locale}"} ?: $subcategory->name_en }}</span>
@@ -374,8 +374,8 @@
                                 data-mobile-search-open="${escapeHtml(item.slug || '')}"
                                 data-mobile-search-product="${Number(item.id || item.product_id || 0)}">
                                 <span class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-outline-variant/15 bg-surface-container-lowest p-1 sf-skeleton">
-                                    <img src="${escapeHtml(item.image || '/meacash-logo.png')}" alt="" width="56" height="56" class="h-full w-full object-contain sf-img-loading" 
-                                        onerror="this.src='/meacash-logo.png'; this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');"
+                                    <img src="${escapeHtml(item.image || '/meacash-logo-128.png')}" alt="" width="56" height="56" class="h-full w-full object-contain sf-img-loading" 
+                                        onerror="this.src='/meacash-logo-128.png'; this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');"
                                         onload="this.classList.add('sf-img-loaded'); this.parentElement.classList.remove('sf-skeleton');">
                                 </span>
                                 <span class="min-w-0 flex-1">

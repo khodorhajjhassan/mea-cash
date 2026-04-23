@@ -153,11 +153,11 @@
                             $status = $order->status->value ?? $order->status;
                             $productImage = $order->product?->image
                                 ? (str_starts_with($order->product->image, 'http') ? $order->product->image : \Illuminate\Support\Facades\Storage::url($order->product->image))
-                                : asset('meacash-logo.png');
+                                : asset('meacash-logo-128.png');
                         @endphp
                         <a href="{{ route('store.orders.detail', $order->order_number) }}" class="flex items-center gap-4 px-6 py-5 active:bg-surface-container/30">
                             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-outline-variant/10 bg-surface-container">
-                                <img src="{{ $productImage }}" alt="" class="h-8 w-8 object-contain" onerror="this.src='{{ asset('meacash-logo.png') }}'">
+                                <img src="{{ $productImage }}" alt="" class="h-8 w-8 object-contain" onerror="this.src='{{ asset('meacash-logo-128.png') }}'">
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center justify-between gap-2">

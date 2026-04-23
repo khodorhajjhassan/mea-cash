@@ -109,7 +109,7 @@
                     $status = $order->status->value ?? $order->status;
                     $productImage = $order->product?->image
                         ? (str_starts_with($order->product->image, 'http') ? $order->product->image : \Illuminate\Support\Facades\Storage::url($order->product->image))
-                        : asset('meacash-logo.png');
+                        : asset('meacash-logo-128.png');
                 @endphp
                 <a href="{{ route('store.orders.detail', $order->order_number) }}" class="block rounded-3xl border border-outline-variant/10 bg-surface-container-low/75 p-4 shadow-[0_18px_50px_rgba(0,0,0,0.2)]">
                     <div class="mb-4 flex items-center justify-between gap-3">
@@ -121,7 +121,7 @@
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-outline-variant/15 bg-surface-container-lowest p-1.5">
-                            <img src="{{ $productImage }}" alt="{{ $order->product?->{"name_{$locale}"} ?? '' }}" class="h-full w-full object-contain" onerror="this.src='{{ asset('meacash-logo.png') }}'">
+                            <img src="{{ $productImage }}" alt="{{ $order->product?->{"name_{$locale}"} ?? '' }}" class="h-full w-full object-contain" onerror="this.src='{{ asset('meacash-logo-128.png') }}'">
                         </span>
                         <span class="min-w-0 flex-1">
                             <span class="block truncate font-headline text-xs font-black uppercase text-on-surface">{{ $order->product?->{"name_{$locale}"} ?? '-' }}</span>
@@ -153,7 +153,7 @@
                                 $status = $order->status->value ?? $order->status;
                                 $productImage = $order->product?->image
                                     ? (str_starts_with($order->product->image, 'http') ? $order->product->image : \Illuminate\Support\Facades\Storage::url($order->product->image))
-                                    : asset('meacash-logo.png');
+                                    : asset('meacash-logo-128.png');
                             @endphp
                             <tr class="group cursor-pointer transition-colors hover:bg-white/5" onclick="window.location.href='{{ route('store.orders.detail', $order->order_number) }}'">
                                 <td class="py-6 ps-8">
@@ -170,7 +170,7 @@
                                 <td class="py-6">
                                     <div class="flex items-center gap-3">
                                         <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-outline-variant/15 bg-surface-container-lowest p-1">
-                                            <img src="{{ $productImage }}" alt="{{ $order->product?->{"name_{$locale}"} ?? '' }}" class="h-full w-full object-contain" onerror="this.src='{{ asset('meacash-logo.png') }}'">
+                                            <img src="{{ $productImage }}" alt="{{ $order->product?->{"name_{$locale}"} ?? '' }}" class="h-full w-full object-contain" onerror="this.src='{{ asset('meacash-logo-128.png') }}'">
                                         </span>
                                         <span class="min-w-0">
                                             <span class="block max-w-[240px] truncate font-headline text-xs font-bold uppercase text-on-surface-variant group-hover:text-on-surface">{{ $order->product?->{"name_{$locale}"} ?? '-' }}</span>

@@ -24,9 +24,12 @@
     <nav class="flex justify-between items-center w-full max-w-[1440px] mx-auto px-4 md:px-8 h-20">
         <div class="flex items-center gap-4 md:gap-8">
             <a href="{{ route('store.home') }}" class="flex items-center gap-3 group">
-                <img src="{{ asset('meacash-logo.png') }}" alt="MeaCash"
-                    width="351" height="351"
-                    class="h-10 w-auto group-hover:scale-105 transition-transform">
+                <x-noir.logo
+                    alt="MeaCash"
+                    class="h-10 w-10 group-hover:scale-105 transition-transform"
+                    sizes="40px"
+                    loading="eager"
+                    fetchpriority="high" />
                 <span
                     class="mc-gradient-text inline-block px-2 text-xl md:text-2xl font-black italic tracking-tighter">
                     {{ config('app.name', 'MEACASH') }}
@@ -122,7 +125,7 @@
                                         list.innerHTML = data.results.map(item => `
                                         <div onclick="openSubcategoryModalBySearch('${item.slug}')" class="p-4 border-b border-outline-variant/10 hover:bg-primary-container/10 cursor-pointer flex items-center gap-4 transition-colors">
                                             <div class="w-12 h-12 rounded-xl bg-surface-container-highest overflow-hidden p-1 shrink-0 border border-outline-variant/20">
-                                                <img src="${item.image || '/meacash-logo.png'}" alt="" width="48" height="48" class="w-full h-full object-contain">
+                                                <img src="${item.image || '/meacash-logo-128.png'}" alt="" width="48" height="48" class="w-full h-full object-contain">
                                             </div>
                                             <div class="flex-grow min-w-0">
                                                 <div class="text-[9px] font-black uppercase tracking-widest text-primary-container/70 mb-0.5">${item.category_name}</div>
