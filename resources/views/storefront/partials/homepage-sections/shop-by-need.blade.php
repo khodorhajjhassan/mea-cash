@@ -7,7 +7,7 @@
     $cards = collect($settings['cards'] ?? [])->filter(fn ($item) => ($item["title_{$locale}"] ?? $item['title_en'] ?? null));
 @endphp
 
-<section class="px-4 py-12 md:px-8 md:py-16 relative z-10 sf-reveal-section">
+<section class="px-4 py-12 md:px-8 md:py-16 relative z-10 sf-reveal-section sf-lazy-section">
     <div class="mx-auto max-w-[1440px]">
         <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>

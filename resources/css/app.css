@@ -2485,6 +2485,11 @@
     transform: translate3d(0, 0, 0);
 }
 
+.sf-lazy-section {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 900px;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .sf-scroll-reveal,
     .sf-scroll-reveal.sf-in-view,

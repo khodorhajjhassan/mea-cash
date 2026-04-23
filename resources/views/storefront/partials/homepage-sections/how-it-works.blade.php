@@ -6,7 +6,7 @@
     $steps = collect($settings['features'] ?? [])->filter(fn ($item) => ($item["label_{$locale}"] ?? $item['label_en'] ?? null));
 @endphp
 
-<section class="px-4 md:px-8 py-16 md:py-24 relative z-10 sf-reveal-section">
+<section class="px-4 md:px-8 py-16 md:py-24 relative z-10 sf-reveal-section sf-lazy-section">
     <x-noir.section-heading :title="$title" :subtitle="$subtitle" :centered="true" :gradient="true" />
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">

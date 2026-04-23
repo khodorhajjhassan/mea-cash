@@ -10,7 +10,27 @@
         $contentHomepageSections = $homepageSections->filter(fn ($payload) => $payload['section']->isContentBlock());
         $cryptoHomepageSections = $contentHomepageSections->filter(fn ($payload) => $payload['section']->type === \App\Models\HomepageSection::TYPE_CRYPTO_CARD);
         $productHomepageSections = $homepageSections->reject(fn ($payload) => $payload['section']->isContentBlock());
+        $firstBanner = $banners->first();
+        $firstBannerDesktopUrl = $firstBanner?->imageUrl();
+        $firstBannerMobileUrl = $firstBanner?->mobileImageUrl();
+        $firstBannerPreloadUrl = $firstBannerMobileUrl ?: $firstBannerDesktopUrl;
+        $firstBannerPreloadSrcset = $firstBannerMobileUrl && $firstBannerDesktopUrl && $firstBannerMobileUrl !== $firstBannerDesktopUrl
+            ? $firstBannerMobileUrl.' 768w, '.$firstBannerDesktopUrl.' 1440w'
+            : null;
     @endphp
+
+    @if($firstBannerDesktopUrl)
+        @push('styles')
+            <link rel="preload"
+                as="image"
+                href="{{ $firstBannerPreloadUrl }}"
+                @if($firstBannerPreloadSrcset)
+                    imagesrcset="{{ $firstBannerPreloadSrcset }}"
+                    imagesizes="100vw"
+                @endif
+                fetchpriority="high">
+        @endpush
+    @endif
 
     <div class="sf-home-atmosphere" aria-hidden="true">
         <div class="sf-home-orb sf-home-orb-cyan"></div>
@@ -39,9 +59,7 @@
                     <x-noir.logo
                         alt=""
                         class="mc-logo"
-                        sizes="176px"
-                        loading="eager"
-                        fetchpriority="high" />
+                        sizes="176px" />
                     <span class="material-symbols-outlined">sports_esports</span>
                     <span class="material-symbols-outlined">redeem</span>
                     <span class="material-symbols-outlined">bolt</span>
@@ -149,7 +167,7 @@
                 ? ($featuredSubcategories->count() < 10 ? $featuredSubcategories->merge($featuredSubcategories) : $featuredSubcategories) 
                 : collect();
         @endphp
-        <div class="overflow-hidden py-3">
+        <div class="overflow-hidden py-3 sf-lazy-section">
             <div class="{{ $locale === 'ar' ? 'animate-marquee-rtl' : 'animate-marquee' }} flex w-max items-center gap-3 md:gap-4 py-2" dir="ltr">
                 @foreach($brandTiles as $sub)
                     @php
@@ -175,7 +193,7 @@
 
     {{-- Unified Infinite Brand Marquee --}}
     <section
-        class="sf-brand-marquee w-full py-8 border-y border-outline-variant/10 bg-surface-container-lowest/50 backdrop-blur-sm overflow-hidden z-10 relative sf-reveal-section">
+        class="sf-brand-marquee w-full py-8 border-y border-outline-variant/10 bg-surface-container-lowest/50 backdrop-blur-sm overflow-hidden z-10 relative sf-reveal-section sf-lazy-section">
         <div class="flex items-center gap-16 md:gap-32 w-max {{ $locale === 'ar' ? 'animate-marquee-rtl' : 'animate-marquee' }}" dir="ltr">
             @php
                 $marqueeItems = $featuredSubcategories->count() > 0 
@@ -204,7 +222,7 @@
     {{-- High-Fidelity Circular Category Bar --}}
     @if($categories->isNotEmpty())
         <section
-            class="sf-category-strip sticky top-20 z-40 hidden px-4 py-8 bg-background/90 backdrop-blur-md border-b border-outline-variant/5 sf-reveal-section md:block md:px-8">
+            class="sf-category-strip sticky top-20 z-40 hidden px-4 py-8 bg-background/90 backdrop-blur-md border-b border-outline-variant/5 sf-reveal-section sf-lazy-section md:block md:px-8">
             <div class="flex justify-center">
                 <div
                     class="flex items-center gap-6 md:gap-10 overflow-x-auto no-scrollbar pb-2 w-full max-w-[1440px] justify-start">
@@ -293,7 +311,7 @@
     @endif
 
     {{-- Main Product Grid --}}
-    <section id="products-section" class="px-4 md:px-8 py-12 min-h-[400px] sf-reveal-section">
+    <section id="products-section" class="px-4 md:px-8 py-12 min-h-[400px] sf-reveal-section sf-lazy-section">
         <x-noir.section-heading :title="$activeSearchQuery !== '' ? __('Search Results') : __('Discover Our Products')"
             :subtitle="$activeSearchQuery !== '' ? __('Search') : __('Premium Assets')" :gradient="true" />
 
@@ -328,7 +346,7 @@
 
     {{-- Community Feedback Marquee --}}
     @if(false && ($featuredFeedbacks ?? collect())->isNotEmpty())
-        <section class="py-16 md:py-24 border-y border-outline-variant/10 bg-surface-container-low/30 relative overflow-hidden sf-reveal-section">
+        <section class="py-16 md:py-24 border-y border-outline-variant/10 bg-surface-container-low/30 relative overflow-hidden sf-reveal-section sf-lazy-section">
             <div class="sf-home-atmosphere opacity-20" aria-hidden="true">
                 <div class="sf-home-orb sf-home-orb-magenta" style="left: 80%; top: 20%;"></div>
             </div>
@@ -381,7 +399,7 @@
 
     @if(false)
     {{-- Static Why MeaCash Section --}}
-    <section class="px-4 md:px-8 py-16 md:py-20 relative z-10 sf-reveal-section">
+    <section class="px-4 md:px-8 py-16 md:py-20 relative z-10 sf-reveal-section sf-lazy-section">
         <div class="mx-auto max-w-7xl rounded-[2rem] border border-outline-variant/15 bg-surface-container-low/55 p-6 shadow-2xl backdrop-blur-md md:p-10">
             <div class="grid gap-8 lg:grid-cols-[0.9fr_1.4fr] lg:items-center">
                 <div>
@@ -424,7 +442,7 @@
     </section>
 
     {{-- Featured Section --}}
-    <section class="px-4 md:px-8 py-16 md:py-20 relative sf-reveal-section">
+    <section class="px-4 md:px-8 py-16 md:py-20 relative sf-reveal-section sf-lazy-section">
         <div class="grid grid-cols-12 gap-8 items-center max-w-7xl mx-auto">
             <div class="col-span-12 lg:col-span-5 order-2 lg:order-1 text-start">
                 <h2 class="font-headline text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-8 uppercase">
@@ -479,7 +497,7 @@
 
     {{-- FAQ Section --}}
     @if($faqs->isNotEmpty())
-        <section class="px-4 md:px-8 py-24 bg-surface-container-lowest/30 relative z-10 sf-reveal-section" id="faq-section">
+        <section class="px-4 md:px-8 py-24 bg-surface-container-lowest/30 relative z-10 sf-reveal-section sf-lazy-section" id="faq-section">
             <div class="max-w-4xl mx-auto">
                 <x-noir.section-heading :title="__('noir.common_queries')" :centered="true" />
 

@@ -14,7 +14,7 @@
     $features = collect($settings['features'] ?? [])->filter(fn ($item) => ($item["label_{$locale}"] ?? $item['label_en'] ?? null));
 @endphp
 
-<section class="px-4 py-8 md:px-8 md:py-14 relative z-10 sf-reveal-section">
+<section class="px-4 py-8 md:px-8 md:py-14 relative z-10 sf-reveal-section sf-lazy-section">
     <div class="sf-crypto-card-section mx-auto max-w-[1440px] overflow-hidden rounded-[1.5rem] border border-outline-variant/15 px-4 py-6 shadow-2xl sm:rounded-[2rem] md:px-8 md:py-8 lg:px-10">
         <div class="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
             <div class="relative z-10 py-2 lg:py-8">

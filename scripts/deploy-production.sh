@@ -67,6 +67,7 @@ APP_WENT_DOWN=1
 
 "$PHP_BIN" artisan migrate --force
 "$PHP_BIN" artisan optimize:clear
+"$PHP_BIN" artisan media:generate-banner-variants || true
 "$PHP_BIN" artisan optimize
 "$PHP_BIN" artisan storage:link || true
 "$PHP_BIN" artisan queue:restart || true

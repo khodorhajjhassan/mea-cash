@@ -22,7 +22,7 @@
 @elseif($section->type === \App\Models\HomepageSection::TYPE_HOW_IT_WORKS)
     @include('storefront.partials.homepage-sections.how-it-works', ['section' => $section])
 @else
-<section class="px-4 md:px-8 py-12 relative z-10 sf-reveal-section">
+<section class="px-4 md:px-8 py-12 relative z-10 sf-reveal-section sf-lazy-section">
     <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
             @if($badge)

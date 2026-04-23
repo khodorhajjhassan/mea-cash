@@ -7,7 +7,7 @@
     $features = collect($settings['features'] ?? [])->filter(fn ($item) => ($item["label_{$locale}"] ?? $item['label_en'] ?? null));
 @endphp
 
-<section class="px-4 py-12 md:px-8 md:py-16 relative z-10 sf-reveal-section">
+<section class="px-4 py-12 md:px-8 md:py-16 relative z-10 sf-reveal-section sf-lazy-section">
     <div class="mx-auto max-w-[1440px] overflow-hidden rounded-[2rem] border border-outline-variant/15 bg-surface-container-low/55 p-5 shadow-2xl backdrop-blur-xl md:p-8">
         <div class="grid gap-8 lg:grid-cols-[0.95fr_1.35fr] lg:items-center">
             <div>
