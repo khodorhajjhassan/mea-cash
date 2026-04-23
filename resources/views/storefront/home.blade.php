@@ -48,7 +48,7 @@
             @endif
 
             <div id="hero-carousel"
-                class="group relative h-[300px] w-full overflow-hidden rounded-md shadow-2xl md:rounded-none sm:h-[320px] lg:h-[420px] xl:h-[460px]">
+                class="group relative h-[240px] w-full overflow-hidden rounded-md shadow-2xl md:rounded-none sm:h-[320px] lg:h-[420px] xl:h-[460px]">
                 <div class="carousel-inner h-full w-full flex transition-transform duration-700 ease-in-out" dir="ltr">
                     @forelse($middleBanners as $banner)
                         <div class="carousel-item min-w-full h-full relative sf-skeleton">
@@ -155,10 +155,10 @@
                     $subName = $sub->{"name_$locale"} ?: $sub->name_en;
                 @endphp
                 <div onclick="window.openSubcategoryModal('{{ $sub->slug }}')"
-                    class="sf-brand-card group flex h-28 w-28 md:h-32 md:w-32 shrink-0 flex-col items-center justify-center rounded-2xl border border-outline-variant/10 bg-surface-container/55 p-4 transition-all duration-300 hover:border-primary-container/70 hover:bg-surface-container-high hover:shadow-[0_0_30px_rgba(0,240,255,0.12)] cursor-pointer">
-                    <div class="sf-brand-card-icon-shell mb-3 flex h-12 w-12 items-center justify-center rounded-2xl">
-                        <img src="{{ $subImage }}" alt="{{ $subName }}" loading="lazy" width="36" height="36" decoding="async"
-                            class="sf-brand-card-icon h-9 w-9 object-contain opacity-90 transition-all duration-300 group-hover:scale-110 group-hover:opacity-100"
+                    class="sf-brand-card group flex h-24 w-24 md:h-32 md:w-32 shrink-0 flex-col items-center justify-center rounded-2xl border border-outline-variant/10 bg-surface-container/55 p-3 transition-all duration-300 hover:border-primary-container/70 hover:bg-surface-container-high hover:shadow-[0_0_30px_rgba(0,240,255,0.12)] cursor-pointer">
+                    <div class="sf-brand-card-icon-shell mb-2 flex h-10 w-10 items-center justify-center rounded-2xl">
+                        <img src="{{ $subImage }}" alt="{{ $subName }}" loading="lazy" width="32" height="32" decoding="async"
+                            class="sf-brand-card-icon h-8 w-8 object-contain opacity-90 transition-all duration-300 group-hover:scale-110 group-hover:opacity-100"
                             onerror="this.onerror=null; this.src='{{ asset('meacash-logo-128.png') }}';">
                     </div>
                     <span
@@ -186,8 +186,8 @@
                 @endphp
                 <div onclick="window.openSubcategoryModal('{{ $sub->slug }}')"
                     class="sf-brand-marquee-item flex items-center gap-3 group/brand cursor-pointer opacity-70 hover:opacity-100 transition-all duration-500 shrink-0">
-                    <img src="{{ $subImage }}" alt="{{ $subName }}" loading="lazy" width="28" height="28" decoding="async"
-                        class="sf-brand-marquee-icon h-7 w-7 object-contain transition-transform group-hover/brand:scale-110"
+                    <img src="{{ $subImage }}" alt="{{ $subName }}" loading="lazy" width="24" height="24" decoding="async"
+                        class="sf-brand-marquee-icon h-6 w-6 object-contain transition-transform group-hover/brand:scale-110"
                         onerror="this.onerror=null; this.src='{{ asset('meacash-logo-128.png') }}';">
                     <span
                         class="sf-brand-marquee-label font-headline font-black text-xl tracking-widest uppercase italic text-on-surface/50 group-hover/brand:text-primary-container">
