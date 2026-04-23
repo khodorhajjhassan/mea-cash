@@ -119,7 +119,8 @@ class StorefrontController extends Controller
         $banners = Banner::query()
             ->where('is_active', true)
             ->orderBy('sort_order')
-            ->get();
+            ->get()
+            ->groupBy('position');
  
         $faqs = Faq::query()
             ->where('is_active', true)
@@ -366,12 +367,11 @@ class StorefrontController extends Controller
                         if (!$product->image) return null;
                         return str_starts_with($product->image, 'http') ? $product->image : \Illuminate\Support\Facades\Storage::url($product->image);
                     })(),
-                    'product_type' => $product->product_type?->value,
+                    'product_type' => $product->resolvedProductType()->value,
                     'delivery_type' => $product->delivery_type,
                     'delivery_time_minutes' => $product->delivery_time_minutes,
                     'is_featured' => $product->is_featured,
                     'selling_price' => (float) $product->selling_price,
-                    'price_per_unit' => (float) ($product->price_per_unit ?? $product->selling_price),
                     'min_quantity' => (int) ($product->min_quantity ?? 1),
                     'max_quantity' => (int) ($product->max_quantity ?? 10),
                     'packages' => $product->packages->map(fn ($package) => [

@@ -104,7 +104,6 @@
     $fulfillmentDetails = $order->getFulfillmentDetails();
     $fulfillmentData = array_filter((array) ($fulfillmentDetails['data'] ?? []), fn ($value) => filled($value));
     $userInput = array_filter($order->getUserInput(), fn ($value) => filled($value));
-    $formFields = $order->product?->formFields ?? collect();
     $canShowCompletedOrderActions = in_array($status, ['completed', 'reported'], true) && !$isRefunded;
     $supportReportWindowHours = $supportReportDelayHours ?? 4;
     $supportReportExpiresAt = $supportReportWindowHours > 0
@@ -224,10 +223,140 @@
                     
                     <div class="divide-y divide-outline-variant/10">
                         @foreach($userInput as $key => $value)
-                            @php($field = $formFields->firstWhere('field_key', $key))
                             <div class="flex justify-between gap-4 py-3">
-                                <span class="font-label text-[10px] font-bold uppercase tracking-wider text-outline">{{ $field?->{"label_{$locale}"} ?: ($field?->label_en ?? str_replace('_', ' ', $key)) }}</span>
+                                <span class="font-label text-[10px] font-bold uppercase tracking-wider text-outline">{{ $order->product?->resolvedFieldLabel($key, $locale) ?? str_replace('_', ' ', $key) }}</span>
                                 <span class="max-w-[55%] text-end font-headline text-sm font-black text-on-surface break-words">
+                                    @if(is_array($value))
+                                        {{ implode(', ', $value) }}
+                                    @else
+                                        {{ $value }}
+                                    @endif
+                                </span>
+                            </div>
+                        @endforeach
+                        <div class="flex justify-between py-3">
+                            <span class="font-label text-[10px] font-bold uppercase tracking-wider text-outline">{{ $locale === 'ar' ? 'سعر الوحدة' : 'Unit Price' }}</span>
+                            <span class="font-headline text-xs font-black text-on-surface">${{ number_format($order->unit_price, 2) }}</span>
+                        </div>
+                        <div class="flex justify-between py-4 border-t-2 border-primary-container/20">
+                            <span class="font-label text-xs font-black uppercase tracking-[0.2em] text-primary-container">{{ $locale === 'ar' ? 'المجموع الإجمالي' : 'Total Amount' }}</span>
+                            <span class="font-headline text-3xl font-black italic text-primary-container">${{ number_format($order->total_price, 2) }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <h3 class="font-headline text-xs font-black uppercase tracking-widest text-primary-container">{{ $locale === 'ar' ? 'تفاصيل التسليم' : 'Delivery Status' }}</h3>
+                    
+                    @if($canShowCompletedOrderActions && ($order->items->isNotEmpty() || !empty($fulfillmentData) || filled($fulfillmentDetails['admin_note'] ?? null)))
+                        <div class="space-y-3">
+                            @foreach($order->items as $item)
+                                <div class="group relative rounded-2xl border border-primary-container/20 bg-primary-container/5 p-4 transition-all hover:bg-primary-container/10">
+                                    <div class="mb-2 flex items-center justify-between">
+                                        <span class="font-label text-[9px] font-black uppercase tracking-[0.2em] text-primary-container/70">{{ ucfirst($item->type ?? 'Access Key') }}</span>
+                                        <div class="h-1.5 w-1.5 rounded-full bg-primary-container animate-pulse"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-4">
+                                        <div class="min-w-0 flex-grow">
+                                            <div class="code-reveal blur-md select-none font-mono text-sm font-bold tracking-wider text-on-surface break-all transition-all duration-300" data-val="{{ $item->delivered_value }}">
+                                                ••••••••••••••••
+                                            </div>
+                                        </div>
+                                        <button onclick="revealCode(this)" class="shrink-0 rounded-lg bg-surface-container-highest px-4 py-2 font-label text-[10px] font-black uppercase tracking-widest text-primary-container hover:bg-primary-container hover:text-on-primary-container transition-all">
+                                            {{ $locale === 'ar' ? 'كشف' : 'Reveal' }}
+                                        </button>
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            @foreach($fulfillmentData as $key => $value)
+                                <div class="rounded-2xl border border-primary-container/20 bg-primary-container/5 p-4">
+                                    <div class="mb-2 font-label text-[9px] font-black uppercase tracking-[0.2em] text-primary-container/70">
+                                        {{ str_replace('_', ' ', $key) }}
+                                    </div>
+                                    <div class="font-mono text-sm font-bold tracking-wider text-on-surface break-all">
+                                        @if(is_array($value))
+                                            {{ implode(', ', $value) }}
+                                        @else
+                                            <div class="prose prose-invert max-w-none text-sm leading-relaxed text-on-surface">
+                                                {!! $value !!}
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            @if(filled($fulfillmentDetails['admin_note'] ?? null))
+                                <div class="rounded-2xl border border-outline-variant/10 bg-surface-container-low/50 p-4">
+                                    <div class="mb-2 font-label text-[9px] font-black uppercase tracking-widest text-outline">{{ $locale === 'ar' ? 'ملاحظة الإدارة' : 'Admin Note' }}</div>
+                                    <div class="prose prose-invert max-w-none text-[11px] leading-relaxed text-on-surface-variant">{!! $fulfillmentDetails['admin_note'] !!}</div>
+                                </div>
+                            @endif
+                        </div>
+                        <script>
+                            function revealCode(btn) {
+                                const codeDiv = btn.parentElement.querySelector('.code-reveal');
+                                codeDiv.classList.remove('blur-md', 'select-none');
+                                codeDiv.textContent = codeDiv.dataset.val;
+                                btn.remove();
+                                // Optional: copy to clipboard
+                                navigator.clipboard.writeText(codeDiv.dataset.val);
+                            }
+                        </script>
+                    @elseif($status === 'pending' || $status === 'processing')
+                        <div class="flex flex-col items-center justify-center gap-4 rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-8 text-center">
+                            <div class="relative">
+                                <span class="material-symbols-outlined text-4xl text-yellow-500">hourglass_empty</span>
+                                <div class="absolute inset-0 animate-ping rounded-full border border-yellow-500/30"></div>
+                            </div>
+                            <p class="font-headline text-[10px] font-black uppercase tracking-[0.1em] text-on-surface-variant">
+                                {{ $locale === 'ar' ? 'طلبك قيد المعالجة الآن' : 'Encryption in progress...' }}
+                            </p>
+                        </div>
+                @elseif($canShowCompletedOrderActions)
+                        <div class="rounded-2xl border border-outline-variant/10 bg-surface-container-low p-6 text-center">
+                            <span class="material-symbols-outlined mb-2 text-3xl text-outline/30">info</span>
+                            <p class="text-xs text-outline">{{ $locale === 'ar' ? 'لا توجد بيانات تسليم متاحة حالياً.' : 'No delivery data available for this status.' }}</p>
+                        </div>
+                    @endif
+
+                    @if($order->delivery_notes)
+                        <div class="rounded-2xl border border-outline-variant/10 bg-surface-container-low/50 p-4">
+                            <div class="mb-2 font-label text-[9px] font-black uppercase tracking-widest text-outline">{{ $locale === 'ar' ? 'ملاحظات' : 'Special Instructions' }}</div>
+                            <p class="text-[11px] leading-relaxed text-on-surface-variant">{!! nl2br(e($order->delivery_notes)) !!}</p>
+                        </div>
+                    @endif
+
+                    @if($isRefunded && filled($order->refund_notes))
+                        <div class="rounded-2xl border border-orange-300/20 bg-orange-300/10 p-4">
+                            <div class="mb-2 flex items-center gap-2 font-label text-[9px] font-black uppercase tracking-widest text-orange-300">
+                                <span class="material-symbols-outlined text-sm">currency_exchange</span>
+                                <span>{{ $locale === 'ar' ? 'سبب الاسترداد' : 'Refund Reason' }}</span>
+                            </div>
+                            <p class="text-[11px] leading-relaxed text-on-surface-variant">{!! nl2br(e($order->refund_notes)) !!}</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        @if($canShowCompletedOrderActions)
+            <div class="border-t border-outline-variant/10 bg-surface-container-lowest/20 px-6 py-6 md:px-10">
+                <div class="flex flex-col gap-4 rounded-3xl border border-primary-container/15 bg-primary-container/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-container/10 text-primary-container">
+                            <span class="material-symbols-outlined">reviews</span>
+                        </div>
+                        <div>
+                            <p class="font-headline text-sm font-black uppercase tracking-widest text-on-surface">
+                                {{ $locale === 'ar' ? 'تقييم الطلب' : 'Order Feedback' }}
+                            </p>
+                            <p class="mt-1 text-[11px] leading-relaxed text-outline">
+                                @if($order->feedback)
+                                    {{ $locale === 'ar' ? 'شكراً لك، تم حفظ تقييمك لهذا الطلب.' : 'Thank you, your feedback is saved for this completed order.' }}
+                                @else
+                                    {{ $locale === 'ar' ? 'شاركنا تجربتك بعد اكتمال الطلب.' : 'Share your experience now that this order is completed.' }}
+                                @endif
                                     @if(is_array($value))
                                         {{ implode(', ', $value) }}
                                     @else
@@ -370,7 +499,7 @@
                             @endfor
                         </div>
                 @elseif($canShowCompletedOrderActions)
-                        <button type="button" onclick="document.getElementById('feedbackModal').classList.remove('hidden')" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim px-5 py-3 font-headline text-[11px] font-black uppercase tracking-[0.2em] text-on-primary-fixed transition hover:scale-[1.01] active:scale-[0.99]">
+                        <button type="button" onclick="document.getElementById('feedbackModal').classList.remove('hidden')" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container px-5 py-3 font-headline text-[11px] font-black uppercase tracking-[0.2em] text-on-primary-container transition hover:scale-[1.01] active:scale-[0.99]">
                             <span>{{ $locale === 'ar' ? 'أضف تقييمك' : 'Leave Feedback' }}</span>
                             <span class="material-symbols-outlined text-base">rate_review</span>
                         </button>
@@ -462,7 +591,7 @@
                 <textarea name="comment" rows="4" maxlength="1000" class="w-full rounded-2xl border border-outline-variant/20 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface outline-none transition focus:border-primary-container" placeholder="{{ $locale === 'ar' ? 'اكتب ملاحظتك هنا...' : 'Tell us what went well or what we can improve...' }}"></textarea>
             </div>
 
-            <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim px-5 py-4 font-headline text-xs font-black uppercase tracking-[0.2em] text-on-primary-fixed transition hover:scale-[1.01] active:scale-[0.99]">
+            <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container px-5 py-4 font-headline text-xs font-black uppercase tracking-[0.2em] text-on-primary-container transition hover:scale-[1.01] active:scale-[0.99]">
                 {{ $locale === 'ar' ? 'إرسال التقييم' : 'Submit Feedback' }}
                 <span class="material-symbols-outlined text-base">send</span>
             </button>
@@ -509,7 +638,7 @@
                 <textarea name="comment" rows="5" maxlength="2000" required class="w-full rounded-2xl border border-outline-variant/20 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface outline-none transition focus:border-primary-container" placeholder="{{ $locale === 'ar' ? 'اكتب ماذا حدث معك...' : 'Tell support what happened...' }}"></textarea>
             </div>
 
-            <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim px-5 py-4 font-headline text-xs font-black uppercase tracking-[0.2em] text-on-primary-fixed transition hover:scale-[1.01] active:scale-[0.99]">
+            <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container px-5 py-4 font-headline text-xs font-black uppercase tracking-[0.2em] text-on-primary-container transition hover:scale-[1.01] active:scale-[0.99]">
                 {{ $locale === 'ar' ? 'إرسال البلاغ' : 'Submit Report' }}
                 <span class="material-symbols-outlined text-base">support_agent</span>
             </button>

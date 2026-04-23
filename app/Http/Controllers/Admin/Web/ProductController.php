@@ -1,18 +1,15 @@
 <?php
  
 namespace App\Http\Controllers\Admin\Web;
- 
-use App\Enums\ProductType;
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
-use App\Models\ProductFormField;
 use App\Models\ProductPackage;
 use App\Models\Subcategory;
 use App\Models\Supplier;
 use App\Services\Media\ImageStorageService;
-use App\Services\ProductTemplateSyncService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,18 +19,16 @@ class ProductController extends Controller
 {
     public function __construct(
         private readonly ImageStorageService $imageStorage,
-        private readonly ProductTemplateSyncService $templateSync,
     )
     {
     }
  
     public function index(Request $request)
     {
-        $typeOptions = ProductType::options();
         $subcategories = Subcategory::query()->where('is_active', true)->orderBy('name_en')->get(['id', 'name_en']);
  
         $products = Product::query()
-            ->with(['subcategory:id,name_en,product_type_id', 'subcategory.productTypeDefinition:id,name,key', 'supplier:id,name'])
+            ->with(['subcategory:id,name_en,product_type_id', 'subcategory.productTypeDefinition:id,name,key,schema', 'supplier:id,name'])
             ->when($request->filled('q'), function ($query) use ($request): void {
                 $q = trim((string) $request->string('q'));
                 $query->where(function ($inner) use ($q): void {
@@ -49,9 +44,16 @@ class ProductController extends Controller
                 $query->where('subcategory_id', $request->input('subcategory_id'));
             })
             ->when($request->filled('type'), function ($query) use ($request): void {
-                $type = ProductType::tryFrom((string) $request->string('type'));
-                if ($type !== null) {
-                    $query->where('product_type', $type->value);
+                $type = (string) $request->string('type');
+                $templateKeys = match ($type) {
+                    'top_up' => ['quantity-or-price', 'biggoexample'],
+                    'account' => ['account-id-required', 'account-login-credentials'],
+                    'key' => ['package-only', 'final-package-only'],
+                    default => [],
+                };
+
+                if ($templateKeys !== []) {
+                    $query->whereHas('subcategory.productTypeDefinition', fn ($templateQuery) => $templateQuery->whereIn('key', $templateKeys));
                 }
             })
             ->latest('id')
@@ -60,16 +62,15 @@ class ProductController extends Controller
  
         $filters = $request->only(['q', 'status', 'type', 'subcategory_id']);
  
-        return view('admin.products.index', compact('products', 'filters', 'typeOptions', 'subcategories'));
+        return view('admin.products.index', compact('products', 'filters', 'subcategories'));
     }
  
     public function create()
     {
         $subcategories = Subcategory::query()->where('is_active', true)->orderBy('name_en')->get(['id', 'name_en']);
         $suppliers = Supplier::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
-        $typeOptions = ProductType::options();
  
-        return view('admin.products.create', compact('subcategories', 'suppliers', 'typeOptions'));
+        return view('admin.products.create', compact('subcategories', 'suppliers'));
     }
  
     public function store(StoreProductRequest $request)
@@ -77,19 +78,11 @@ class ProductController extends Controller
         try {
             $data = $request->validated();
             $data['slug'] = $this->generateUniqueSlug($data['slug'] ?? $data['name_en']);
-            $subcategory = Subcategory::query()->findOrFail($data['subcategory_id']);
-            $data['product_type_id'] = $subcategory->product_type_id;
- 
             if ($request->hasFile('image')) {
                 $data['image'] = $this->imageStorage->storeAsWebp($request->file('image'), 'catalog/products');
             }
  
-            /** @var Product $product */
-            $product = Product::query()->create($data);
- 
-            if (!empty($subcategory->product_type_id) && $request->boolean('force_apply_template', true)) {
-                $this->syncFormFieldsFromTemplate($product);
-            }
+            Product::query()->create($data);
  
             return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
         } catch (Exception $exception) {
@@ -110,9 +103,8 @@ class ProductController extends Controller
     {
         $subcategories = Subcategory::query()->where('is_active', true)->orderBy('name_en')->get(['id', 'name_en']);
         $suppliers = Supplier::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
-        $typeOptions = ProductType::options();
  
-        return view('admin.products.edit', compact('product', 'subcategories', 'suppliers', 'typeOptions'));
+        return view('admin.products.edit', compact('product', 'subcategories', 'suppliers'));
     }
  
     public function update(UpdateProductRequest $request, Product $product)
@@ -131,20 +123,7 @@ class ProductController extends Controller
                 $data['image'] = $this->imageStorage->storeAsWebp($request->file('image'), 'catalog/products', $product->image);
             }
  
-            if (array_key_exists('subcategory_id', $data)) {
-                $subcategory = Subcategory::query()->findOrFail($data['subcategory_id']);
-                $data['product_type_id'] = $subcategory->product_type_id;
-            } else {
-                $subcategory = $product->subcategory()->first(['id', 'product_type_id']);
-                $data['product_type_id'] = $subcategory?->product_type_id;
-            }
- 
-            $typeChanged = (int) $product->product_type_id !== (int) ($data['product_type_id'] ?? null);
             $product->update($data);
- 
-            if ($request->boolean('force_apply_template') || $typeChanged) {
-                $this->syncFormFieldsFromTemplate($product->fresh());
-            }
  
             return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
         } catch (Exception $exception) {
@@ -179,14 +158,6 @@ class ProductController extends Controller
                 $copy->is_active = false;
                 $copy->is_featured = false;
                 $copy->push();
- 
-                $product->formFields()->get()->each(function ($field) use ($copy): void {
-                    $fieldCopy = $field->replicate();
-                    $fieldCopy->product_id = $copy->id;
-                    $fieldCopy->save();
-                });
- 
-                $this->syncFormFieldsFromTemplate($copy);
             });
  
             return redirect()->route('admin.products.index')->with('success', 'Product duplicated successfully as inactive.');
@@ -245,30 +216,6 @@ class ProductController extends Controller
         }
     }
  
-    public function storeField(\Illuminate\Http\Request $request, Product $product)
-    {
-        $data = $request->validate([
-            'field_key' => ['required', 'string', 'max:100'],
-            'label_en' => ['required', 'string', 'max:255'],
-            'label_ar' => ['required', 'string', 'max:255'],
-            'field_type' => ['required', 'in:text,email,password,number,select'],
-            'placeholder_en' => ['nullable', 'string', 'max:255'],
-            'placeholder_ar' => ['nullable', 'string', 'max:255'],
-            'is_required' => ['sometimes', 'boolean'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
-        ]);
- 
-        try {
-            $product->formFields()->create($data + ['validation_rules' => []]);
- 
-            return back()->with('success', 'Product form field added successfully.');
-        } catch (Exception $exception) {
-            report($exception);
- 
-            return back()->withInput()->with('error', 'Failed to add form field.');
-        }
-    }
- 
     public function reorder(Request $request)
     {
         $data = $request->validate([
@@ -282,11 +229,6 @@ class ProductController extends Controller
         }
  
         return response()->json(['success' => true]);
-    }
- 
-    private function syncFormFieldsFromTemplate(Product $product): void
-    {
-        $this->templateSync->syncProduct($product);
     }
  
     private function generateUniqueSlug(string $source, ?int $ignoreId = null): string

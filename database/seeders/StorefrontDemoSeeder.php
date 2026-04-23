@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\ProductFormField;
 use App\Models\ProductPackage;
 use App\Models\ProductType;
 use App\Models\Subcategory;
@@ -131,7 +130,7 @@ class StorefrontDemoSeeder extends Seeder
         // PlayStation
         $psPlus = Product::create([
             'subcategory_id' => $ps->id, 'name_en' => 'PlayStation Plus Subscription', 'name_ar' => 'اشتراك بلايستيشن بلس',
-            'slug' => 'ps-plus', 'product_type' => 'fixed_package', 'delivery_type' => 'instant',
+            'slug' => 'ps-plus', 'delivery_type' => 'instant',
             'description_en' => 'Get PlayStation Plus and enjoy online multiplayer, free monthly games, and exclusive discounts.',
             'description_ar' => 'احصل على بلايستيشن بلس واستمتع باللعب الجماعي وألعاب مجانية شهرية وخصومات حصرية.',
             'cost_price' => 8, 'selling_price' => 10, 'is_active' => true, 'is_featured' => true, 'sort_order' => 1,
@@ -143,7 +142,7 @@ class StorefrontDemoSeeder extends Seeder
         // PSN Card
         $psnCard = Product::create([
             'subcategory_id' => $ps->id, 'name_en' => 'PSN Gift Card (US)', 'name_ar' => 'بطاقة PSN (أمريكي)',
-            'slug' => 'psn-gift-card-us', 'product_type' => 'fixed_package', 'delivery_type' => 'instant',
+            'slug' => 'psn-gift-card-us', 'delivery_type' => 'instant',
             'description_en' => 'Add funds to your PSN wallet. Valid for US accounts only.',
             'description_ar' => 'أضف رصيد لمحفظة PSN الخاصة بك. صالحة للحسابات الأمريكية فقط.',
             'cost_price' => 9, 'selling_price' => 11, 'is_active' => true, 'is_featured' => false, 'sort_order' => 2,
@@ -155,7 +154,7 @@ class StorefrontDemoSeeder extends Seeder
         // Xbox
         Product::create([
             'subcategory_id' => $xbox->id, 'name_en' => 'Xbox Game Pass Ultimate', 'name_ar' => 'اكسبوكس غيم باس ألتمت',
-            'slug' => 'xbox-game-pass', 'product_type' => 'fixed_package', 'delivery_type' => 'instant',
+            'slug' => 'xbox-game-pass', 'delivery_type' => 'instant',
             'description_en' => 'Access hundreds of games on Xbox and PC with Xbox Game Pass Ultimate.',
             'description_ar' => 'الوصول لمئات الألعاب على اكسبوكس والكمبيوتر مع غيم باس ألتمت.',
             'cost_price' => 12, 'selling_price' => 15, 'is_active' => true, 'is_featured' => true, 'sort_order' => 1,
@@ -164,7 +163,7 @@ class StorefrontDemoSeeder extends Seeder
         // Steam
         $steamCard = Product::create([
             'subcategory_id' => $steam->id, 'name_en' => 'Steam Wallet Card', 'name_ar' => 'بطاقة محفظة ستيم',
-            'slug' => 'steam-wallet', 'product_type' => 'fixed_package', 'delivery_type' => 'instant',
+            'slug' => 'steam-wallet', 'delivery_type' => 'instant',
             'description_en' => 'Add funds to your Steam wallet for games, DLC, and in-game items.',
             'description_ar' => 'أضف رصيد لمحفظة ستيم لشراء الألعاب والمحتوى الإضافي.',
             'cost_price' => 9, 'selling_price' => 11, 'is_active' => true, 'is_featured' => false, 'sort_order' => 1,
@@ -178,12 +177,9 @@ class StorefrontDemoSeeder extends Seeder
         // ==========================================
         $pubg = Product::create([
             'subcategory_id' => $mobileGames->id,
-            'product_type_id' => $gameTopupTemplate->id,
             'name_en' => 'PUBG Mobile UC',
             'name_ar' => 'شدات ببجي موبايل',
-            'slug' => 'pubg-mobile-uc',
-            'product_type' => 'account_topup',
-            'delivery_type' => 'manual',
+            'slug' => 'pubg-mobile-uc', 'delivery_type' => 'manual',
             'description_en' => 'Top up your PUBG Mobile account with UC. Choose your package and provide your Player ID or login credentials.',
             'description_ar' => 'اشحن حساب ببجي موبايل بالشدات. اختر الباقة وقدّم معرّف اللاعب أو بيانات الدخول.',
             'cost_price' => 1, 'selling_price' => 1.50,
@@ -194,53 +190,15 @@ class StorefrontDemoSeeder extends Seeder
         ProductPackage::create(['product_id' => $pubg->id, 'name_en' => '660 UC', 'name_ar' => '660 شدة', 'amount' => 660, 'cost_price' => 9, 'selling_price' => 11, 'is_available' => true, 'sort_order' => 3]);
         ProductPackage::create(['product_id' => $pubg->id, 'name_en' => '1800 UC', 'name_ar' => '1800 شدة', 'amount' => 1800, 'cost_price' => 24, 'selling_price' => 29, 'badge_text' => 'Best Value', 'is_available' => true, 'sort_order' => 4]);
 
-        // Create form fields manually with proper ui_meta for multi-form tabs
-        // Form 1: By Player ID
-        ProductFormField::create([
-            'product_id' => $pubg->id, 'field_key' => 'by-id__player-id',
-            'label_en' => 'Player ID', 'label_ar' => 'معرّف اللاعب',
-            'field_type' => 'text', 'is_required' => true,
-            'placeholder_en' => 'Enter your Player ID', 'placeholder_ar' => 'أدخل معرّف اللاعب',
-            'sort_order' => 1, 'validation_rules' => ['required'],
-            'ui_meta' => ['form_key' => 'by-id', 'form_label_en' => 'By Player ID', 'form_label_ar' => 'عبر معرّف اللاعب', 'is_default_form' => true, 'raw_field_key' => 'player-id'],
-        ]);
-        ProductFormField::create([
-            'product_id' => $pubg->id, 'field_key' => 'by-id__server',
-            'label_en' => 'Server', 'label_ar' => 'السيرفر',
-            'field_type' => 'select', 'is_required' => true,
-            'placeholder_en' => 'Select server', 'placeholder_ar' => 'اختر السيرفر',
-            'sort_order' => 2, 'validation_rules' => ['required'],
-            'ui_meta' => ['form_key' => 'by-id', 'form_label_en' => 'By Player ID', 'form_label_ar' => 'عبر معرّف اللاعب', 'is_default_form' => true, 'raw_field_key' => 'server', 'options' => ['Global', 'Asia', 'Europe', 'North America', 'South America', 'MENA']],
-        ]);
-        // Form 2: By Login
-        ProductFormField::create([
-            'product_id' => $pubg->id, 'field_key' => 'by-login__account-email',
-            'label_en' => 'Account Email', 'label_ar' => 'بريد الحساب',
-            'field_type' => 'email', 'is_required' => true,
-            'placeholder_en' => 'your@email.com', 'placeholder_ar' => 'بريدك@email.com',
-            'sort_order' => 3, 'validation_rules' => ['required', 'email'],
-            'ui_meta' => ['form_key' => 'by-login', 'form_label_en' => 'By Login', 'form_label_ar' => 'عبر تسجيل الدخول', 'is_default_form' => false, 'raw_field_key' => 'account-email'],
-        ]);
-        ProductFormField::create([
-            'product_id' => $pubg->id, 'field_key' => 'by-login__account-password',
-            'label_en' => 'Account Password', 'label_ar' => 'كلمة مرور الحساب',
-            'field_type' => 'password', 'is_required' => true,
-            'placeholder_en' => 'Account password', 'placeholder_ar' => 'كلمة المرور',
-            'sort_order' => 4, 'validation_rules' => ['required'],
-            'ui_meta' => ['form_key' => 'by-login', 'form_label_en' => 'By Login', 'form_label_ar' => 'عبر تسجيل الدخول', 'is_default_form' => false, 'raw_field_key' => 'account-password'],
-        ]);
 
         // ==========================================
         // Free Fire Diamonds — custom_quantity + single form
         // ==========================================
         $freefire = Product::create([
             'subcategory_id' => $battleRoyale->id,
-            'product_type_id' => $gameDirectTemplate->id,
             'name_en' => 'Free Fire Diamonds',
             'name_ar' => 'جواهر فري فاير',
-            'slug' => 'free-fire-diamonds',
-            'product_type' => 'custom_quantity',
-            'delivery_type' => 'manual',
+            'slug' => 'free-fire-diamonds', 'delivery_type' => 'manual',
             'description_en' => 'Top up Free Fire Diamonds directly to your account. Enter the amount you want.',
             'description_ar' => 'اشحن جواهر فري فاير مباشرة لحسابك. أدخل الكمية التي تريدها.',
             'cost_price' => 0.008, 'selling_price' => 0.01,
@@ -249,20 +207,11 @@ class StorefrontDemoSeeder extends Seeder
             'max_quantity' => 10000,
             'is_active' => true, 'is_featured' => true, 'sort_order' => 1,
         ]);
-        // Single form field: Player ID
-        ProductFormField::create([
-            'product_id' => $freefire->id, 'field_key' => 'player-id',
-            'label_en' => 'Player ID', 'label_ar' => 'معرّف اللاعب',
-            'field_type' => 'text', 'is_required' => true,
-            'placeholder_en' => 'Enter your Free Fire Player ID', 'placeholder_ar' => 'أدخل معرّف لاعب فري فاير',
-            'sort_order' => 1, 'validation_rules' => ['required'],
-            'ui_meta' => ['form_key' => null, 'form_label_en' => null, 'form_label_ar' => null, 'is_default_form' => false, 'raw_field_key' => 'player-id'],
-        ]);
 
         // Netflix
         Product::create([
             'subcategory_id' => $netflix->id, 'name_en' => 'Netflix Premium Account', 'name_ar' => 'حساب نتفلكس بريميوم',
-            'slug' => 'netflix-premium', 'product_type' => 'fixed_package', 'delivery_type' => 'instant',
+            'slug' => 'netflix-premium', 'delivery_type' => 'instant',
             'description_en' => 'Netflix Premium account with 4K Ultra HD, watch on 4 screens simultaneously.',
             'description_ar' => 'حساب نتفلكس بريميوم بدقة 4K، مشاهدة على 4 شاشات في نفس الوقت.',
             'cost_price' => 3, 'selling_price' => 5, 'is_active' => true, 'is_featured' => true, 'sort_order' => 1,
@@ -271,7 +220,7 @@ class StorefrontDemoSeeder extends Seeder
         // Spotify
         Product::create([
             'subcategory_id' => $spotify->id, 'name_en' => 'Spotify Premium', 'name_ar' => 'سبوتيفاي بريميوم',
-            'slug' => 'spotify-premium', 'product_type' => 'fixed_package', 'delivery_type' => 'instant',
+            'slug' => 'spotify-premium', 'delivery_type' => 'instant',
             'description_en' => 'Spotify Premium subscription — ad-free music, offline downloads, high quality audio.',
             'description_ar' => 'اشتراك سبوتيفاي بريميوم - موسيقى بدون إعلانات، تحميل بدون انترنت.',
             'cost_price' => 2, 'selling_price' => 3.50, 'is_active' => true, 'is_featured' => true, 'sort_order' => 1,
@@ -280,7 +229,7 @@ class StorefrontDemoSeeder extends Seeder
         // Discord Nitro
         Product::create([
             'subcategory_id' => $discord->id, 'name_en' => 'Discord Nitro', 'name_ar' => 'ديسكورد نيترو',
-            'slug' => 'discord-nitro', 'product_type' => 'fixed_package', 'delivery_type' => 'instant',
+            'slug' => 'discord-nitro', 'delivery_type' => 'instant',
             'description_en' => 'Discord Nitro with HD video, custom emojis, bigger uploads, and server boost.',
             'description_ar' => 'ديسكورد نيترو مع فيديو عالي الجودة، إيموجي مخصصة، وتعزيز السيرفر.',
             'cost_price' => 8, 'selling_price' => 10, 'is_active' => true, 'is_featured' => false, 'sort_order' => 1,
@@ -289,7 +238,7 @@ class StorefrontDemoSeeder extends Seeder
         // Adobe
         Product::create([
             'subcategory_id' => $adobe->id, 'name_en' => 'Adobe Creative Cloud', 'name_ar' => 'أدوبي كرييتف كلاود',
-            'slug' => 'adobe-cc', 'product_type' => 'fixed_package', 'delivery_type' => 'instant',
+            'slug' => 'adobe-cc', 'delivery_type' => 'instant',
             'description_en' => 'Full Adobe Creative Cloud access: Photoshop, Illustrator, Premiere Pro, and more.',
             'description_ar' => 'وصول كامل لأدوبي كرييتف كلاود: فوتوشوب، إلستريتر، بريمير برو والمزيد.',
             'cost_price' => 5, 'selling_price' => 8, 'is_active' => true, 'is_featured' => false, 'sort_order' => 1,
@@ -298,7 +247,7 @@ class StorefrontDemoSeeder extends Seeder
         // Amazon
         $amazonCard = Product::create([
             'subcategory_id' => $amazon->id, 'name_en' => 'Amazon Gift Card', 'name_ar' => 'بطاقة هدية أمازون',
-            'slug' => 'amazon-gift-card', 'product_type' => 'fixed_package', 'delivery_type' => 'instant',
+            'slug' => 'amazon-gift-card', 'delivery_type' => 'instant',
             'description_en' => 'Amazon gift card — valid for amazon.com purchases.',
             'description_ar' => 'بطاقة هدية أمازون - صالحة للمشتريات على amazon.com.',
             'cost_price' => 9, 'selling_price' => 11, 'is_active' => true, 'is_featured' => true, 'sort_order' => 1,
@@ -311,7 +260,7 @@ class StorefrontDemoSeeder extends Seeder
         // Apple
         Product::create([
             'subcategory_id' => $apple->id, 'name_en' => 'Apple iTunes Gift Card', 'name_ar' => 'بطاقة آيتونز',
-            'slug' => 'itunes-gift-card', 'product_type' => 'fixed_package', 'delivery_type' => 'instant',
+            'slug' => 'itunes-gift-card', 'delivery_type' => 'instant',
             'description_en' => 'Apple iTunes/App Store gift card for apps, music, movies, and more.',
             'description_ar' => 'بطاقة آيتونز/آب ستور لشراء التطبيقات والموسيقى والأفلام.',
             'cost_price' => 9, 'selling_price' => 11, 'is_active' => true, 'is_featured' => false, 'sort_order' => 1,
@@ -341,3 +290,4 @@ class StorefrontDemoSeeder extends Seeder
         ]);
     }
 }
+

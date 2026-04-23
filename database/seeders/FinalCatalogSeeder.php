@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\ProductType as ProductTypeEnum;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductType;
@@ -85,14 +84,11 @@ class FinalCatalogSeeder extends Seeder
                         [
                             'subcategory_id' => $subcategory->id,
                             'supplier_id' => $supplier->id,
-                            'product_type_id' => $packageOnlyType->id,
                             'name_en' => $brand['name'].' - '.$productData['name'],
                             'name_ar' => ($brand['name_ar'] ?? $brand['name']).' - '.$productData['name_ar'],
                             'description_en' => $productData['description'] ?? 'Official '.$brand['name'].' digital product delivered through MeaCash.',
-                            'description_ar' => $productData['description_ar'] ?? 'منتج رقمي رسمي لـ '.$brand['name'].' يتم تسليمه عبر MeaCash.',
-                            'product_type' => ProductTypeEnum::FixedPackage->value,
+                            'description_ar' => $productData['description_ar'] ?? ($productData['description'] ?? 'Official digital product delivered through MeaCash.'),
                             'delivery_type' => $delivery,
-                            'delivery_time_minutes' => $delivery === 'manual' ? 30 : 5,
                             'cost_price' => $cost,
                             'selling_price' => $price,
                             'price_per_unit' => null,
@@ -251,3 +247,4 @@ class FinalCatalogSeeder extends Seeder
         ];
     }
 }
+

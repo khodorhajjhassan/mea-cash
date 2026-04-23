@@ -105,9 +105,7 @@ class StorefrontSeeder extends Seeder
                         'name_ar' => "{$subName} - باقة {$i}",
                         'description_en' => "Premium digital asset protocol for {$subName}. Safe and fast delivery guaranteed.",
                         'description_ar' => "بروتوكول أصول رقمية متميزة لـ {$subName}. تسليم آمن وسريع مضمون.",
-                        'slug' => Str::slug("{$subName} Package {$i}"),
-                        'product_type' => \App\Enums\ProductType::FixedPackage,
-                        'delivery_type' => 'instant',
+                        'slug' => Str::slug("{$subName} Package {$i}"),                        'delivery_type' => 'instant',
                         'cost_price' => $price * 0.8,
                         'selling_price' => $price,
                         'is_active' => true,
@@ -119,3 +117,4 @@ class StorefrontSeeder extends Seeder
         }
     }
 }
+

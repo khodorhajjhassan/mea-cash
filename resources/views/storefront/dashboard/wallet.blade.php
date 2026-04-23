@@ -17,6 +17,12 @@
 <div class="relative mx-auto max-w-[1440px] px-4 py-8 md:px-8 md:py-10">
     <div class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-80 bg-[radial-gradient(circle_at_15%_20%,rgba(0,240,255,0.16),transparent_30%),radial-gradient(circle_at_85%_8%,rgba(251,191,36,0.13),transparent_28%)] blur-3xl"></div>
 
+    @if(request('notice') === 'insufficient-balance')
+        <div class="mb-6 rounded-2xl border border-error/20 bg-error-container/10 px-5 py-4 text-sm text-error">
+            {{ $locale === 'ar' ? 'لا يوجد رصيد كافٍ في محفظتك. يرجى شحن المحفظة أولاً ثم إعادة المحاولة.' : 'You do not have enough balance in your wallet. Please recharge your wallet first and try again.' }}
+        </div>
+    @endif
+
     <div class="mb-6 flex flex-col gap-4 md:mb-8 md:flex-row md:items-end md:justify-between">
         <div>
             <p class="font-label {{ $isArabic ? 'text-xs tracking-[0.08em]' : 'text-[10px] uppercase tracking-[0.28em]' }} font-black text-primary-container">
@@ -120,7 +126,7 @@
                             </div>
                         </div>
 
-                        <button type="submit" id="topup-submit-btn" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim px-5 py-4 font-headline text-xs font-black uppercase tracking-[0.18em] text-on-primary-fixed transition hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 sm:text-sm sm:tracking-[0.2em]">
+                        <button type="submit" id="topup-submit-btn" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container px-5 py-4 font-headline text-xs font-black uppercase tracking-[0.18em] text-on-primary-container transition hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 sm:text-sm sm:tracking-[0.2em]">
                             <span id="btn-text">{{ $locale === 'ar' ? 'إرسال طلب الشحن' : 'Submit Top-Up Request' }}</span>
                             <span id="btn-icon" class="material-symbols-outlined text-lg">bolt</span>
                         </button>

@@ -201,7 +201,7 @@
         </div>
     @else
         <div class="space-y-3">
-            <a href="{{ route('login') }}" class="flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim px-5 py-4 font-headline text-sm font-black uppercase tracking-[0.2em] text-on-primary-fixed">
+            <a href="{{ route('login') }}" class="flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container px-5 py-4 font-headline text-sm font-black uppercase tracking-[0.2em] text-on-primary-container">
                 <span class="material-symbols-outlined">lock_open</span>
                 <span>{{ __('Login First') }}</span>
             </a>

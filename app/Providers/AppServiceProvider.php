@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        URL::defaults([
+            'locale' => request()->route('locale')
+                ?? request()->segment(1)
+                ?? app()->getLocale()
+                ?? config('app.locale'),
+        ]);
+
         \App\Models\AdminSetting::observe(\App\Observers\AdminSettingObserver::class);
 
         \Illuminate\Support\Facades\View::composer('components.noir.header', function ($view): void {

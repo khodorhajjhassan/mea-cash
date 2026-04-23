@@ -1,11 +1,11 @@
 @php
     $locale = app()->getLocale();
-    $homeUrl = route('store.home');
-    $contactUrl = route('store.contact');
-    $aboutUrl = route('store.page', ['slug' => 'about']);
-    $privacyUrl = route('store.page', ['slug' => 'privacy-policy']);
-    $termsUrl = route('store.page', ['slug' => 'terms-and-conditions']);
-    $refundUrl = route('store.page', ['slug' => 'refund-terms']);
+    $homeUrl = route('store.home', ['locale' => $locale]);
+    $contactUrl = route('store.contact', ['locale' => $locale]);
+    $aboutUrl = route('store.page', ['locale' => $locale, 'slug' => 'about']);
+    $privacyUrl = route('store.page', ['locale' => $locale, 'slug' => 'privacy-policy']);
+    $termsUrl = route('store.page', ['locale' => $locale, 'slug' => 'terms-and-conditions']);
+    $refundUrl = route('store.page', ['locale' => $locale, 'slug' => 'refund-terms']);
 @endphp
 
 <footer class="relative overflow-hidden border-t border-outline-variant/20 bg-surface-container-lowest">
@@ -21,7 +21,7 @@
             <div class="flex items-center justify-center gap-3">
                 <x-noir.logo alt="MeaCash" class="h-8 w-8" sizes="32px" />
                 <span
-                    class="font-headline text-2xl font-black italic tracking-tighter text-primary-container">MEACASH</span>
+                    class="font-headline text-2xl font-black italic tracking-tighter mc-brand-wordmark">MeaCash</span>
             </div>
 
             <nav class="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-3 font-label text-[10px] font-black uppercase tracking-widest text-on-surface-variant"
@@ -43,11 +43,11 @@
             <a href="https://broadstark.com" target="_blank" rel="noopener noreferrer"
                 class="mt-4 inline-flex items-center justify-center gap-2 font-label text-[9px] font-black uppercase tracking-widest text-outline transition hover:text-primary-container">
                 <span class="material-symbols-outlined text-sm">code</span>
-                <span>{{ $locale === 'ar' ? 'تم البناء بواسطة Broadstark' : 'Website built by Broadstark' }}</span>
+                <span>{!! $locale === 'ar' ? 'تم البناء بواسطة <span class="mc-broadstark-gradient">Broadstark</span>' : 'Website built by <span class="mc-broadstark-gradient">Broadstark</span>' !!}</span>
             </a>
 
             <p class="mt-4 font-label text-[9px] font-black uppercase tracking-[0.2em] text-outline/75">
-                &copy; {{ date('Y') }} MEACASH
+                &copy; {{ date('Y') }} MeaCash
             </p>
         </div>
     </div>
@@ -58,7 +58,7 @@
                 <div class="mb-6 flex items-center gap-3">
                     <x-noir.logo alt="MeaCash" class="h-10 w-10" sizes="40px" />
                     <span
-                        class="inline-block text-xl md:text-3xl font-black italic tracking-tighter text-transparent bg-clip-text px-2 mc-gradient-text">{{ config('app.name', 'MEACASH') }}</span>
+                        class="inline-block text-xl md:text-3xl font-black italic tracking-tighter px-2 mc-gradient-text mc-brand-wordmark">MeaCash</span>
                 </div>
                 <p class="mb-8 max-w-sm font-body text-sm leading-relaxed text-on-surface-variant">
                     {{ __('noir.footer_tagline') }}
@@ -88,14 +88,14 @@
                 <ul class="space-y-4 font-label text-xs uppercase tracking-widest text-on-surface-variant">
                     @auth
                         <li><a class="transition-colors hover:text-secondary-container"
-                                href="{{ route('store.wallet') }}">{{ __('Wallet') }}</a></li>
+                                href="{{ route('store.wallet', ['locale' => $locale]) }}">{{ __('Wallet') }}</a></li>
                         <li><a class="transition-colors hover:text-secondary-container"
-                                href="{{ route('store.orders') }}">{{ __('Orders') }}</a></li>
+                                href="{{ route('store.orders', ['locale' => $locale]) }}">{{ __('Orders') }}</a></li>
                     @else
                         <li><a class="transition-colors hover:text-secondary-container"
                                 href="{{ route('login') }}">{{ __('Login') }}</a></li>
                         <li><a class="transition-colors hover:text-secondary-container"
-                                href="{{ route('store.register') }}">{{ __('Create Account') }}</a></li>
+                                href="{{ route('store.register', ['locale' => $locale]) }}">{{ __('Create Account') }}</a></li>
                     @endauth
                     <li><a class="transition-colors hover:text-secondary-container"
                             href="{{ $contactUrl }}">{{ __('Contact Us') }}</a></li>
@@ -124,7 +124,7 @@
             class="mx-auto mt-16 flex max-w-[1440px] flex-col items-center justify-between gap-6 border-t border-outline-variant/10 px-8 pt-8 md:mt-20 md:flex-row">
             <p
                 class="text-center font-headline text-[10px] uppercase tracking-[0.24em] text-on-surface-variant md:text-start md:tracking-[0.3em]">
-                &copy; {{ date('Y') }} MEACASH. HIGH-FIDELITY DIGITAL ASSETS. ALL RIGHTS RESERVED.
+                &copy; {{ date('Y') }} MeaCash. HIGH-FIDELITY DIGITAL ASSETS. ALL RIGHTS RESERVED.
             </p>
             <div class="flex flex-col gap-3 sm:flex-row sm:gap-8">
                 <div class="flex items-center gap-2">
@@ -137,7 +137,7 @@
                     <span class="material-symbols-outlined text-sm text-on-surface-variant">code</span>
                     <a href="https://broadstark.com" target="_blank" rel="noopener noreferrer"
                         class="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant transition hover:text-primary-container">
-                        {{ $locale === 'ar' ? 'تم البناء بواسطة Broadstark' : 'Website built by Broadstark' }}
+                        {!! $locale === 'ar' ? 'تم البناء بواسطة <span class="mc-broadstark-gradient">Broadstark</span>' : 'Website built by <span class="mc-broadstark-gradient">Broadstark</span>' !!}
                     </a>
                 </div>
             </div>

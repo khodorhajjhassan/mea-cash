@@ -101,9 +101,9 @@ class HomepageSectionController extends Controller
                 ->get(['id', 'category_id', 'name_en']),
             'products' => Product::query()
                 ->where('is_active', true)
-                ->with(['subcategory:id,category_id,name_en'])
+                ->with(['subcategory:id,category_id,name_en,product_type_id', 'subcategory.productTypeDefinition:id,name,key,schema'])
                 ->orderBy('name_en')
-                ->get(['id', 'subcategory_id', 'name_en', 'slug', 'product_type', 'selling_price']),
+                ->get(['id', 'subcategory_id', 'name_en', 'slug', 'selling_price']),
         ];
     }
 

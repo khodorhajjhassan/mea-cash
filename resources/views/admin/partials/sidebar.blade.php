@@ -22,7 +22,21 @@
             </button>
         </div>
 
-        <nav class="mt-6 space-y-2">
+        @if(auth()->check())
+        <div class="mt-6 mb-2 px-1">
+            <div class="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-sm font-bold text-indigo-600">
+                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                </div>
+                <div class="flex-1 overflow-hidden">
+                    <p class="truncate text-sm font-bold text-slate-800">{{ auth()->user()->name }}</p>
+                    <p class="truncate text-xs font-medium text-slate-500">{{ auth()->user()->email }}</p>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <nav class="mt-4 space-y-2">
             <a href="{{ route('admin.dashboard') }}"
                 class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

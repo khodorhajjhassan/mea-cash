@@ -70,7 +70,7 @@
                 @error('message') <p class="mt-2 text-xs text-rose-400">{{ $message }}</p> @enderror
             </div>
 
-            <button type="submit" class="mt-6 inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim px-6 py-4 font-headline text-xs font-black uppercase tracking-[0.24em] text-on-primary-fixed shadow-[0_18px_50px_rgba(0,240,255,0.18)] transition hover:scale-[1.01] active:scale-[0.99]">
+            <button type="submit" class="mt-6 inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container px-6 py-4 font-headline text-xs font-black uppercase tracking-[0.24em] text-on-primary-container shadow-[0_18px_50px_rgba(0,240,255,0.18)] transition hover:scale-[1.01] active:scale-[0.99]">
                 <span>{{ $locale === 'ar' ? 'إرسال الرسالة' : 'Send Message' }}</span>
                 <span class="material-symbols-outlined">send</span>
             </button>

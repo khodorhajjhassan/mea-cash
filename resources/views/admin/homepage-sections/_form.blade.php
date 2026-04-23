@@ -135,10 +135,10 @@
                     data-checkbox-row
                     data-subcategory="{{ $product->subcategory_id }}"
                     data-category="{{ $product->subcategory?->category_id }}"
-                    data-search="{{ Str::lower($product->name_en.' '.$product->slug.' '.($product->subcategory?->name_en ?? '').' '.($product->product_type?->value ?? $product->product_type ?? '').' '.$product->selling_price) }}">
+                    data-search="{{ Str::lower($product->name_en.' '.$product->slug.' '.($product->subcategory?->name_en ?? '').' '.$product->resolvedProductTypeLabel().' '.$product->selling_price) }}">
                     <input type="checkbox" name="product_ids[]" value="{{ $product->id }}" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                         @checked(in_array($product->id, array_map('intval', $selectedProducts), true))>
-                    <span>{{ $product->name_en }} - {{ $product->subcategory?->name_en ?? 'No subcategory' }} - {{ str_replace('_', ' ', $product->product_type?->value ?? $product->product_type ?? 'product') }} - ${{ number_format((float) $product->selling_price, 2) }}</span>
+                    <span>{{ $product->name_en }} - {{ $product->subcategory?->name_en ?? 'No subcategory' }} - {{ $product->resolvedProductTypeLabel() }} - ${{ number_format((float) $product->selling_price, 2) }}</span>
                 </label>
             @endforeach
         </div>

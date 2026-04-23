@@ -14,6 +14,7 @@ class Banner extends Model
  
     protected $fillable = [
         'image_path',
+        'image_path_ar',
         'title_en',
         'title_ar',
         'description_en',
@@ -21,6 +22,7 @@ class Banner extends Model
         'link',
         'button_text_en',
         'button_text_ar',
+        'position',
         'sort_order',
         'is_active',
     ];
@@ -33,19 +35,24 @@ class Banner extends Model
         ];
     }
 
-    public function imageUrl(): string
+    public function imageUrl(?string $locale = null): string
     {
-        return $this->versionedStorageUrl($this->image_path);
+        $locale = $locale ?: app()->getLocale();
+        $path = ($locale === 'ar' && $this->image_path_ar) ? $this->image_path_ar : $this->image_path;
+        return $this->versionedStorageUrl($path);
     }
 
-    public function mobileImageUrl(): string
+    public function mobileImageUrl(?string $locale = null): string
     {
-        if ($this->image_path === null || $this->image_path === '' || Str::startsWith($this->image_path, ['http://', 'https://'])) {
-            return $this->versionedStorageUrl($this->image_path);
+        $locale = $locale ?: app()->getLocale();
+        $path = ($locale === 'ar' && $this->image_path_ar) ? $this->image_path_ar : $this->image_path;
+
+        if ($path === null || $path === '' || Str::startsWith($path, ['http://', 'https://'])) {
+            return $this->versionedStorageUrl($path);
         }
 
         $disk = config('media.disk', config('filesystems.default'));
-        $variantPath = preg_replace('/(\.[^.]+)$/', '.mobile$1', $this->image_path) ?? $this->image_path;
+        $variantPath = preg_replace('/(\.[^.]+)$/', '.mobile$1', $path) ?? $path;
         $cacheKey = 'banner-mobile-variant:'.$disk.':'.$variantPath;
 
         if (Cache::has($cacheKey)) {
@@ -53,7 +60,7 @@ class Banner extends Model
         }
 
         if (! Storage::disk($disk)->exists($variantPath)) {
-            return $this->imageUrl();
+            return $this->imageUrl($locale);
         }
 
         Cache::put($cacheKey, true, now()->addHours(6));

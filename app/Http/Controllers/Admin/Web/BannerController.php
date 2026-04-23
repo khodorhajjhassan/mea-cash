@@ -29,6 +29,7 @@ class BannerController extends Controller
     {
         $data = $request->validate([
             'image' => ['required', 'image', 'max:5120'],
+            'image_ar' => ['nullable', 'image', 'max:5120'],
             'title_en' => ['nullable', 'string', 'max:255'],
             'title_ar' => ['nullable', 'string', 'max:255'],
             'description_en' => ['nullable', 'string', 'max:500'],
@@ -36,13 +37,18 @@ class BannerController extends Controller
             'link' => ['nullable', 'string', 'max:255'],
             'button_text_en' => ['nullable', 'string', 'max:50'],
             'button_text_ar' => ['nullable', 'string', 'max:50'],
+            'position' => ['sometimes', 'string', 'in:middle,left,right'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
  
         try {
+            $position = $request->input('position', 'middle');
             if ($request->hasFile('image')) {
-                $data['image_path'] = $this->imageStorage->storeBannerAsWebp($request->file('image'));
+                $data['image_path'] = $this->imageStorage->storeBannerAsWebp($request->file('image'), null, $position);
+            }
+            if ($request->hasFile('image_ar')) {
+                $data['image_path_ar'] = $this->imageStorage->storeBannerAsWebp($request->file('image_ar'), null, $position);
             }
  
             $data['is_active'] = $request->boolean('is_active', true);
@@ -65,6 +71,7 @@ class BannerController extends Controller
     {
         $data = $request->validate([
             'image' => ['nullable', 'image', 'max:5120'],
+            'image_ar' => ['nullable', 'image', 'max:5120'],
             'title_en' => ['nullable', 'string', 'max:255'],
             'title_ar' => ['nullable', 'string', 'max:255'],
             'description_en' => ['nullable', 'string', 'max:500'],
@@ -72,13 +79,18 @@ class BannerController extends Controller
             'link' => ['nullable', 'string', 'max:255'],
             'button_text_en' => ['nullable', 'string', 'max:50'],
             'button_text_ar' => ['nullable', 'string', 'max:50'],
+            'position' => ['sometimes', 'string', 'in:middle,left,right'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
  
         try {
+            $position = $request->input('position', $banner->position);
             if ($request->hasFile('image')) {
-                $data['image_path'] = $this->imageStorage->storeBannerAsWebp($request->file('image'), $banner->image_path);
+                $data['image_path'] = $this->imageStorage->storeBannerAsWebp($request->file('image'), $banner->image_path, $position);
+            }
+            if ($request->hasFile('image_ar')) {
+                $data['image_path_ar'] = $this->imageStorage->storeBannerAsWebp($request->file('image_ar'), $banner->image_path_ar, $position);
             }
  
             $data['is_active'] = $request->boolean('is_active', $banner->is_active);
@@ -96,6 +108,9 @@ class BannerController extends Controller
     {
         try {
             $this->imageStorage->deleteBannerImage($banner->image_path);
+            if ($banner->image_path_ar) {
+                $this->imageStorage->deleteBannerImage($banner->image_path_ar);
+            }
             $banner->delete();
             return redirect()->route('admin.banners.index')->with('success', 'Banner deleted successfully.');
         } catch (Exception $e) {

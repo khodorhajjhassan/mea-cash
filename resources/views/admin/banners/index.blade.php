@@ -18,6 +18,7 @@
                 <th>Sort</th>
                 <th>Image</th>
                 <th>Title (EN/AR)</th>
+                <th>Position</th>
                 <th>Status</th>
                 <th>Actions</th>
             </tr>
@@ -32,6 +33,9 @@
                     <td>
                         <div class="font-medium text-slate-900">{{ $banner->title_en ?: 'No Title' }}</div>
                         <div class="text-xs text-slate-500">{{ $banner->title_ar }}</div>
+                    </td>
+                    <td>
+                        <span class="capitalize text-slate-700">{{ $banner->position }}</span>
                     </td>
                     <td>
                         <span class="status-pill {{ $banner->is_active ? 'ok' : 'off' }}">

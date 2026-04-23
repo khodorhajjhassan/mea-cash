@@ -72,11 +72,9 @@
                 </div>
                 <div class="mt-4 space-y-4">
                     @php($userInput = $order->getuserinput())
-                    @php($fields = $order->product?->formFields ?? collect())
                     @forelse($userInput as $key => $value)
-                        @php($field = $fields->firstWhere('field_key', $key))
                         <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                            <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">{{ $field?->label_en ?? str_replace('_', ' ', $key) }}</p>
+                            <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">{{ $order->product?->resolvedFieldLabel($key, 'en') ?? str_replace('_', ' ', $key) }}</p>
                             <p class="text-sm font-medium text-slate-900 break-all">{{ is_array($value) ? json_encode($value) : $value }}</p>
                         </div>
                     @empty
@@ -95,7 +93,7 @@
                 <div class="panel-head border-b border-slate-100 pb-3">
                     <h3 class="text-base font-semibold text-indigo-900">{{ $order->status === App\Enums\OrderStatus::Completed ? 'Update Fulfillment' : 'Order Fulfillment' }}</h3>
                     <span class="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded uppercase font-bold tracking-tight">
-                        {{ str_replace('_', ' ', $order->product?->product_type?->value ?? 'Manual') }}
+                        {{ $order->product?->resolvedProductTypeLabel() ?? 'Manual Service' }}
                     </span>
                 </div>
                 
@@ -184,7 +182,7 @@
                             @continue(empty($d_val))
                             <div class="p-3 bg-white rounded-lg border border-green-100">
                                 <p class="text-[10px] uppercase font-bold text-slate-400 mb-1">{{ str_replace('_', ' ', $d_key) }}</p>
-                                <p class="text-sm font-medium text-slate-900 break-all">{{ $d_val }}</p>
+                                <div class="text-sm font-medium text-slate-900 break-all">{!! $d_val !!}</div>
                             </div>
                         @endforeach
                     </div>
@@ -192,7 +190,7 @@
                     @if($delivery['admin_note'] ?? null)
                     <div class="mt-4 p-4 rounded-xl bg-green-50/50 border border-green-100 border-dashed">
                         <p class="text-xs text-slate-500 font-medium mb-1">Admin Note</p>
-                        <p class="text-sm text-slate-800 italic">"{{ $delivery['admin_note'] }}"</p>
+                        <div class="text-sm text-slate-800 italic">{!! $delivery['admin_note'] !!}</div>
                     </div>
                     @endif
 

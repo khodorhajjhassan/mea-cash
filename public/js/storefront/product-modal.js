@@ -25,10 +25,49 @@ const getHeaderContent = () => document.getElementById('sf-modal-header-content'
 const getBody = () => document.getElementById('sf-modal-body');
 const getSummary = () => document.getElementById('sf-modal-summary-content');
 const getFooter = () => document.getElementById('sf-modal-footer');
-const isRtl = () => document.documentElement.dir === 'rtl';
+const currentLocale = () => document.documentElement.lang || 'en';
+const isRtl = () => document.documentElement.dir === 'rtl' || currentLocale() === 'ar';
+
+const __ = (key, replacements = {}) => {
+    const locale = currentLocale();
+    const messages = {
+        en: {
+            min: 'Min: :val',
+            max: 'Max: :val',
+            required: 'Required',
+            processing: 'Processing...',
+            link_copied: 'Link copied to clipboard!',
+            review_errors: 'Please review the highlighted fields.',
+            invalid_value: 'Invalid value',
+            select_option: 'Select option',
+            custom_quantity: 'Custom Quantity',
+            total_price: 'Total Price',
+            selected_product: 'Selected Product'
+        },
+        ar: {
+            min: 'الحد الأدنى: :val',
+            max: 'الحد الأقصى: :val',
+            required: 'مطلوب',
+            processing: 'جاري المعالجة...',
+            link_copied: 'تم نسخ الرابط إلى الحافظة!',
+            review_errors: 'يرجى مراجعة الحقول المميزة.',
+            invalid_value: 'قيمة غير صالحة',
+            select_option: 'اختر خياراً',
+            custom_quantity: 'كمية مخصصة',
+            total_price: 'السعر الإجمالي',
+            selected_product: 'المنتج المختار'
+        }
+    };
+
+    let msg = messages[locale]?.[key] || messages['en'][key] || key;
+    Object.entries(replacements).forEach(([k, v]) => {
+        msg = msg.replace(`:${k}`, v);
+    });
+    return msg;
+};
+
 const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 const isAuthenticated = () => Boolean(window.isAuthenticated);
-const currentLocale = () => (isRtl() ? 'ar' : 'en');
 const shareableSubcategoryUrl = () => {
     const url = new URL(`/${currentLocale()}`, window.location.origin);
     if (currentSubcategory?.slug) url.searchParams.set('subcategory', currentSubcategory.slug);
@@ -59,10 +98,17 @@ const deliveryLabel = (item) => {
 };
 
 const orderTypeLabel = (product) => {
-    const type = product?.product_type ? String(product.product_type).replace(/_/g, ' ') : '';
+    const type = product?.product_type ? String(product.product_type) : '';
     if (!type) return '';
 
-    return type === 'fixed package' ? 'Fixed package' : type;
+    const labels = {
+        fixed_package: 'Key',
+        custom_quantity: 'Top Up',
+        account_topup: 'Account',
+        manual_service: 'Manual Service',
+    };
+
+    return labels[type] || type.replace(/_/g, ' ');
 };
 
 const friendlyType = (product) => {
@@ -90,7 +136,7 @@ function selectedUnitPrice() {
     if (selectedPackage) return Number(selectedPackage.selling_price || 0);
 
     if (selectedProduct.product_type === 'custom_quantity') {
-        return Number(selectedProduct.price_per_unit || selectedProduct.selling_price || 0) * currentQuantity;
+        return Number(selectedProduct.selling_price || 0) * currentQuantity;
     }
 
     return Number(selectedProduct.selling_price || 0);
@@ -181,7 +227,7 @@ async function loadSubcategory(slug, productId = null) {
     if (footer) footer.innerHTML = '';
 
     try {
-        const res = await fetch(API_BASE() + encodeURIComponent(slug), {
+        const res = await fetch(`${API_BASE()}${encodeURIComponent(slug)}?_=${Date.now()}`, {
             headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         });
 
@@ -307,7 +353,7 @@ function renderSummary() {
                 </div>
                 <div class="w-full text-start sm:w-auto sm:text-end">
                     <div id="modal-live-price" class="font-headline text-base font-black text-primary-container">${money(selectedUnitPrice())}</div>
-                    <div class="font-label text-[10px] uppercase tracking-tight text-outline">Total Price</div>
+                    <div class="font-label text-[10px] uppercase tracking-tight text-outline">${__('total_price')}</div>
                 </div>
             </div>
             ${subtitle ? `<div class="mb-5 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-4 text-xs leading-relaxed text-on-surface-variant">${escapeHtml(subtitle)}</div>` : ''}
@@ -340,9 +386,9 @@ function renderQuantity() {
     return `
         <div class="group mb-5">
             <div class="mb-2 flex items-center justify-between px-1">
-                <label class="font-label text-[10px] font-bold uppercase tracking-widest text-outline">Custom Quantity</label>
+                <label class="font-label text-[10px] font-bold uppercase tracking-widest text-outline">${__('custom_quantity')}</label>
                 <div class="font-label text-[9px] uppercase tracking-widest text-primary-container">
-                    Min: ${Number(selectedProduct.min_quantity || 1)} / Max: ${selectedProduct.max_quantity ? Number(selectedProduct.max_quantity) : '∞'}
+                    ${__('min', {val: Number(selectedProduct.min_quantity || 1)})} / ${__('max', {val: selectedProduct.max_quantity ? Number(selectedProduct.max_quantity) : '∞'})}
                 </div>
             </div>
             <div class="relative">
@@ -350,7 +396,7 @@ function renderQuantity() {
                     class="w-full rounded-xl border-0 bg-surface-container-lowest px-4 py-3 font-headline text-lg font-black text-secondary-container placeholder:text-outline-variant outline-none">
                 <div class="absolute bottom-0 start-0 h-[2px] w-0 bg-gradient-to-r from-primary-container to-secondary-container transition-all duration-500 group-focus-within:w-full"></div>
             </div>
-            <div id="err-quantity" class="mt-2 px-1 font-label text-[10px] uppercase tracking-widest text-secondary-container hidden"></div>
+            <div id="err-quantity" class="mt-2 px-1 font-label text-[10px] uppercase tracking-widest text-error hidden"></div>
             <p class="mt-2 px-1 font-label text-[10px] uppercase tracking-widest text-outline">Rate: ${money(selectedProduct.price_per_unit || selectedProduct.selling_price)} each</p>
         </div>
     `;
@@ -382,10 +428,10 @@ function renderField(field) {
             <div class="group">
                 <label class="mb-2 ms-1 block font-label text-[10px] font-bold uppercase tracking-widest text-outline">${label}</label>
                 <select name="form_data[${escapeHtml(field.key)}]" class="w-full rounded-xl border-0 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface outline-none">
-                    <option value="">${escapeHtml(field.placeholder || 'Select option')}</option>
+                    <option value="">${escapeHtml(field.placeholder || __('select_option'))}</option>
                     ${options}
                 </select>
-                <div id="err-${escapeHtml(field.key)}" class="mt-1 hidden font-label text-[10px] uppercase tracking-widest text-secondary-container"></div>
+                <div id="err-${escapeHtml(field.key)}" class="mt-1 hidden font-label text-[10px] uppercase tracking-widest text-error"></div>
             </div>
         `;
     }
@@ -399,7 +445,7 @@ function renderField(field) {
                 <div class="absolute bottom-0 start-0 h-[2px] w-0 bg-gradient-to-r from-primary-container to-secondary-container transition-all duration-500 group-focus-within:w-full"></div>
             </div>
             ${rangeHint}
-            <div id="err-${escapeHtml(field.key)}" class="mt-1 hidden font-label text-[10px] uppercase tracking-widest text-secondary-container"></div>
+            <div id="err-${escapeHtml(field.key)}" class="mt-1 hidden font-label text-[10px] uppercase tracking-widest text-error"></div>
         </div>
     `;
 }
@@ -432,7 +478,7 @@ function renderFooter() {
 
     footer.innerHTML = `
         <div class="flex gap-3">
-            <button id="purchase-now-btn" type="button" class="flex flex-1 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim py-4 font-headline text-sm font-black uppercase tracking-[0.22em] text-on-primary-fixed shadow-[0_0_35px_rgba(0,240,255,0.22)] transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
+            <button id="purchase-now-btn" type="button" class="flex flex-1 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container py-4 font-headline text-sm font-black uppercase tracking-[0.22em] text-on-primary-container shadow-[0_0_35px_rgba(0,240,255,0.22)] transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
                 <span>${isRtl() ? 'شراء الآن' : 'Purchase Now'}</span>
                 <span class="material-symbols-outlined">bolt</span>
             </button>
@@ -493,14 +539,17 @@ function bindEvents() {
 
             if ((Number.isFinite(min) && value < min) || (Number.isFinite(max) && value > max)) {
                 error.textContent = [
-                    Number.isFinite(min) ? `Min: ${compactNumber(min)}` : '',
-                    Number.isFinite(max) ? `Max: ${compactNumber(max)}` : '',
+                    Number.isFinite(min) ? __('min', {val: compactNumber(min)}) : '',
+                    Number.isFinite(max) ? __('max', {val: compactNumber(max)}) : '',
                 ].filter(Boolean).join(' / ');
                 error.classList.remove('hidden');
             } else {
                 error.textContent = '';
                 error.classList.add('hidden');
             }
+
+            const livePrice = document.getElementById('modal-live-price');
+            if (livePrice) livePrice.textContent = money(selectedUnitPrice());
         });
     });
 
@@ -539,6 +588,10 @@ function clearErrors() {
     });
 }
 
+function hasFieldErrors(errors) {
+    return Object.keys(errors || {}).length > 0;
+}
+
 function showErrors(errors) {
     Object.entries(errors || {}).forEach(([key, messages]) => {
         // Handle "form_data.field_key" and flat "quantity" or other keys
@@ -573,7 +626,7 @@ async function handlePurchaseNow() {
     };
 
     button.disabled = true;
-    button.innerHTML = `<span class="animate-pulse">${isRtl() ? 'جاري المعالجة...' : 'Processing...'}</span>`;
+    button.innerHTML = `<span class="animate-pulse">${__('processing')}</span>`;
 
     try {
         const res = await fetch(PURCHASE_URL(), {
@@ -595,7 +648,9 @@ async function handlePurchaseNow() {
         const data = await res.json();
 
         if (!res.ok) {
-            currentToast = `<div class="mt-5 rounded-xl border border-secondary-container/30 bg-secondary-container/10 p-3 font-label text-xs uppercase tracking-widest text-secondary-container">${escapeHtml(data.message || 'Please review the highlighted fields.')}</div>`;
+            currentToast = hasFieldErrors(data.errors)
+                ? ''
+                : `<div class="mt-5 rounded-xl border border-error/30 bg-error-container/10 p-3 font-label text-xs uppercase tracking-widest text-error">${escapeHtml(data.message || __('review_errors'))}</div>`;
             renderSummary();
             renderFooter();
             bindEvents();
@@ -621,7 +676,7 @@ async function handlePurchaseNow() {
                 return;
             }
 
-            currentToast = `<div class="mt-5 rounded-xl border border-secondary-container/30 bg-secondary-container/10 p-3 font-label text-xs uppercase tracking-widest text-secondary-container">${escapeHtml(checkoutData.message || 'Could not complete purchase.')}</div>`;
+            currentToast = `<div class="mt-5 rounded-xl border border-error/30 bg-error-container/10 p-3 font-label text-xs uppercase tracking-widest text-error">${escapeHtml(checkoutData.message || 'Could not complete purchase.')}</div>`;
             renderSummary();
             renderFooter();
             bindEvents();

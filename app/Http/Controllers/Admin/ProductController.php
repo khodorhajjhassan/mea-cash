@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
+use App\Models\Subcategory;
 use App\Services\Media\ImageStorageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
@@ -19,7 +20,7 @@ class ProductController extends Controller
     public function index(): JsonResponse
     {
         $products = Product::query()
-            ->with(['subcategory:id,name_en,name_ar', 'supplier:id,name'])
+            ->with(['subcategory:id,name_en,name_ar,product_type_id', 'subcategory.productTypeDefinition:id,name,key,schema', 'supplier:id,name'])
             ->latest('id')
             ->paginate(20)
             ->through(fn (Product $product): array => $this->transformProduct($product));
@@ -31,19 +32,18 @@ class ProductController extends Controller
     {
         $data = $request->validated();
         $data['slug'] = Str::slug($data['slug'] ?? $data['name_en']);
-
         if ($request->hasFile('image')) {
             $data['image'] = $this->imageStorage->storeAsWebp($request->file('image'), 'catalog/products');
         }
 
         $product = Product::query()->create($data);
 
-        return response()->json($this->transformProduct($product->load(['subcategory:id,name_en,name_ar', 'supplier:id,name'])), 201);
+        return response()->json($this->transformProduct($product->load(['subcategory:id,name_en,name_ar,product_type_id', 'subcategory.productTypeDefinition:id,name,key,schema', 'supplier:id,name'])), 201);
     }
 
     public function show(Product $product): JsonResponse
     {
-        return response()->json($this->transformProduct($product->load(['subcategory:id,name_en,name_ar', 'supplier:id,name'])));
+        return response()->json($this->transformProduct($product->load(['subcategory:id,name_en,name_ar,product_type_id', 'subcategory.productTypeDefinition:id,name,key,schema', 'supplier:id,name'])));
     }
 
     public function update(UpdateProductRequest $request, Product $product): JsonResponse
@@ -64,7 +64,7 @@ class ProductController extends Controller
 
         $product->update($data);
 
-        return response()->json($this->transformProduct($product->fresh()->load(['subcategory:id,name_en,name_ar', 'supplier:id,name'])));
+        return response()->json($this->transformProduct($product->fresh()->load(['subcategory:id,name_en,name_ar,product_type_id', 'subcategory.productTypeDefinition:id,name,key,schema', 'supplier:id,name'])));
     }
 
     public function destroy(Product $product): JsonResponse
@@ -88,7 +88,8 @@ class ProductController extends Controller
             'description_ar' => $product->description_ar,
             'description_en' => $product->description_en,
             'slug' => $product->slug,
-            'product_type' => $product->product_type,
+            'product_type' => $product->resolvedProductType()->value,
+            'product_type_label' => $product->resolvedProductTypeLabel(),
             'delivery_type' => $product->delivery_type,
             'delivery_time_minutes' => $product->delivery_time_minutes,
             'cost_price' => $product->cost_price,

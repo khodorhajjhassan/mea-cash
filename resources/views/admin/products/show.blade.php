@@ -3,7 +3,7 @@
 @section('header', 'Product Details')
 @section('content')
 @php($disk = config('media.disk', config('filesystems.default')))
-@php($typeLabel = match($product->product_type){'custom_quantity'=>'Top Up','account_topup'=>'Account',default=>'Key'})
+@php($typeLabel = $product->resolvedProductTypeLabel())
 
 <section class="panel">
     <div class="panel-head">
@@ -30,7 +30,6 @@
             <div><p class="text-xs text-slate-500">Name AR</p><p class="font-medium text-slate-900">{{ $product->name_ar }}</p></div>
             <div><p class="text-xs text-slate-500">Slug</p><p class="font-medium text-slate-900">{{ $product->slug }}</p></div>
             <div><p class="text-xs text-slate-500">Type</p><p class="font-medium text-slate-900">{{ $typeLabel }}</p></div>
-            <div><p class="text-xs text-slate-500">Template</p><p class="font-medium text-slate-900">{{ $product->subcategory?->productTypeDefinition?->name ?? '-' }}</p></div>
             <div><p class="text-xs text-slate-500">Delivery</p><p class="font-medium text-slate-900">{{ ucfirst($product->delivery_type) }}</p></div>
             <div><p class="text-xs text-slate-500">Subcategory</p><p class="font-medium text-slate-900">{{ $product->subcategory?->name_en ?? '-' }}</p></div>
             <div><p class="text-xs text-slate-500">Supplier</p><p class="font-medium text-slate-900">{{ $product->supplier?->name ?? '-' }}</p></div>
@@ -55,26 +54,5 @@
         </div>
     </div>
 
-</section>
-
-<section class="panel mt-6">
-    <div class="panel-head"><h3 class="text-base font-semibold text-slate-900">Dynamic Fields</h3></div>
-    <div class="table-wrap mt-3">
-        <table class="admin-table">
-            <thead><tr><th>Key</th><th>Label EN</th><th>Type</th><th>Required</th></tr></thead>
-            <tbody>
-            @forelse($product->formFields()->orderBy('sort_order')->get() as $field)
-                <tr>
-                    <td>{{ $field->field_key }}</td>
-                    <td>{{ $field->label_en }}</td>
-                    <td>{{ $field->field_type }}</td>
-                    <td>{{ $field->is_required ? 'Yes' : 'No' }}</td>
-                </tr>
-            @empty
-                <tr><td colspan="4">No dynamic fields.</td></tr>
-            @endforelse
-            </tbody>
-        </table>
-    </div>
 </section>
 @endsection

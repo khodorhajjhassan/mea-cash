@@ -1,13 +1,30 @@
 <div class="grid gap-6 md:grid-cols-2">
-    <div class="field md:col-span-2">
-        <label for="image">Banner Image (Optimized for 21:9 recommended)</label>
+    <div class="field">
+        <label for="image">Banner Image (English)</label>
         <input type="file" name="image" id="image" accept="image/*" @if(!isset($banner)) required @endif>
         @if(isset($banner) && $banner->image_path)
             <div class="mt-2">
-                <x-admin.image :path="$banner->image_path" alt="Current image" class="h-24 w-auto rounded border" />
+                <x-admin.image :path="$banner->image_path" alt="Current image EN" class="h-24 w-auto rounded border" />
             </div>
         @endif
-        <p class="text-xs text-slate-500 mt-1">Images are automatically converted to WebP and optimized.</p>
+    </div>
+
+    <div class="field">
+        <label for="image_ar">Banner Image (Arabic - Optional)</label>
+        <input type="file" name="image_ar" id="image_ar" accept="image/*">
+        @if(isset($banner) && $banner->image_path_ar)
+            <div class="mt-2">
+                <x-admin.image :path="$banner->image_path_ar" alt="Current image AR" class="h-24 w-auto rounded border" />
+            </div>
+        @endif
+    </div>
+
+    <div class="field md:col-span-2">
+        <p class="mt-1 text-xs text-slate-500">Images are automatically converted to WebP and optimized.</p>
+        <p class="mt-1 text-xs text-slate-500">
+            <strong>Middle (Carousel):</strong> 1440 x 720 (Landscape 2:1 ratio).<br>
+            <strong>Side (Left/Right):</strong> 400 x 500 (Portrait 4:5 ratio). side banners are portrait and will be cropped if you use landscape images.
+        </p>
     </div>
  
     <div class="field">
@@ -48,6 +65,15 @@
     <div class="field">
         <label for="sort_order">Sort Order</label>
         <input type="number" name="sort_order" id="sort_order" value="{{ old('sort_order', $banner->sort_order ?? 0) }}" min="0">
+    </div>
+
+    <div class="field">
+        <label for="position">Position</label>
+        <select name="position" id="position">
+            <option value="middle" @selected(old('position', $banner->position ?? 'middle') == 'middle')>Middle (Carousel)</option>
+            <option value="left" @selected(old('position', $banner->position ?? 'middle') == 'left')>Left Side</option>
+            <option value="right" @selected(old('position', $banner->position ?? 'middle') == 'right')>Right Side</option>
+        </select>
     </div>
  
     <div class="col-span-2">

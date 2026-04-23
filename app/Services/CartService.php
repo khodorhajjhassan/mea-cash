@@ -24,11 +24,10 @@ class CartService
         $package = $packageId ? ProductPackage::findOrFail($packageId) : null;
 
         $locale = app()->getLocale();
+        $resolvedType = $product->resolvedProductType();
         $price = $package
             ? $package->selling_price
-            : ($product->product_type?->value === 'custom_quantity'
-                ? ($product->price_per_unit ?? $product->selling_price)
-                : $product->selling_price);
+            : $product->selling_price;
         $costPrice = $package ? $package->cost_price : $product->cost_price;
 
         $item = [

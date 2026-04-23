@@ -23,7 +23,7 @@
     class="mc-store-header backdrop-blur-md sticky top-0 z-50 border-b" style="transform: translateZ(0); -webkit-transform: translateZ(0);">
     <nav class="flex justify-between items-center w-full max-w-[1440px] mx-auto px-4 md:px-8 h-20">
         <div class="flex items-center gap-4 md:gap-8">
-            <a href="{{ route('store.home') }}" class="flex items-center gap-3 group">
+            <a href="{{ route('store.home', ['locale' => $locale]) }}" class="flex items-center gap-3 group">
                 <x-noir.logo
                     alt="MeaCash"
                     class="h-10 w-10 group-hover:scale-105 transition-transform"
@@ -31,22 +31,22 @@
                     loading="eager"
                     fetchpriority="high" />
                 <span
-                    class="mc-gradient-text inline-block px-2 text-xl md:text-2xl font-black italic tracking-tighter">
-                    {{ config('app.name', 'MEACASH') }}
+                    class="mc-gradient-text mc-brand-wordmark inline-block px-2 text-xl md:text-2xl font-black italic tracking-tighter">
+                    MeaCash
                 </span>
             </a>
 
             <div class="hidden md:flex items-center gap-8 font-headline uppercase tracking-widest text-sm">
                 <a class="font-bold pb-1 transition-all duration-300 hover:scale-105 {{ request()->routeIs('store.home') ? 'mc-nav-link-active border-b-2' : 'mc-nav-link hover:text-secondary-container' }}"
-                    href="{{ route('store.home') }}">
+                    href="{{ route('store.home', ['locale' => $locale]) }}">
                     {{ __('Store') }}
                 </a>
                 <a class="mc-nav-link transition-all duration-300 hover:scale-105 hover:text-secondary-container"
-                    href="{{ route('store.home', ['featured' => 1]) }}#products-section">
+                    href="{{ route('store.home', ['locale' => $locale, 'featured' => 1]) }}#products-section">
                     {{ __('Hot Deals') }}
                 </a>
                 <a class="mc-nav-link transition-all duration-300 hover:scale-105 hover:text-secondary-container"
-                    href="{{ route('store.contact') }}">
+                    href="{{ route('store.contact', ['locale' => $locale]) }}">
                     {{ __('Support') }}
                 </a>
             </div>
@@ -54,7 +54,7 @@
 
         <div class="flex items-center gap-3 md:gap-6">
             <div class="hidden lg:block relative group/search flex-grow max-w-xl mx-8">
-                <form action="{{ route('store.home') }}" method="GET"
+                <form action="{{ route('store.home', ['locale' => $locale]) }}" method="GET"
                     class="flex items-center bg-surface-container-highest px-4 py-3 rounded-full border border-outline-variant/30 focus-within:border-primary-container/60 focus-within:bg-surface-container-lowest focus-within:shadow-[0_0_25px_rgba(0,240,255,0.15)] transition-all duration-500 w-full xl:w-80 group-focus-within/search:w-full">
                     <span id="search-icon"
                         class="material-symbols-outlined text-outline text-lg transition-colors group-focus-within/search:text-primary-container">search</span>
@@ -113,7 +113,7 @@
                             icon.style.display = 'none';
                             loader.style.display = 'inline-block';
 
-                            fetch(`{{ route('store.search') }}?q=${encodeURIComponent(q)}`, {
+                            fetch(`{{ route('store.search', ['locale' => $locale]) }}?q=${encodeURIComponent(q)}`, {
                                 headers: { 'Accept': 'application/json' }
                             })
                                 .then(res => res.json())

@@ -122,7 +122,7 @@ class HomepageSectionService
                 : $query->whereRaw('1 = 0'),
             HomepageSection::SOURCE_SUBCATEGORIES => $this->applySubcategories($query, $section),
             HomepageSection::SOURCE_PRODUCT_TYPE => $section->product_type_id
-                ? $query->where('product_type_id', $section->product_type_id)
+                ? $query->whereHas('subcategory', fn (Builder $subcategoryQuery) => $subcategoryQuery->where('product_type_id', $section->product_type_id))
                 : $query->whereRaw('1 = 0'),
             HomepageSection::SOURCE_FEATURED => $query->where('is_featured', true),
             HomepageSection::SOURCE_MANUAL_PRODUCTS => $this->applyManualProducts($query, $section),

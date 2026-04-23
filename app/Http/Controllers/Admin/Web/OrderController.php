@@ -80,10 +80,9 @@ class OrderController extends Controller
     {
         $order->load([
             'user:id,name,email,phone', 
-            'product:id,name_en,image,subcategory_id,product_type', 
+            'product:id,name_en,image,subcategory_id', 
             'product.subcategory:id,product_type_id', 
             'product.subcategory.productTypeDefinition:id,key,schema',
-            'product.formFields:id,product_id,field_key,label_en',
             'package:id,name_en',
             'items'
         ]);

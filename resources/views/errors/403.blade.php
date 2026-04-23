@@ -34,11 +34,11 @@
             </p>
 
             <div class="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-                <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('store.home') }}" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-outline-variant/25 bg-surface-container-low px-6 py-4 font-headline text-xs font-black uppercase tracking-[0.2em] text-on-surface transition hover:border-primary-container/60 hover:text-primary-container">
+                <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('store.home', ['locale' => request()->route('locale') ?? app()->getLocale()]) }}" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-outline-variant/25 bg-surface-container-low px-6 py-4 font-headline text-xs font-black uppercase tracking-[0.2em] text-on-surface transition hover:border-primary-container/60 hover:text-primary-container">
                     <span class="material-symbols-outlined text-base">arrow_back</span>
                     {{ app()->getLocale() === 'ar' ? 'رجوع' : 'Go Back' }}
                 </a>
-                <a href="{{ route('store.home') }}" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim px-6 py-4 font-headline text-xs font-black uppercase tracking-[0.2em] text-on-primary-fixed transition hover:scale-[1.02] active:scale-[0.98]">
+                <a href="{{ route('store.home', ['locale' => request()->route('locale') ?? app()->getLocale()]) }}" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container px-6 py-4 font-headline text-xs font-black uppercase tracking-[0.2em] text-on-primary-container transition hover:scale-[1.02] active:scale-[0.98]">
                     {{ app()->getLocale() === 'ar' ? 'الصفحة الرئيسية' : 'Home Page' }}
                     <span class="material-symbols-outlined text-base">home</span>
                 </a>

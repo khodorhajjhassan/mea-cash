@@ -57,7 +57,7 @@ class ImageStorageService
         return $path;
     }
 
-    public function storeBannerAsWebp(UploadedFile $file, ?string $oldPath = null): string
+    public function storeBannerAsWebp(UploadedFile $file, ?string $oldPath = null, string $position = 'middle'): string
     {
         if (! function_exists('imagewebp') || ! function_exists('imagecreatefromstring')) {
             throw new RuntimeException('GD with WebP support is required to optimize images.');
@@ -77,15 +77,17 @@ class ImageStorageService
 
         $sourceWidth = imagesx($sourceImage);
         $sourceHeight = imagesy($sourceImage);
-        $aspectRatio = $this->bannerAspectRatio();
+        $aspectRatio = ($position === 'middle') ? $this->bannerAspectRatio() : null;
 
         [$desktopWidth, $desktopHeight] = $this->bannerDimensionsForWidth(
             $sourceWidth,
+            $sourceHeight,
             max(1, (int) config('media.banner_max_width', 1600)),
             $aspectRatio
         );
         [$mobileWidth, $mobileHeight] = $this->bannerDimensionsForWidth(
             $sourceWidth,
+            $sourceHeight,
             max(1, (int) config('media.banner_mobile_max_width', 768)),
             $aspectRatio
         );
@@ -135,6 +137,7 @@ class ImageStorageService
         $aspectRatio = $this->bannerAspectRatio();
         [$mobileWidth, $mobileHeight] = $this->bannerDimensionsForWidth(
             $sourceWidth,
+            $sourceHeight,
             max(1, (int) config('media.banner_mobile_max_width', 768)),
             $aspectRatio
         );
@@ -237,9 +240,13 @@ class ImageStorageService
     /**
      * @return array{int, int}
      */
-    private function bannerDimensionsForWidth(int $width, int $maxWidth, float $aspectRatio): array
+    private function bannerDimensionsForWidth(int $width, int $height, int $maxWidth, ?float $aspectRatio): array
     {
         $targetWidth = min($width, $maxWidth);
+        if ($aspectRatio === null) {
+            $ratio = $width > 0 ? ($height / $width) : 1;
+            return [$targetWidth, (int) round($targetWidth * $ratio)];
+        }
         $targetHeight = (int) round($targetWidth / max($aspectRatio, 0.1));
 
         return [$targetWidth, max(1, $targetHeight)];

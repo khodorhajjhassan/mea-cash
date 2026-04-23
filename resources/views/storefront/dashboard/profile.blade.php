@@ -89,7 +89,7 @@
                     @error('preferred_language') <p class="mt-1 text-xs text-error">{{ $message }}</p> @enderror
                 </div>
 
-                <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary-fixed to-secondary-fixed-dim px-5 py-4 font-headline text-sm font-black uppercase tracking-[0.2em] text-on-primary-fixed transition hover:scale-[1.01] active:scale-[0.99]">
+                <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container px-5 py-4 font-headline text-sm font-black uppercase tracking-[0.2em] text-on-primary-container transition hover:scale-[1.01] active:scale-[0.99]">
                     <span>{{ $locale === 'ar' ? 'حفظ التغييرات' : 'Save Changes' }}</span>
                     <span class="material-symbols-outlined text-lg">check</span>
                 </button>

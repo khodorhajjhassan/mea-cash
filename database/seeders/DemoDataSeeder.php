@@ -11,7 +11,6 @@ use App\Models\OrderItem;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\ProductCode;
-use App\Models\ProductFormField;
 use App\Models\ProductPackage;
 use App\Models\ProductType;
 use App\Models\Subcategory;
@@ -300,6 +299,10 @@ class DemoDataSeeder extends Seeder
                     default => 'account-id-required',
                 };
 
+                $subcategory->update([
+                    'product_type_id' => $productTypes->get($templateKey)?->id,
+                ]);
+
                 // Assign a brand image if match found
                 $imagePath = null;
                 $lowerSub = strtolower($subcategoryName);
@@ -339,12 +342,10 @@ class DemoDataSeeder extends Seeder
                         [
                             'subcategory_id' => $subcategory->id,
                             'supplier_id' => $supplierId,
-                            'product_type_id' => $productTypes->get($templateKey)?->id,
                             'name_en' => $packageName,
                             'name_ar' => $packageName,
                             'description_en' => 'Official recharge service for ' . $subcategoryName . '. 24/7 Support.',
                             'description_ar' => 'خدمة شحن رسمية لـ ' . $subcategoryName . '. دعم على مدار الساعة.',
-                            'product_type' => $isCustom ? 'custom_quantity' : 'fixed_package',
                             'delivery_type' => 'instant',
                             'delivery_time_minutes' => 5,
                             'cost_price' => $costPrice,
@@ -360,7 +361,6 @@ class DemoDataSeeder extends Seeder
                     );
 
                     $allProducts->push($product);
-                    $this->seedProductFormFieldsFromTemplate($product);
 
                     // Add some codes for each product
                     for ($i = 0; $i < 10; $i++) {
@@ -488,30 +488,4 @@ class DemoDataSeeder extends Seeder
         ]);
     }
 
-    private function seedProductFormFieldsFromTemplate(Product $product): void
-    {
-        $product->loadMissing('productTypeDefinition');
-        $schema = $product->productTypeDefinition?->schema;
-        $fields = is_array($schema) && array_key_exists('fields', $schema) ? $schema['fields'] : $schema;
-
-        if (!is_array($fields))
-            return;
-
-        ProductFormField::query()->where('product_id', $product->id)->delete();
-
-        foreach ($fields as $index => $field) {
-            ProductFormField::query()->create([
-                'product_id' => $product->id,
-                'field_key' => $field['key'] ?? 'field_' . $index,
-                'label_en' => $field['label'] ?? Str::headline($field['key']),
-                'label_ar' => $field['label'] ?? Str::headline($field['key']),
-                'field_type' => $field['type'] ?? 'text',
-                'placeholder_en' => $field['placeholder'] ?? '',
-                'placeholder_ar' => $field['placeholder'] ?? '',
-                'is_required' => $field['required'] ?? false,
-                'sort_order' => $field['sort_order'] ?? $index + 1,
-                'validation_rules' => $field['rules'] ?? [],
-            ]);
-        }
-    }
 }

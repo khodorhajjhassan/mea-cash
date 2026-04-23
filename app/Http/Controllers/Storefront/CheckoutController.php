@@ -170,7 +170,7 @@ class CheckoutController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => __('storefront.checkout.insufficient_balance'),
-                    'redirect_url' => route('store.wallet'),
+                    'redirect_url' => route('store.wallet', ['notice' => 'insufficient-balance']),
                 ], 422);
             }
 

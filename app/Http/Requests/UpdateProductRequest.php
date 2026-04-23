@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\ProductType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,12 +22,10 @@ class UpdateProductRequest extends FormRequest
             'description_ar' => ['nullable', 'string'],
             'description_en' => ['nullable', 'string'],
             'slug' => ['sometimes', 'string', 'max:255'],
-            'product_type' => ['sometimes', Rule::in(ProductType::values())],
             'delivery_type' => ['sometimes', Rule::in(['instant', 'timed', 'manual'])],
             'delivery_time_minutes' => ['nullable', 'integer', 'min:1'],
             'cost_price' => ['nullable', 'numeric', 'min:0'],
             'selling_price' => ['nullable', 'numeric', 'min:0'],
-            'price_per_unit' => ['nullable', 'numeric', 'min:0'],
             'image' => ['nullable', 'image', 'max:5120'],
             'is_active' => ['sometimes', 'boolean'],
             'is_featured' => ['sometimes', 'boolean'],
@@ -37,7 +34,6 @@ class UpdateProductRequest extends FormRequest
             'seo_description' => ['nullable', 'string'],
             'seo_keywords' => ['nullable', 'string'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
-            'force_apply_template' => ['nullable', 'boolean'],
         ];
     }
 }

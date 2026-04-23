@@ -34,54 +34,47 @@ class CartController extends Controller
             'selected_form' => ['nullable', 'string'],
         ]);
 
-        $product = \App\Models\Product::with(['formFields', 'packages'])->findOrFail($request->product_id);
+        $product = \App\Models\Product::with(['packages', 'subcategory.productTypeDefinition:id,name,key,schema'])->findOrFail($request->product_id);
         $locale = app()->getLocale();
 
         // 2. Dynamic form field validation
         $rules = [];
         $attributes = [];
 
-        foreach ($product->formFields as $field) {
-            $formKey = $field->ui_meta['form_key'] ?? null;
-            
-            // Only validate fields for the selected form OR global fields (form_key is null)
-            if ($formKey === null || $formKey === $request->selected_form) {
-                $fieldRules = $field->validation_rules ?? [];
-                
-                if ($field->is_required && !in_array('required', $fieldRules)) {
-                    array_unshift($fieldRules, 'required');
+        foreach ($product->resolvedFieldDefinitions($locale, $request->selected_form) as $field) {
+            $fieldRules = is_array($field['rules'] ?? null) ? $field['rules'] : [];
+
+            if (($field['required'] ?? false) && !in_array('required', $fieldRules, true)) {
+                array_unshift($fieldRules, 'required');
+            }
+
+            if (($field['type'] ?? 'text') === 'number') {
+                if (!in_array('numeric', $fieldRules, true)) {
+                    $fieldRules[] = 'numeric';
                 }
 
-                if ($field->field_type === 'number') {
-                    if (!in_array('numeric', $fieldRules, true)) {
-                        $fieldRules[] = 'numeric';
-                    }
+                $min = $field['min'] ?? null;
+                $max = $field['max'] ?? null;
 
-                    $min = $field->ui_meta['min'] ?? null;
-                    $max = $field->ui_meta['max'] ?? null;
-
-                    if ($min !== null && $min !== '' && !collect($fieldRules)->contains(fn ($rule) => str_starts_with((string) $rule, 'min:'))) {
-                        $fieldRules[] = 'min:'.$min;
-                    }
-
-                    if ($max !== null && $max !== '' && !collect($fieldRules)->contains(fn ($rule) => str_starts_with((string) $rule, 'max:'))) {
-                        $fieldRules[] = 'max:'.$max;
-                    }
+                if ($min !== null && $min !== '' && !collect($fieldRules)->contains(fn ($rule) => str_starts_with((string) $rule, 'min:'))) {
+                    $fieldRules[] = 'min:'.$min;
                 }
-                
-                if (!empty($fieldRules)) {
-                    $rules["form_data.{$field->field_key}"] = $fieldRules;
-                    $attributes["form_data.{$field->field_key}"] = $field->{"label_{$locale}"} ?? $field->field_key;
+
+                if ($max !== null && $max !== '' && !collect($fieldRules)->contains(fn ($rule) => str_starts_with((string) $rule, 'max:'))) {
+                    $fieldRules[] = 'max:'.$max;
                 }
+            }
+
+            if (!empty($fieldRules)) {
+                $rules["form_data.{$field['key']}"] = $fieldRules;
+                $attributes["form_data.{$field['key']}"] = $field['label'] ?? $field['key'];
             }
         }
 
         // 3. Product-specific constraints
-        if ($product->product_type?->value === 'custom_quantity') {
+        if ($product->resolvedProductType()->value === 'custom_quantity') {
             $rules['quantity'] = [
-                'required', 'integer', 
-                'min:' . ($product->min_quantity ?? 1), 
-                'max:' . ($product->max_quantity ?? 10000)
+                'required', 'integer', 'min:1', 'max:10000'
             ];
         }
 

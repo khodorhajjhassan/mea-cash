@@ -218,7 +218,6 @@ Route::prefix('{locale}')
 
                     Route::post('products/{product}/packages', [ProductController::class, 'storePackage'])->middleware('permission:products.edit')->name('products.packages.store');
                     Route::put('products/packages/{package}', [ProductController::class, 'updatePackage'])->middleware('permission:products.edit')->name('products.packages.update');
-                    Route::post('products/{product}/fields', [ProductController::class, 'storeField'])->middleware('permission:products.edit')->name('products.fields.store');
                     Route::resource('banners', BannerController::class)
                         ->except(['show'])
                         ->middleware('permission:banners.index')

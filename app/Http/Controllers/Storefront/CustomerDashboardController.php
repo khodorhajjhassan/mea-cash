@@ -104,7 +104,7 @@ class CustomerDashboardController extends Controller
     public function orderDetail(string $orderNumber)
     {
         $order = Order::where('order_number', $orderNumber)
-            ->with(['product.subcategory.category', 'product.formFields:id,product_id,field_key,label_en,label_ar', 'package', 'items', 'feedback', 'report'])
+            ->with(['product.subcategory.productTypeDefinition:id,name,key,schema', 'product.subcategory.category', 'package', 'items', 'feedback', 'report'])
             ->firstOrFail();
 
         if ((int) $order->user_id !== (int) auth()->id()) {

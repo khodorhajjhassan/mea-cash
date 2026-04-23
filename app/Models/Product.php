@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\ProductType as ProductTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
@@ -14,20 +15,15 @@ class Product extends Model
     protected $fillable = [
         'subcategory_id',
         'supplier_id',
-        'product_type_id',
         'name_ar',
         'name_en',
         'description_ar',
         'description_en',
         'slug',
-        'product_type',
         'delivery_type',
         'delivery_time_minutes',
         'cost_price',
         'selling_price',
-        'price_per_unit',
-        'min_quantity',
-        'max_quantity',
         'image',
         'is_active',
         'is_featured',
@@ -42,10 +38,8 @@ class Product extends Model
     protected function casts(): array
     {
         return [
-            'product_type' => \App\Enums\ProductType::class,
             'cost_price' => 'decimal:2',
             'selling_price' => 'decimal:2',
-            'price_per_unit' => 'decimal:2',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
         ];
@@ -61,89 +55,136 @@ class Product extends Model
         return $this->belongsTo(Supplier::class);
     }
 
-    public function productTypeDefinition(): BelongsTo
-    {
-        return $this->belongsTo(ProductType::class, 'product_type_id');
-    }
-
-    public function packages(): HasMany
+    public function packages(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(ProductPackage::class);
     }
 
-    public function formFields(): HasMany
-    {
-        return $this->hasMany(ProductFormField::class);
-    }
-
-    public function codes(): HasMany
+    public function codes(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(ProductCode::class);
     }
 
-    public function orders(): HasMany
+    public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Order::class);
     }
 
-    /**
-     * Group form fields by their ui_meta.form_key for modal rendering.
-     *
-     * Returns a structured object with two layers:
-     *  - 'fields': Global fields (form_key is null) — always visible above tabs
-     *  - 'forms': Tab-toggled form variants, each with their own fields
-     */
+    public function resolvedTemplate(): ?ProductType
+    {
+        if ($this->relationLoaded('subcategory')) {
+            return $this->subcategory?->productTypeDefinition;
+        }
+
+        if (! $this->subcategory_id) {
+            return null;
+        }
+
+        $subcategory = $this->subcategory()->with('productTypeDefinition:id,name,key,schema')->first();
+
+        return $subcategory?->productTypeDefinition;
+    }
+
+    public function resolvedProductType(): ProductTypeEnum
+    {
+        return ProductTypeEnum::fromTemplate($this->resolvedTemplate());
+    }
+
+    public function resolvedProductTypeLabel(): string
+    {
+        return $this->resolvedProductType()->label();
+    }
+
     public function getGroupedForms(string $locale = 'en'): array
     {
-        $fields = $this->formFields()->orderBy('sort_order')->get();
+        $template = $this->resolvedTemplate();
+        $schema = is_array($template?->schema) ? $template->schema : [];
+        $globalFields = is_array($schema['fields'] ?? null) ? $schema['fields'] : [];
+        $forms = is_array($schema['forms'] ?? null) ? $schema['forms'] : [];
 
-        if ($fields->isEmpty()) {
+        if ($globalFields === [] && $forms === []) {
             return ['fields' => [], 'forms' => []];
         }
 
-        $globalFields = [];
-        $formGroups = [];
+        $normalizedGlobalFields = collect($globalFields)
+            ->filter(fn ($field) => is_array($field))
+            ->values()
+            ->map(fn (array $field, int $index) => $this->normalizeTemplateField($field, $locale, $index))
+            ->all();
 
-        foreach ($fields as $field) {
-            $formKey = $field->ui_meta['form_key'] ?? null;
-
-            $fieldData = [
-                'key' => $field->field_key,
-                'label' => $field->{"label_{$locale}"},
-                'type' => $field->field_type,
-                'required' => $field->is_required,
-                'placeholder' => $field->{"placeholder_{$locale}"} ?? '',
-                'options' => $field->ui_meta['options'] ?? [],
-                'min' => $field->ui_meta['min'] ?? null,
-                'max' => $field->ui_meta['max'] ?? null,
-                'rules' => $field->validation_rules ?? [],
-            ];
-
-            if ($formKey === null) {
-                $globalFields[] = $fieldData;
-            } else {
-                if (!isset($formGroups[$formKey])) {
-                    $formGroups[$formKey] = [
-                        'key' => $formKey,
-                        'label' => $field->ui_meta["form_label_{$locale}"] ?? $field->ui_meta['form_label_en'] ?? ucfirst(str_replace('-', ' ', $formKey)),
-                        'is_default' => $field->ui_meta['is_default_form'] ?? false,
-                        'fields' => [],
-                    ];
+        $normalizedForms = collect($forms)
+            ->filter(fn ($form) => is_array($form))
+            ->values()
+            ->map(function (array $form, int $index) use ($locale) {
+                $key = Str::slug((string) ($form['key'] ?? 'form_'.($index + 1)));
+                if ($key === '') {
+                    $key = 'form_'.($index + 1);
                 }
-                $formGroups[$formKey]['fields'][] = $fieldData;
-            }
-        }
 
-        $result = array_values($formGroups);
+                return [
+                    'key' => $key,
+                    'label' => (string) ($form["label_{$locale}"] ?? $form['label_en'] ?? $form['label'] ?? Str::headline($key)),
+                    'is_default' => (bool) ($form['is_default'] ?? false),
+                    'fields' => collect($form['fields'] ?? [])
+                        ->filter(fn ($field) => is_array($field))
+                        ->values()
+                        ->map(fn (array $field, int $fieldIndex) => $this->normalizeTemplateField($field, $locale, $fieldIndex))
+                        ->all(),
+                ];
+            })
+            ->all();
 
-        // Ensure at least one form is marked as default
-        if (!empty($result) && !collect($result)->contains(fn ($f) => $f['is_default'])) {
-            $result[0]['is_default'] = true;
+        if ($normalizedForms !== [] && ! collect($normalizedForms)->contains(fn ($form) => $form['is_default'])) {
+            $normalizedForms[0]['is_default'] = true;
         }
 
         return [
-            'fields' => $globalFields,
-            'forms' => $result,
+            'fields' => $normalizedGlobalFields,
+            'forms' => $normalizedForms,
+        ];
+    }
+
+    public function resolvedFieldDefinitions(string $locale = 'en', ?string $selectedForm = null): array
+    {
+        $grouped = $this->getGroupedForms($locale);
+        $activeForm = collect($grouped['forms'] ?? [])->firstWhere('key', $selectedForm)
+            ?? collect($grouped['forms'] ?? [])->firstWhere('is_default', true)
+            ?? ($grouped['forms'][0] ?? null);
+
+        return [
+            ...($grouped['fields'] ?? []),
+            ...($activeForm['fields'] ?? []),
+        ];
+    }
+
+    public function resolvedFieldLabel(string $fieldKey, string $locale = 'en', ?string $selectedForm = null): ?string
+    {
+        return collect($this->resolvedFieldDefinitions($locale, $selectedForm))
+            ->firstWhere('key', $fieldKey)['label'] ?? null;
+    }
+
+    private function normalizeTemplateField(array $field, string $locale, int $index): array
+    {
+        $fieldKey = Str::slug((string) ($field['key'] ?? ''));
+        if ($fieldKey === '') {
+            $fieldKey = 'field_'.($index + 1);
+        }
+
+        $type = (string) ($field['type'] ?? 'text');
+        if (! in_array($type, ['text', 'email', 'password', 'number', 'select'], true)) {
+            $type = 'text';
+        }
+
+        return [
+            'key' => $fieldKey,
+            'label' => (string) ($field["label_{$locale}"] ?? $field['label_en'] ?? $field['label'] ?? Str::headline($fieldKey)),
+            'type' => $type,
+            'required' => (bool) ($field['required'] ?? false),
+            'placeholder' => (string) ($field["placeholder_{$locale}"] ?? $field['placeholder_en'] ?? $field['placeholder'] ?? ''),
+            'options' => is_array($field['options'] ?? null) ? $field['options'] : [],
+            'min' => $field['min'] ?? null,
+            'max' => $field['max'] ?? null,
+            'rules' => is_array($field['rules'] ?? null) ? array_values($field['rules']) : [],
         ];
     }
 }
