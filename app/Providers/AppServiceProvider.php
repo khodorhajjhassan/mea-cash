@@ -29,6 +29,24 @@ class AppServiceProvider extends ServiceProvider
 
         \App\Models\AdminSetting::observe(\App\Observers\AdminSettingObserver::class);
 
+        // Shared site settings for storefront chrome
+        \Illuminate\Support\Facades\View::composer(
+            ['components.noir.header', 'components.noir.footer', 'components.noir.mobile-nav'],
+            function ($view): void {
+                $settings = app(\App\Services\SettingsService::class)->getAllCached();
+                $view->with('siteSettings', [
+                    'site_name'        => $settings['site_name'] ?? 'MeaCash',
+                    'site_email'       => $settings['site_email'] ?? '',
+                    'site_phone'       => $settings['site_phone'] ?? '',
+                    'social_facebook'  => $settings['social_facebook'] ?? '',
+                    'social_instagram' => $settings['social_instagram'] ?? '',
+                    'social_twitter'   => $settings['social_twitter'] ?? '',
+                    'social_whatsapp'  => $settings['social_whatsapp'] ?? '',
+                    'social_tiktok'    => $settings['social_tiktok'] ?? '',
+                ]);
+            }
+        );
+
         \Illuminate\Support\Facades\View::composer('components.noir.header', function ($view): void {
             $view->with([
                 'storeNotifications' => auth()->check()

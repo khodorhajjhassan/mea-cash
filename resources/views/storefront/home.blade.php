@@ -289,7 +289,7 @@
     @endif
 
     {{-- Main Product Grid --}}
-    <section id="products-section" class="px-4 md:px-8 py-12 min-h-[400px] sf-reveal-section sf-lazy-section">
+    <section id="products-section" class="px-4 md:px-8 py-12 min-h-[400px] sf-lazy-section">
         <x-noir.section-heading :title="$activeSearchQuery !== '' ? __('Search Results') : __('Discover Our Products')"
             :subtitle="$activeSearchQuery !== '' ? __('Search') : __('Premium Assets')" :gradient="true" />
 

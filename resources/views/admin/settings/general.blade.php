@@ -83,7 +83,7 @@
         </div>
 
         <div class="grid gap-6 md:grid-cols-2">
-            @foreach(['facebook', 'instagram', 'twitter', 'whatsapp'] as $platform)
+            @foreach(['facebook', 'instagram', 'twitter', 'whatsapp', 'tiktok'] as $platform)
             <form method="POST" action="{{ route('admin.settings.update') }}" class="space-y-4">
                 @csrf
                 <input type="hidden" name="group" value="social">

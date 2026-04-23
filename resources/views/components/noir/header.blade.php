@@ -20,7 +20,7 @@
 @endphp
 
 <header
-    class="mc-store-header backdrop-blur-md sticky top-0 z-50 border-b" style="transform: translateZ(0); -webkit-transform: translateZ(0);">
+    class="mc-store-header backdrop-blur-md sticky top-0 z-50 border-b hidden md:block" style="transform: translateZ(0); -webkit-transform: translateZ(0);">
     <nav class="flex justify-between items-center w-full max-w-[1440px] mx-auto px-4 md:px-8 h-20">
         <div class="flex items-center gap-4 md:gap-8">
             <a href="{{ route('store.home', ['locale' => $locale]) }}" class="flex items-center gap-3 group">
@@ -88,6 +88,8 @@
                     const icon = document.getElementById('search-icon');
                     const loader = document.getElementById('search-loader');
                     let timeout = null;
+
+                    if (!input) return;
 
                     input.addEventListener('input', function () {
                         const q = this.value.trim();
@@ -223,14 +225,14 @@
                 @endauth
 
                 <button id="theme-toggle" type="button"
-                    class="mc-icon-button mc-theme-toggle hidden md:flex h-10 w-10 items-center justify-center rounded-full border transition"
+                    class="mc-icon-button mc-theme-toggle flex h-10 w-10 items-center justify-center rounded-full border transition"
                     aria-label="{{ __('Toggle theme') }}" aria-pressed="false">
                     <span class="material-symbols-outlined mc-theme-icon mc-theme-icon-sun text-xl" aria-hidden="true">light_mode</span>
                     <span class="material-symbols-outlined mc-theme-icon mc-theme-icon-moon text-xl" aria-hidden="true">dark_mode</span>
                 </button>
 
                 {{-- Language Switcher --}}
-                <div class="flex items-center ms-1 md:ms-0">
+                <div class="flex items-center">
                     <a href="{{ $languageSwitchUrl }}"
                         class="mc-icon-button mc-language-switch flex items-center rounded-full transition-all hover:text-primary-container"
                         aria-label="{{ $targetLocale === 'ar' ? __('Switch to Arabic') : __('Switch to English') }}"
@@ -247,12 +249,12 @@
 
                 @auth
                     <a href="{{ route('store.dashboard') }}"
-                        class="hidden scale-95 active:opacity-80 transition-transform sm:inline-flex">
+                        class="scale-95 active:opacity-80 transition-transform inline-flex">
                         <span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
                     </a>
                 @else
                     <a href="{{ route('login') }}"
-                        class="hidden scale-95 active:opacity-80 transition-transform sm:inline-flex">
+                        class="scale-95 active:opacity-80 transition-transform inline-flex">
                         <span class="material-symbols-outlined" data-icon="login">login</span>
                     </a>
                 @endauth
