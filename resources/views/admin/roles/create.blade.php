@@ -66,7 +66,14 @@
                                     </div>
                                     <div class="ms-3 text-sm">
                                         <span class="font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">
-                                            {{ \Illuminate\Support\Str::headline(str_replace(['-', $group . '.'], [' ', ''], $permission->name)) }}
+                                            @php
+                                                $label = $permission->name;
+                                                if (str_starts_with($label, $group . '.')) {
+                                                    $label = substr($label, strlen($group . '.'));
+                                                }
+                                                $label = \Illuminate\Support\Str::headline(str_replace(['.', '-'], [' ', ' '], $label));
+                                            @endphp
+                                            {{ $label }}
                                         </span>
                                     </div>
                                 </label>

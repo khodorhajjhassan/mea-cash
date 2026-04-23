@@ -48,7 +48,7 @@
             @endif
 
             <div id="hero-carousel"
-                class="group relative h-[260px] w-full overflow-hidden rounded-md shadow-2xl md:rounded-none sm:h-[320px] lg:h-[420px] xl:h-[460px]">
+                class="group relative h-[300px] w-full overflow-hidden rounded-md shadow-2xl md:rounded-none sm:h-[320px] lg:h-[420px] xl:h-[460px]">
                 <div class="carousel-inner h-full w-full flex transition-transform duration-700 ease-in-out" dir="ltr">
                     @forelse($middleBanners as $banner)
                         <div class="carousel-item min-w-full h-full relative sf-skeleton">
@@ -65,11 +65,11 @@
                             <div class="absolute inset-0 flex ro items-center p-6 sm:p-10 md:p-16 lg:p-10 xl:p-14">
                                 <div class="max-w-2xl">
                                     <h1
-                                        class="font-headline px-2 text-4xl font-black italic leading-[1.1] tracking-tighter sm:text-5xl lg:text-5xl xl:text-6xl mb-4 animate-fade-in-up sf-text-gradient">
+                                        class="font-headline px-2 text-2xl font-black italic leading-[1.1] tracking-tighter sm:text-5xl lg:text-5xl xl:text-6xl mb-3 sm:mb-4 animate-fade-in-up sf-text-gradient">
                                         {{ $banner->{"title_$locale"} }}
                                     </h1>
                                     <p
-                                        class="text-on-surface-variant text-base md:text-xl lg:text-base xl:text-lg max-w-lg leading-relaxed animate-fade-in-up-delay">
+                                        class="text-on-surface-variant text-sm md:text-xl lg:text-base xl:text-lg max-w-lg leading-relaxed animate-fade-in-up-delay">
                                         {{ $banner->{"description_$locale"} }}
                                     </p>
                                 </div>
@@ -91,11 +91,11 @@
                 {{-- Carousel Hub: Indicators & Global CTA --}}
                 @if($middleBanners->count() > 0)
                     <div
-                        class="absolute bottom-6 sm:bottom-10 right-6 sm:right-10 flex flex-col-reverse sm:flex-row items-center gap-4 sm:gap-8 z-30">
+                        class="absolute bottom-4 sm:bottom-10 right-4 sm:right-10 flex flex-col-reverse sm:flex-row items-center gap-3 sm:gap-8 z-30">
                         <div class="flex gap-2.5">
                             @foreach($middleBanners as $index => $banner)
                                 <button
-                                    class="carousel-indicator w-2 h-2 rounded-full border border-white/20 transition-all hover:scale-125 {{ $index === 0 ? 'bg-primary-container border-primary-container w-6' : '' }}"
+                                    class="carousel-indicator w-2 h-2 rounded-full border border-white/20 transition-all hover:scale-125 {{ $index === 0 ? 'bg-primary-container border-primary-container w-3' : '' }}"
                                     data-index="{{ $index }}" aria-label="{{ __('Show banner') }} {{ $index + 1 }}"></button>
                             @endforeach
                         </div>
@@ -108,7 +108,7 @@
                                 <div class="banner-cta-item {{ $index === 0 ? '' : 'hidden' }}" data-index="{{ $index }}">
                                     @if($buttonText !== '')
                                         <x-noir.button variant="primary" href="{{ $banner->link }}" icon="bolt"
-                                            class="px-4 py-2.5 sm:px-7 sm:py-3.5 text-[9px] sm:text-xs min-w-[120px]">
+                                            class="!px-3.5 !py-2 sm:!px-7 sm:!py-3.5 text-[10px] sm:text-xs min-w-[90px] sm:min-w-[120px]">
                                             {{ $buttonText }}
                                         </x-noir.button>
                                     @endif
@@ -629,7 +629,7 @@
                             const isActive = i === currentIndex;
                             ind.classList.toggle('bg-primary-container', isActive);
                             ind.classList.toggle('border-primary-container', isActive);
-                            ind.classList.toggle('w-6', isActive);
+                            ind.classList.toggle('w-3', isActive);
                             ind.classList.toggle('w-2', !isActive);
                         });
 
@@ -705,8 +705,36 @@
 
                     carousel.addEventListener('mouseenter', stopAutoSlide);
                     carousel.addEventListener('mouseleave', startAutoSlide);
-                    carousel.addEventListener('touchstart', stopAutoSlide, { passive: true });
-                    carousel.addEventListener('touchend', startAutoSlide, { passive: true });
+
+                    // Swipe Support
+                    let touchStartX = 0;
+                    let touchEndX = 0;
+
+                    carousel.addEventListener('touchstart', e => {
+                        touchStartX = e.changedTouches[0].screenX;
+                        stopAutoSlide();
+                    }, { passive: true });
+
+                    carousel.addEventListener('touchend', e => {
+                        touchEndX = e.changedTouches[0].screenX;
+                        handleSwipe();
+                        startAutoSlide();
+                    }, { passive: true });
+
+                    function handleSwipe() {
+                        const swipeThreshold = 50;
+                        const diff = touchEndX - touchStartX;
+                        if (Math.abs(diff) < swipeThreshold) return;
+
+                        const isRtl = document.documentElement.dir === 'rtl';
+                        if (diff > 0) {
+                            // Swiped Right
+                            isRtl ? window.nextSlide() : window.prevSlide();
+                        } else {
+                            // Swiped Left
+                            isRtl ? window.prevSlide() : window.nextSlide();
+                        }
+                    }
 
                     startAutoSlide();
                     updateCarousel();

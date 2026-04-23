@@ -84,14 +84,14 @@
                                 <span>{{ __('admin.sidebar.subcategories') }}</span>
                             </a>
                         @endcan
-                        @can('product-types.index')
-                            <a href="{{ route('admin.product-types.index') }}" class="sidebar-child-link {{ request()->routeIs('admin.product-types.*') ? 'active' : '' }}">
-                                <span>{{ __('admin.sidebar.product_types') }}</span>
-                            </a>
-                        @endcan
                         @can('products.index')
                             <a href="{{ route('admin.products.index') }}" class="sidebar-child-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
                                 <span>{{ __('admin.sidebar.products') }}</span>
+                            </a>
+                        @endcan
+                        @can('product-types.index')
+                            <a href="{{ route('admin.product-types.index') }}" class="sidebar-child-link {{ request()->routeIs('admin.product-types.*') ? 'active' : '' }}">
+                                <span>{{ __('admin.sidebar.product_types') }}</span>
                             </a>
                         @endcan
                     </div>

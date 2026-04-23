@@ -71,7 +71,14 @@
                                     </div>
                                     <div class="ms-3 text-sm">
                                         <span class="font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">
-                                            {{ \Illuminate\Support\Str::headline(str_replace(['-', $group . '.'], [' ', ''], $permission->name)) }}
+                                            @php
+                                                $label = $permission->name;
+                                                if (str_starts_with($label, $group . '.')) {
+                                                    $label = substr($label, strlen($group . '.'));
+                                                }
+                                                $label = \Illuminate\Support\Str::headline(str_replace(['.', '-'], [' ', ' '], $label));
+                                            @endphp
+                                            {{ $label }}
                                         </span>
                                     </div>
                                 </label>
@@ -84,7 +91,7 @@
 
         <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-200">
             <a href="{{ route('admin.roles.index') }}" class="btn-ghost">{{ __('admin.common.cancel') }}</a>
-            <button type="submit" class="btn-primary min-w-[120px]">{{ __('common.save_changes') }}</button>
+            <button type="submit" class="btn-primary min-w-[120px]">{{ __('roles.save') }}</button>
         </div>
     </form>
 </div>
