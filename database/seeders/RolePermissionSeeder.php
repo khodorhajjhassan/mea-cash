@@ -41,6 +41,7 @@ class RolePermissionSeeder extends Seeder
             'banners' => ['index', 'create', 'edit', 'delete'],
             'faqs' => ['index', 'create', 'edit', 'delete'],
             'pages' => ['edit'],
+            'cms' => ['index'], // Parent group permission
             'notifications' => ['index'],
             'settings' => ['general', 'seo', 'payment', 'appearance', 'security'],
             'roles' => ['index', 'create', 'edit', 'delete', 'assign'],
