@@ -35,24 +35,30 @@ class Banner extends Model
 
     public function imageUrl(): string
     {
-        return $this->storageUrl($this->image_path);
+        return $this->versionedStorageUrl($this->image_path);
     }
 
     public function mobileImageUrl(): string
     {
         if ($this->image_path === null || $this->image_path === '' || Str::startsWith($this->image_path, ['http://', 'https://'])) {
-            return $this->imageUrl();
+            return $this->versionedStorageUrl($this->image_path);
         }
 
         $disk = config('media.disk', config('filesystems.default'));
         $variantPath = preg_replace('/(\.[^.]+)$/', '.mobile$1', $this->image_path) ?? $this->image_path;
-        $exists = Cache::remember(
-            'banner-mobile-variant:'.$disk.':'.$variantPath,
-            now()->addMinutes(30),
-            fn (): bool => Storage::disk($disk)->exists($variantPath)
-        );
+        $cacheKey = 'banner-mobile-variant:'.$disk.':'.$variantPath;
 
-        return $exists ? $this->storageUrl($variantPath) : $this->imageUrl();
+        if (Cache::has($cacheKey)) {
+            return $this->storageUrl($variantPath);
+        }
+
+        if (! Storage::disk($disk)->exists($variantPath)) {
+            return $this->imageUrl();
+        }
+
+        Cache::put($cacheKey, true, now()->addHours(6));
+
+        return $this->versionedStorageUrl($variantPath);
     }
 
     private function storageUrl(string $path): string
@@ -64,5 +70,33 @@ class Banner extends Model
         $disk = config('media.disk', config('filesystems.default'));
 
         return Storage::disk($disk)->url($path);
+    }
+
+    private function versionedStorageUrl(?string $path): string
+    {
+        if ($path === null || $path === '') {
+            return '';
+        }
+
+        $url = $this->storageUrl($path);
+
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return $url;
+        }
+
+        $disk = config('media.disk', config('filesystems.default'));
+        $cacheKey = 'banner-url-version:'.$disk.':'.$path;
+
+        try {
+            $version = Cache::remember(
+                $cacheKey,
+                now()->addHours(6),
+                fn (): int => Storage::disk($disk)->lastModified($path)
+            );
+        } catch (\Throwable) {
+            return $url;
+        }
+
+        return $url.(str_contains($url, '?') ? '&' : '?').'v='.$version;
     }
 }

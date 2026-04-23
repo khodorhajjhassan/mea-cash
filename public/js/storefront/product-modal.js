@@ -38,9 +38,9 @@ const shareableSubcategoryUrl = () => {
 
 const money = (value) => `$${Number(value || 0).toFixed(2)}`;
 const localized = (item, key = 'name') => item?.[`${key}_${isRtl() ? 'ar' : 'en'}`] || item?.[key] || item?.name || '';
-const imageUrl = (item, fallback = '/meacash-logo-128.png') => item?.image || fallback;
+const imageUrl = (item, fallback = '/meacash-logo-64.webp') => item?.image || fallback;
 const descriptionOf = (item) => localized(item, 'description');
-const selectedImage = () => selectedPackage?.image || selectedProduct?.image || currentSubcategory?.image || '/meacash-logo-128.png';
+const selectedImage = () => selectedPackage?.image || selectedProduct?.image || currentSubcategory?.image || '/meacash-logo-64.webp';
 const deliveryLabel = (item) => {
     const type = item?.delivery_type || '';
     if (!type) return '';
@@ -272,7 +272,7 @@ function renderSelectionCard(item) {
             ${badge}
             ${active ? `<span class="material-symbols-outlined absolute top-2 ${isRtl() ? 'left-2' : 'right-2'} text-lg text-primary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>` : ''}
             <div class="mb-2 flex h-12 items-center justify-center rounded-xl bg-surface-container-lowest/60 p-1.5 sm:mb-3 sm:h-16 sm:p-2">
-                <img src="${escapeHtml(imageUrl({ image: item.image }))}" alt="${escapeHtml(item.title)}" class="h-full w-full object-contain" loading="lazy" decoding="async" onerror="this.src='/meacash-logo-128.png'">
+                <img src="${escapeHtml(imageUrl({ image: item.image }))}" alt="${escapeHtml(item.title)}" class="h-full w-full object-contain" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/meacash-logo-128.png'">
             </div>
             <div class="line-clamp-2 min-h-[30px] font-headline text-[10px] font-black uppercase leading-tight text-on-surface sm:min-h-[42px] sm:text-[13px]">${escapeHtml(item.title)}</div>
             <div class="mt-1 truncate font-label text-[8px] font-bold uppercase tracking-widest text-outline sm:mt-2 sm:text-[9px]">${escapeHtml(item.subtitle)}</div>
@@ -299,7 +299,7 @@ function renderSummary() {
             <h2 class="mb-4 font-label text-xs font-bold uppercase tracking-widest text-outline">Selected Product</h2>
             <div class="mb-5 flex flex-wrap items-center gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-highest/50 p-3 sm:flex-nowrap">
                 <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-outline-variant/20 bg-surface">
-                    <img src="${escapeHtml(selectedImage())}" alt="${escapeHtml(title)}" class="h-full w-full object-contain p-2" loading="lazy" decoding="async" onerror="this.src='/meacash-logo-128.png'">
+                    <img src="${escapeHtml(selectedImage())}" alt="${escapeHtml(title)}" class="h-full w-full object-contain p-2" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/meacash-logo-128.png'">
                 </div>
                 <div class="min-w-0 flex-1">
                     <div class="font-headline text-sm font-black uppercase leading-tight text-on-surface">${escapeHtml(title)}</div>

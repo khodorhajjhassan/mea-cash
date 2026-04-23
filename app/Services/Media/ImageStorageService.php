@@ -3,6 +3,7 @@
 namespace App\Services\Media;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use GdImage;
@@ -76,20 +77,21 @@ class ImageStorageService
 
         $sourceWidth = imagesx($sourceImage);
         $sourceHeight = imagesy($sourceImage);
+        $aspectRatio = $this->bannerAspectRatio();
 
-        [$desktopWidth, $desktopHeight] = $this->dimensionsForWidth(
+        [$desktopWidth, $desktopHeight] = $this->bannerDimensionsForWidth(
             $sourceWidth,
-            $sourceHeight,
-            max(1, (int) config('media.banner_max_width', 1600))
+            max(1, (int) config('media.banner_max_width', 1600)),
+            $aspectRatio
         );
-        [$mobileWidth, $mobileHeight] = $this->dimensionsForWidth(
+        [$mobileWidth, $mobileHeight] = $this->bannerDimensionsForWidth(
             $sourceWidth,
-            $sourceHeight,
-            max(1, (int) config('media.banner_mobile_max_width', 768))
+            max(1, (int) config('media.banner_mobile_max_width', 768)),
+            $aspectRatio
         );
 
-        $desktopBinary = $this->encodeResizedWebp($sourceImage, $sourceWidth, $sourceHeight, $desktopWidth, $desktopHeight);
-        $mobileBinary = $this->encodeResizedWebp($sourceImage, $sourceWidth, $sourceHeight, $mobileWidth, $mobileHeight);
+        $desktopBinary = $this->encodeResizedWebp($sourceImage, $sourceWidth, $sourceHeight, $desktopWidth, $desktopHeight, $aspectRatio);
+        $mobileBinary = $this->encodeResizedWebp($sourceImage, $sourceWidth, $sourceHeight, $mobileWidth, $mobileHeight, $aspectRatio);
         imagedestroy($sourceImage);
 
         if (! is_string($desktopBinary) || $desktopBinary === '' || ! is_string($mobileBinary) || $mobileBinary === '') {
@@ -117,11 +119,6 @@ class ImageStorageService
 
         $disk = config('media.disk', config('filesystems.default'));
         $variantPath = $this->variantPath($path, 'mobile');
-
-        if (Storage::disk($disk)->exists($variantPath)) {
-            return true;
-        }
-
         if (! Storage::disk($disk)->exists($path)) {
             return false;
         }
@@ -135,13 +132,14 @@ class ImageStorageService
 
         $sourceWidth = imagesx($sourceImage);
         $sourceHeight = imagesy($sourceImage);
-        [$mobileWidth, $mobileHeight] = $this->dimensionsForWidth(
+        $aspectRatio = $this->bannerAspectRatio();
+        [$mobileWidth, $mobileHeight] = $this->bannerDimensionsForWidth(
             $sourceWidth,
-            $sourceHeight,
-            max(1, (int) config('media.banner_mobile_max_width', 768))
+            max(1, (int) config('media.banner_mobile_max_width', 768)),
+            $aspectRatio
         );
 
-        $mobileBinary = $this->encodeResizedWebp($sourceImage, $sourceWidth, $sourceHeight, $mobileWidth, $mobileHeight);
+        $mobileBinary = $this->encodeResizedWebp($sourceImage, $sourceWidth, $sourceHeight, $mobileWidth, $mobileHeight, $aspectRatio);
         imagedestroy($sourceImage);
 
         if (! is_string($mobileBinary) || $mobileBinary === '') {
@@ -149,6 +147,7 @@ class ImageStorageService
         }
 
         $this->putWebp($disk, $variantPath, $mobileBinary);
+        Cache::forget('banner-url-version:'.$disk.':'.$variantPath);
 
         return true;
     }
@@ -162,7 +161,9 @@ class ImageStorageService
         }
 
         $disk = config('media.disk', config('filesystems.default'));
+        Cache::forget('banner-url-version:'.$disk.':'.$path);
         Storage::disk($disk)->delete($this->variantPath($path, 'mobile'));
+        Cache::forget('banner-url-version:'.$disk.':'.$this->variantPath($path, 'mobile'));
     }
 
     public function delete(?string $path): void
@@ -233,7 +234,32 @@ class ImageStorageService
         return [$maxWidth, (int) round($maxWidth * $ratio)];
     }
 
-    private function encodeResizedWebp(GdImage $sourceImage, int $sourceWidth, int $sourceHeight, int $targetWidth, int $targetHeight): string
+    /**
+     * @return array{int, int}
+     */
+    private function bannerDimensionsForWidth(int $width, int $maxWidth, float $aspectRatio): array
+    {
+        $targetWidth = min($width, $maxWidth);
+        $targetHeight = (int) round($targetWidth / max($aspectRatio, 0.1));
+
+        return [$targetWidth, max(1, $targetHeight)];
+    }
+
+    private function bannerAspectRatio(): float
+    {
+        $ratio = (float) config('media.banner_aspect_ratio', 2.0);
+
+        return $ratio > 0 ? $ratio : 2.0;
+    }
+
+    private function encodeResizedWebp(
+        GdImage $sourceImage,
+        int $sourceWidth,
+        int $sourceHeight,
+        int $targetWidth,
+        int $targetHeight,
+        ?float $targetAspectRatio = null
+    ): string
     {
         $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
         imagealphablending($canvas, false);
@@ -242,17 +268,34 @@ class ImageStorageService
         $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
         imagefilledrectangle($canvas, 0, 0, $targetWidth, $targetHeight, $transparent);
 
+        $sourceX = 0;
+        $sourceY = 0;
+        $copyWidth = $sourceWidth;
+        $copyHeight = $sourceHeight;
+
+        if ($targetAspectRatio !== null && $targetAspectRatio > 0) {
+            $sourceAspectRatio = $sourceWidth / $sourceHeight;
+
+            if ($sourceAspectRatio > $targetAspectRatio) {
+                $copyWidth = max(1, (int) round($sourceHeight * $targetAspectRatio));
+                $sourceX = max(0, (int) floor(($sourceWidth - $copyWidth) / 2));
+            } elseif ($sourceAspectRatio < $targetAspectRatio) {
+                $copyHeight = max(1, (int) round($sourceWidth / $targetAspectRatio));
+                $sourceY = max(0, (int) floor(($sourceHeight - $copyHeight) / 2));
+            }
+        }
+
         imagecopyresampled(
             $canvas,
             $sourceImage,
             0,
             0,
-            0,
-            0,
+            $sourceX,
+            $sourceY,
             $targetWidth,
             $targetHeight,
-            $sourceWidth,
-            $sourceHeight
+            $copyWidth,
+            $copyHeight
         );
 
         ob_start();

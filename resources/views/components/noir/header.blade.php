@@ -125,7 +125,7 @@
                                         list.innerHTML = data.results.map(item => `
                                         <div onclick="openSubcategoryModalBySearch('${item.slug}')" class="p-4 border-b border-outline-variant/10 hover:bg-primary-container/10 cursor-pointer flex items-center gap-4 transition-colors">
                                             <div class="w-12 h-12 rounded-xl bg-surface-container-highest overflow-hidden p-1 shrink-0 border border-outline-variant/20">
-                                                <img src="${item.image || '/meacash-logo-128.png'}" alt="" width="48" height="48" class="w-full h-full object-contain">
+                                                <img src="${item.image || '/meacash-logo-64.webp'}" alt="" width="48" height="48" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='/meacash-logo-128.png';">
                                             </div>
                                             <div class="flex-grow min-w-0">
                                                 <div class="text-[9px] font-black uppercase tracking-widest text-primary-container/70 mb-0.5">${item.category_name}</div>

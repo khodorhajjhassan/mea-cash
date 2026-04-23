@@ -9,6 +9,8 @@ return [
 
     'image_max_width' => (int) env('IMAGE_MAX_WIDTH', 2000),
 
+    'banner_aspect_ratio' => (float) env('BANNER_ASPECT_RATIO', 2.0),
+
     'banner_max_width' => (int) env('BANNER_MAX_WIDTH', 1600),
 
     'banner_mobile_max_width' => (int) env('BANNER_MOBILE_MAX_WIDTH', 768),

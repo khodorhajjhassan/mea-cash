@@ -47,10 +47,6 @@
     <x-noir.header />
 
     <main class="flex-grow relative overflow-hidden">
-        {{-- Background Light Leaks --}}
-        <div class="absolute top-[-10%] start-[-10%] w-[600px] h-[600px] light-leak-cyan pointer-events-none z-0"></div>
-        <div class="absolute bottom-[-10%] end-[-10%] w-[600px] h-[600px] light-leak-magenta pointer-events-none z-0"></div>
-
         <div class="relative z-10 max-w-[1440px] mx-auto">
             {{-- Flash Messages --}}
             @if(session('success'))
