@@ -287,10 +287,10 @@
 
 {{-- Fixed Settings Button (top-right, mobile only) --}}
 <button type="button"
-    class="fixed top-4 end-4 z-[96] flex h-11 w-11 items-center justify-center rounded-full border border-outline-variant/20 bg-surface-container-lowest/90 text-on-surface-variant shadow-lg backdrop-blur-xl transition-all hover:border-primary-container/50 hover:text-primary-container md:hidden"
+    class="fixed top-4 end-4 z-[96] flex h-9 w-9 items-center justify-center rounded-full border border-outline-variant/20 bg-surface-container-lowest/90 text-on-surface-variant shadow-lg backdrop-blur-xl transition-all hover:border-primary-container/50 hover:text-primary-container md:hidden"
     data-mobile-drawer-trigger="settings"
     aria-label="{{ __('Settings') }}">
-    <span class="material-symbols-outlined text-xl">settings</span>
+    <span class="material-symbols-outlined text-lg">settings</span>
 </button>
 
 <nav class="mc-mobile-nav fixed inset-x-0 bottom-0 z-[95] border-t border-outline-variant/15 px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-3 backdrop-blur-2xl md:hidden" aria-label="{{ __('Mobile navigation') }}">
