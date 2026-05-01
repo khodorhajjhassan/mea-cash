@@ -317,8 +317,8 @@ function renderSelectionCard(item) {
             class="group relative flex min-h-[132px] flex-col rounded-xl border p-2 text-start transition-all duration-300 sm:min-h-[178px] sm:rounded-2xl sm:p-3 ${active ? 'border-primary-container bg-surface-container-high shadow-[0_0_22px_rgba(0,240,255,0.2)] ring-1 ring-primary-container/70' : 'border-transparent bg-surface-container-low hover:-translate-y-1 hover:border-primary-container/30 hover:bg-surface-container-high'}">
             ${badge}
             ${active ? `<span class="material-symbols-outlined absolute top-2 ${isRtl() ? 'left-2' : 'right-2'} text-lg text-primary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>` : ''}
-            <div class="mb-2 flex h-12 items-center justify-center rounded-xl bg-surface-container-lowest/60 p-1.5 sm:mb-3 sm:h-16 sm:p-2">
-                <img src="${escapeHtml(imageUrl({ image: item.image }))}" alt="${escapeHtml(item.title)}" class="h-full w-full object-contain" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/meacash-logo-128.png'">
+            <div class="mb-2 flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-surface-container-lowest/60 sm:mb-3">
+                <img src="${escapeHtml(imageUrl({ image: item.image }))}" alt="${escapeHtml(item.title)}" class="h-full w-full object-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/meacash-logo-128.png'">
             </div>
             <div class="line-clamp-2 min-h-[30px] font-headline text-[10px] font-black uppercase leading-tight text-on-surface sm:min-h-[42px] sm:text-[13px]">${escapeHtml(item.title)}</div>
             <div class="mt-1 truncate font-label text-[8px] font-bold uppercase tracking-widest text-outline sm:mt-2 sm:text-[9px]">${escapeHtml(item.subtitle)}</div>
@@ -344,8 +344,8 @@ function renderSummary() {
         <div>
             <h2 class="mb-4 font-label text-xs font-bold uppercase tracking-widest text-outline">Selected Product</h2>
             <div class="mb-5 flex flex-wrap items-center gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-highest/50 p-3 sm:flex-nowrap">
-                <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-outline-variant/20 bg-surface">
-                    <img src="${escapeHtml(selectedImage())}" alt="${escapeHtml(title)}" class="h-full w-full object-contain p-2" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/meacash-logo-128.png'">
+                <div class="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-outline-variant/20 bg-surface">
+                    <img src="${escapeHtml(selectedImage())}" alt="${escapeHtml(title)}" class="h-full w-full object-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/meacash-logo-128.png'">
                 </div>
                 <div class="min-w-0 flex-1">
                     <div class="font-headline text-sm font-black uppercase leading-tight text-on-surface">${escapeHtml(title)}</div>
