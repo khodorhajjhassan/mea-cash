@@ -40,7 +40,7 @@
         <div class="mc-hero-shell mx-auto grid w-full max-w-[1440px] lg:grid-cols-[0.9fr_1.65fr_0.9fr]">
             @if($leftStaticBanner)
                 <a href="{{ $leftStaticBanner->link ?: '#products-section' }}"
-                    class="mc-hero-static-card hidden h-[260px] w-full overflow-hidden rounded-l-md sm:h-[320px] lg:h-[420px] xl:h-[460px] lg:block">
+                    class="mc-hero-static-card hidden h-[260px] w-full overflow-hidden rounded-l-3xl lg:rounded-l-4xl sm:h-[320px] lg:h-[420px] xl:h-[460px] lg:block">
                     <img src="{{ $leftStaticBanner->imageUrl($locale) }}" alt="{{ $leftStaticBanner->{"title_$locale"} }}"
                         class="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02]" loading="lazy"
                         decoding="async">
@@ -92,13 +92,15 @@
                 @if($middleBanners->count() > 0)
                     <div
                         class="absolute bottom-4 sm:bottom-10 right-4 sm:right-10 flex flex-col-reverse sm:flex-row items-center gap-3 sm:gap-8 z-30">
-                        <div class="flex gap-2.5">
-                            @foreach($middleBanners as $index => $banner)
-                                <button
-                                    class="carousel-indicator w-2 h-2 rounded-full border border-white/20 transition-all hover:scale-125 {{ $index === 0 ? 'bg-primary-container border-primary-container w-3' : '' }}"
-                                    data-index="{{ $index }}" aria-label="{{ __('Show banner') }} {{ $index + 1 }}"></button>
-                            @endforeach
-                        </div>
+                        @if($middleBanners->count() > 1)
+                            <div class="flex gap-2.5">
+                                @foreach($middleBanners as $index => $banner)
+                                    <button
+                                        class="carousel-indicator w-2 h-2 rounded-full border border-white/20 transition-all hover:scale-125 {{ $index === 0 ? 'bg-primary-container border-primary-container w-3' : '' }}"
+                                        data-index="{{ $index }}" aria-label="{{ __('Show banner') }} {{ $index + 1 }}"></button>
+                                @endforeach
+                            </div>
+                        @endif
 
                         <div id="banner-cta-container">
                             @foreach($middleBanners as $index => $banner)
@@ -116,22 +118,24 @@
                             @endforeach
                         </div>
                     </div>
-                    <button
-                        class="absolute top-1/2 left-6 -translate-y-1/2 w-12 h-12 rounded-full glass-panel hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10"
-                        onclick="prevSlide()" aria-label="{{ __('Previous banner') }}">
-                        <span class="material-symbols-outlined">chevron_left</span>
-                    </button>
-                    <button
-                        class="absolute top-1/2 right-6 -translate-y-1/2 w-12 h-12 rounded-full glass-panel hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10"
-                        onclick="nextSlide()" aria-label="{{ __('Next banner') }}">
-                        <span class="material-symbols-outlined">chevron_right</span>
-                    </button>
+                    @if($middleBanners->count() > 1)
+                        <button
+                            class="absolute top-1/2 left-6 -translate-y-1/2 w-12 h-12 rounded-full glass-panel hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10"
+                            onclick="prevSlide()" aria-label="{{ __('Previous banner') }}">
+                            <span class="material-symbols-outlined">chevron_left</span>
+                        </button>
+                        <button
+                            class="absolute top-1/2 right-6 -translate-y-1/2 w-12 h-12 rounded-full glass-panel hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10"
+                            onclick="nextSlide()" aria-label="{{ __('Next banner') }}">
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </button>
+                    @endif
                 @endif
             </div>
 
             @if($rightStaticBanner)
                 <a href="{{ $rightStaticBanner->link ?: '#products-section' }}"
-                    class="mc-hero-static-card hidden h-[260px] w-full overflow-hidden rounded-r-md sm:h-[320px] lg:h-[420px] xl:h-[460px] lg:block">
+                    class="mc-hero-static-card hidden h-[260px] w-full overflow-hidden rounded-r-3xl lg:rounded-r-4xl sm:h-[320px] lg:h-[420px] xl:h-[460px] lg:block">
                     <img src="{{ $rightStaticBanner->imageUrl($locale) }}" alt="{{ $rightStaticBanner->{"title_$locale"} }}"
                         class="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02]" loading="lazy"
                         decoding="async">
@@ -141,6 +145,7 @@
     </section>
 
     {{-- High-Fidelity Infinite Brand Image Strip --}}
+    {{-- Commented out auto carousel under the banner
     @php
         $brandTiles = $featuredSubcategories->count() > 0
             ? ($featuredSubcategories->count() < 10 ? $featuredSubcategories->merge($featuredSubcategories) : $featuredSubcategories)
@@ -169,9 +174,11 @@
             @endforeach
         </div>
     </div>
+    --}}
     {{-- Unified Infinite Brand Marquee --}}
+    </div> {{-- Close max-w-[1440px] mx-auto --}}
     <section
-        class="sf-brand-marquee w-full py-4 md:py-8 border-y border-outline-variant/10 bg-surface-container-lowest/50 backdrop-blur-sm overflow-hidden z-10 relative sf-reveal-section sf-lazy-section">
+        class="sf-brand-marquee w-full py-6 md:py-10 my-8 md:my-12 border-y border-outline-variant/10 bg-surface-container-lowest/50 backdrop-blur-sm overflow-hidden z-10 relative sf-reveal-section sf-lazy-section">
         <div class="flex items-center gap-10 md:gap-32 w-max {{ $locale === 'ar' ? 'animate-marquee-rtl' : 'animate-marquee' }}"
             dir="ltr">
             @php
@@ -186,8 +193,8 @@
                 @endphp
                 <div onclick="window.openSubcategoryModal('{{ $sub->slug }}')"
                     class="sf-brand-marquee-item flex items-center gap-3 group/brand cursor-pointer opacity-70 hover:opacity-100 transition-all duration-500 shrink-0">
-                    <img src="{{ $subImage }}" alt="{{ $subName }}" loading="lazy" width="24" height="24" decoding="async"
-                        class="sf-brand-marquee-icon h-6 w-6 object-contain transition-transform group-hover/brand:scale-110"
+                    <img src="{{ $subImage }}" alt="{{ $subName }}" loading="lazy" width="56" height="56" decoding="async"
+                        class="sf-brand-marquee-icon h-14 w-14 rounded-2xl object-cover border border-outline-variant/20 bg-surface-container/50 p-1 transition-transform group-hover/brand:scale-110"
                         onerror="this.onerror=null; this.src='{{ asset('meacash-logo-128.png') }}';">
                     <span
                         class="sf-brand-marquee-label font-headline font-black text-xl tracking-widest uppercase italic text-on-surface/50 group-hover/brand:text-primary-container">
@@ -197,8 +204,9 @@
             @endforeach
         </div>
     </section>
+    <div class="relative z-10 max-w-[1440px] mx-auto"> {{-- Reopen max-w-[1440px] mx-auto --}}
 
-    {{-- High-Fidelity Circular Category Bar --}}
+    {{-- Commented out circular category search
     @if($categories->isNotEmpty())
         <section
             class="sf-category-strip sticky top-20 z-40 hidden px-4 py-8 bg-background/90 backdrop-blur-md border-b border-outline-variant/5 sf-reveal-section sf-lazy-section md:block md:px-8">
@@ -287,11 +295,12 @@
             </div>
         </section>
     @endif
+    --}}
 
     {{-- Main Product Grid --}}
     <section id="products-section" class="px-4 md:px-8 py-12 min-h-[400px] sf-lazy-section">
-        <x-noir.section-heading :title="$activeSearchQuery !== '' ? __('Search Results') : __('Discover Our Products')"
-            :subtitle="$activeSearchQuery !== '' ? __('Search') : __('Premium Assets')" :gradient="true" />
+        <x-noir.section-heading :title="$activeSearchQuery !== '' ? __('Search Results') : __('Hot Deals')"
+            :subtitle="$activeSearchQuery !== '' ? __('Search') : __('Premium Assets')" :gradient="true" :italic="false" />
 
         <div id="product-grid"
             class="grid grid-cols-3 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 md:gap-6">

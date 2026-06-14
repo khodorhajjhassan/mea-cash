@@ -23,17 +23,9 @@
     class="mc-store-header backdrop-blur-md sticky top-0 z-50 border-b hidden md:block" style="transform: translateZ(0); -webkit-transform: translateZ(0);">
     <nav class="flex justify-between items-center w-full max-w-[1440px] mx-auto px-4 md:px-8 h-20">
         <div class="flex items-center gap-4 md:gap-8">
-            <a href="{{ route('store.home', ['locale' => $locale]) }}" class="flex items-center gap-3 group">
-                <x-noir.logo
-                    alt="MeaCash"
-                    class="h-10 w-10 group-hover:scale-105 transition-transform"
-                    sizes="40px"
-                    loading="eager"
-                    fetchpriority="high" />
-                <span
-                    class="mc-gradient-text mc-brand-wordmark inline-block px-2 text-xl md:text-2xl font-black italic tracking-tighter">
-                    MeaCash
-                </span>
+            <a href="{{ route('store.home', ['locale' => $locale]) }}" class="flex items-center group">
+                <img src="{{ asset('meacash-logo-light.png') }}" alt="MeaCash" class="mc-logo-light h-10 md:h-11 w-auto object-contain group-hover:scale-105 transition-transform" loading="eager" fetchpriority="high">
+                <img src="{{ asset('meacash-logo-dark.png') }}" alt="MeaCash" class="mc-logo-dark h-10 md:h-11 w-auto object-contain group-hover:scale-105 transition-transform" loading="eager" fetchpriority="high">
             </a>
 
             <div class="hidden md:flex items-center gap-8 font-headline uppercase tracking-widest text-sm">

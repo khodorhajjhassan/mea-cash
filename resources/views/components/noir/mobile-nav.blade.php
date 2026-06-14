@@ -214,9 +214,9 @@
     </div>
 
     {{-- Logo & Site Name --}}
-    <div class="mb-5 flex items-center justify-center gap-3 rounded-3xl border border-outline-variant/15 bg-surface-container-low/70 p-5">
-        <x-noir.logo alt="MeaCash" class="h-10 w-10" sizes="40px" />
-        <span class="font-headline text-2xl font-black italic tracking-tighter mc-brand-wordmark">{{ $siteSettings['site_name'] ?? 'MeaCash' }}</span>
+    <div class="mb-5 flex items-center justify-center rounded-3xl border border-outline-variant/15 bg-surface-container-low/70 p-5">
+        <img src="{{ asset('meacash-logo-light.png') }}" alt="MeaCash" class="mc-logo-light h-10 w-auto object-contain" loading="lazy">
+        <img src="{{ asset('meacash-logo-dark.png') }}" alt="MeaCash" class="mc-logo-dark h-10 w-auto object-contain" loading="lazy">
     </div>
 
     <div class="max-h-[55vh] space-y-3 overflow-y-auto pe-1 no-scrollbar">

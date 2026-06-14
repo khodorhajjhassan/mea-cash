@@ -1,4 +1,4 @@
-@props(['title', 'subtitle' => null, 'gradient' => null, 'centered' => false])
+@props(['title', 'subtitle' => null, 'gradient' => null, 'centered' => false, 'italic' => true])
 
 <div {{ $attributes->merge(['class' => ($centered ? 'text-center' : '') . ' mb-12 animate-fade-in']) }}>
     @if($subtitle)
@@ -8,7 +8,7 @@
         </span>
     @endif
 
-    <h2 class="font-headline text-3xl md:text-5xl font-black italic tracking-tighter uppercase leading-tight">
+    <h2 class="font-headline text-3xl md:text-5xl font-black {{ $italic ? 'italic' : '' }} tracking-tighter uppercase leading-tight">
         @if($gradient)
             @php
                 $parts = explode(' ', $title);

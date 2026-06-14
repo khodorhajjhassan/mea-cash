@@ -28,9 +28,9 @@
     {{-- Mobile Footer --}}
     <div class="px-4 py-8 md:hidden">
         <div class="mx-auto max-w-md rounded-[1.75rem] border border-outline-variant/10 bg-surface-container-low/55 p-5 text-center">
-            <div class="flex items-center justify-center gap-3">
-                <x-noir.logo alt="MeaCash" class="h-8 w-8" sizes="32px" />
-                <span class="font-headline text-2xl font-black italic tracking-tighter mc-brand-wordmark">MeaCash</span>
+            <div class="flex items-center justify-center">
+                <img src="{{ asset('meacash-logo-light.png') }}" alt="MeaCash" class="mc-logo-light h-8 w-auto object-contain" loading="lazy">
+                <img src="{{ asset('meacash-logo-dark.png') }}" alt="MeaCash" class="mc-logo-dark h-8 w-auto object-contain" loading="lazy">
             </div>
 
             <nav class="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-3 font-label text-[10px] font-black uppercase tracking-widest text-on-surface-variant"
@@ -42,18 +42,7 @@
                 <a class="transition hover:text-primary-container" href="{{ $refundUrl }}">{{ __('Refunds') }}</a>
             </nav>
 
-            <div class="mt-5 flex items-center justify-center gap-2">
-                <span class="h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
-                <span class="font-label text-[9px] font-black uppercase tracking-widest text-on-surface-variant">{{ __('noir.systems_operational') }}</span>
-            </div>
-
-            <a href="https://broadstark.com" target="_blank" rel="noopener noreferrer"
-                class="mt-4 inline-flex items-center justify-center gap-2 font-label text-[9px] font-black uppercase tracking-widest text-outline transition hover:text-primary-container">
-                <span class="material-symbols-outlined text-sm">code</span>
-                <span>{!! $locale === 'ar' ? 'تم البناء بواسطة <span class="mc-broadstark-gradient">Broadstark</span>' : 'Website built by <span class="mc-broadstark-gradient">Broadstark</span>' !!}</span>
-            </a>
-
-            <p class="mt-4 font-label text-[9px] font-black uppercase tracking-[0.2em] text-outline/75">
+            <p class="mt-5 font-label text-[9px] font-black uppercase tracking-[0.2em] text-outline/75">
                 &copy; {{ date('Y') }} MeaCash
             </p>
         </div>
@@ -63,9 +52,9 @@
     <div class="hidden pb-10 pt-20 md:block">
         <div class="mx-auto grid max-w-[1440px] grid-cols-1 gap-10 px-8 md:grid-cols-2 lg:grid-cols-5 lg:gap-8">
             <div class="lg:col-span-2">
-                <div class="mb-6 flex items-center gap-3">
-                    <x-noir.logo alt="MeaCash" class="h-10 w-10" sizes="40px" />
-                    <span class="inline-block text-xl md:text-3xl font-black italic tracking-tighter px-2 mc-gradient-text mc-brand-wordmark">MeaCash</span>
+                <div class="mb-6 flex items-center">
+                    <img src="{{ asset('meacash-logo-light.png') }}" alt="MeaCash" class="mc-logo-light h-10 w-auto object-contain" loading="lazy">
+                    <img src="{{ asset('meacash-logo-dark.png') }}" alt="MeaCash" class="mc-logo-dark h-10 w-auto object-contain" loading="lazy">
                 </div>
                 <p class="mb-8 max-w-sm font-body text-sm leading-relaxed text-on-surface-variant">
                     {{ __('noir.footer_tagline') }}
@@ -129,21 +118,6 @@
             <p class="text-center font-headline text-[10px] uppercase tracking-[0.24em] text-on-surface-variant md:text-start md:tracking-[0.3em]">
                 &copy; {{ date('Y') }} MeaCash. HIGH-FIDELITY DIGITAL ASSETS. ALL RIGHTS RESERVED.
             </p>
-            <div class="flex flex-col gap-3 sm:flex-row sm:gap-8">
-                <div class="flex items-center gap-2">
-                    <span class="h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
-                    <span class="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant">
-                        {{ __('noir.systems_operational') }}
-                    </span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm text-on-surface-variant">code</span>
-                    <a href="https://broadstark.com" target="_blank" rel="noopener noreferrer"
-                        class="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant transition hover:text-primary-container">
-                        {!! $locale === 'ar' ? 'تم البناء بواسطة <span class="mc-broadstark-gradient">Broadstark</span>' : 'Website built by <span class="mc-broadstark-gradient">Broadstark</span>' !!}
-                    </a>
-                </div>
-            </div>
         </div>
     </div>
 </footer>
