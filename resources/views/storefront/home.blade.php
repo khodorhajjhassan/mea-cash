@@ -452,7 +452,16 @@
                                 });
                             }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
 
+                            let productCardCount = 0;
                             revealTargets.forEach((target, index) => {
+                                const isProduct = target.classList.contains('sf-product-card') || (target.parentElement && target.parentElement.id === 'product-grid');
+                                if (isProduct) {
+                                    productCardCount++;
+                                    if (productCardCount <= 6 && window.innerWidth >= 1024) {
+                                        target.classList.add('sf-in-view');
+                                        return;
+                                    }
+                                }
                                 target.classList.add('sf-scroll-reveal');
                                 target.style.setProperty('--sf-reveal-delay', `${Math.min(index % 8, 7) * 55}ms`);
                                 revealObserver.observe(target);
