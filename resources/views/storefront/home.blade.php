@@ -40,7 +40,7 @@
         <div class="mc-hero-shell mx-auto grid w-full max-w-[1440px] lg:grid-cols-[0.9fr_1.65fr_0.9fr]">
             @if($leftStaticBanner)
                 <a href="{{ $leftStaticBanner->link ?: '#products-section' }}"
-                    class="mc-hero-static-card hidden h-[260px] w-full overflow-hidden rounded-l-3xl lg:rounded-l-4xl sm:h-[320px] lg:h-[420px] xl:h-[460px] lg:block">
+                    class="mc-hero-static-card hidden h-[260px] w-full overflow-hidden rounded-s-3xl lg:rounded-s-4xl sm:h-[320px] lg:h-[420px] xl:h-[460px] lg:block">
                     <img src="{{ $leftStaticBanner->imageUrl($locale) }}" alt="{{ $leftStaticBanner->{"title_$locale"} }}"
                         class="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02]" loading="lazy"
                         decoding="async">
@@ -135,7 +135,7 @@
 
             @if($rightStaticBanner)
                 <a href="{{ $rightStaticBanner->link ?: '#products-section' }}"
-                    class="mc-hero-static-card hidden h-[260px] w-full overflow-hidden rounded-r-3xl lg:rounded-r-4xl sm:h-[320px] lg:h-[420px] xl:h-[460px] lg:block">
+                    class="mc-hero-static-card hidden h-[260px] w-full overflow-hidden rounded-e-3xl lg:rounded-e-4xl sm:h-[320px] lg:h-[420px] xl:h-[460px] lg:block">
                     <img src="{{ $rightStaticBanner->imageUrl($locale) }}" alt="{{ $rightStaticBanner->{"title_$locale"} }}"
                         class="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02]" loading="lazy"
                         decoding="async">
@@ -195,7 +195,7 @@
                         $subName = $sub->{"name_$locale"} ?: $sub->name_en;
                     @endphp
                     <div onclick="window.openSubcategoryModal('{{ $sub->slug }}')"
-                        class="sf-brand-marquee-item flex items-center gap-3 group/brand cursor-pointer opacity-70 hover:opacity-100 transition-all duration-500 shrink-0">
+                        class="sf-brand-marquee-item flex {{ $locale === 'ar' ? 'flex-row-reverse' : '' }} items-center gap-3 group/brand cursor-pointer opacity-70 hover:opacity-100 transition-all duration-500 shrink-0">
                         <img src="{{ $subImage }}" alt="{{ $subName }}" loading="lazy" width="56" height="56" decoding="async"
                             class="sf-brand-marquee-icon h-14 w-14 rounded-2xl object-cover border border-outline-variant/20 bg-surface-container/50 p-1 transition-transform group-hover/brand:scale-110"
                             onerror="this.onerror=null; this.src='{{ asset('meacash-logo-128.png') }}';">
