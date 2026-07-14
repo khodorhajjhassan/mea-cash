@@ -651,7 +651,7 @@ function renderFooter() {
     if (!isAuthenticated()) {
         footer.innerHTML = `
             <div class="grid grid-cols-[minmax(0,1fr)] gap-2.5 sm:grid-cols-[minmax(0,1fr)_54px] sm:gap-3">
-                <a href="${LOGIN_URL()}" class="flex min-h-[54px] items-center justify-center gap-2.5 rounded-[1.2rem] border border-primary-container/30 bg-surface-container-high px-4 py-3.5 font-headline text-[11px] font-black uppercase tracking-[0.18em] text-primary-container shadow-[0_0_28px_rgba(0,240,255,0.12)] transition-all hover:border-primary-container hover:bg-primary-container hover:text-on-primary-container md:gap-3 md:py-4 md:text-sm md:tracking-[0.22em]">
+                <a href="${LOGIN_URL()}" class="flex min-h-[54px] items-center justify-center gap-2.5 rounded-[1.2rem] border border-primary-container/30 bg-surface-container-high px-4 py-3.5 font-headline text-[11px] font-black uppercase tracking-wider text-primary-container shadow-[0_0_28px_rgba(0,240,255,0.12)] transition-all hover:border-primary-container hover:bg-primary-container hover:text-on-primary-container md:gap-3 md:py-4 md:text-sm md:tracking-widest">
                     <span class="material-symbols-outlined text-lg">lock</span>
                     <span>${isRtl() ? 'سجل الدخول أولاً' : 'Login First'}</span>
                 </a>
@@ -666,7 +666,7 @@ function renderFooter() {
 
     footer.innerHTML = `
         <div class="grid grid-cols-[minmax(0,1fr)] gap-2.5 sm:grid-cols-[minmax(0,1fr)_54px] sm:gap-3">
-            <button id="purchase-now-btn" type="button" class="flex min-h-[56px] items-center justify-center gap-2.5 rounded-[1.2rem] bg-gradient-to-r from-primary-container via-[#18bfff] to-secondary-container px-4 py-3.5 font-headline text-[11px] font-black uppercase tracking-[0.18em] text-on-primary-container shadow-[0_18px_40px_rgba(0,240,255,0.22)] transition-all hover:brightness-105 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 md:gap-3 md:py-4 md:text-sm md:tracking-[0.22em]">
+            <button id="purchase-now-btn" type="button" class="flex min-h-[56px] items-center justify-center gap-2.5 rounded-[1.2rem] bg-gradient-to-r from-primary-container via-[#18bfff] to-secondary-container px-4 py-3.5 font-headline text-[11px] font-black uppercase tracking-wider text-on-primary-container shadow-[0_18px_40px_rgba(0,240,255,0.22)] transition-all hover:brightness-105 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 md:gap-3 md:py-4 md:text-sm md:tracking-widest">
                 <span class="whitespace-nowrap">${isRtl() ? 'شراء الآن' : 'Purchase Now'}</span>
                 <span class="material-symbols-outlined shrink-0">bolt</span>
             </button>

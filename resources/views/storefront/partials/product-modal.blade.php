@@ -3,7 +3,7 @@
     <div class="pointer-events-none absolute top-[-120px] start-[-80px] h-[420px] w-[420px] light-leak-magenta opacity-70 blur-3xl"></div>
     <div class="pointer-events-none absolute bottom-[-120px] end-[-80px] h-[420px] w-[420px] light-leak-cyan opacity-80 blur-3xl"></div>
 
-    <div id="sf-modal-card" class="relative flex max-h-[94vh] min-h-0 w-full max-w-[860px] flex-col overflow-hidden rounded-[20px] border border-outline-variant/15 bg-surface-container/90 shadow-[0_26px_100px_rgba(0,0,0,0.72)] backdrop-blur-2xl md:max-h-[86vh] md:min-h-[460px] md:flex-row md:rounded-[28px]">
+    <div id="sf-modal-card" class="relative flex max-h-[94vh] min-h-0 w-full max-w-[1024px] flex-col overflow-hidden rounded-[20px] border border-outline-variant/15 bg-surface-container/90 shadow-[0_26px_100px_rgba(0,0,0,0.72)] backdrop-blur-2xl md:max-h-[86vh] md:min-h-[460px] md:flex-row md:rounded-[28px]">
         <button onclick="closeProductModal()" class="absolute top-4 end-4 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant/20 bg-surface-container-lowest/80 text-outline transition-all hover:border-secondary-container/60 hover:text-secondary-container hover:shadow-[0_0_20px_rgba(254,0,254,0.2)]">
             <span class="material-symbols-outlined text-xl">close</span>
         </button>
@@ -25,7 +25,7 @@
             </div>
         </section>
 
-        <aside id="sf-modal-summary" class="sf-modal-summary-pane flex max-h-[34vh] min-h-0 w-full flex-col overflow-hidden bg-surface-container-low/55 p-3 md:max-h-none md:w-[340px] md:p-6">
+        <aside id="sf-modal-summary" class="sf-modal-summary-pane flex max-h-[34vh] min-h-0 w-full flex-col overflow-hidden bg-surface-container-low/55 p-3 md:max-h-none md:w-[420px] md:p-6">
             <div id="sf-modal-summary-content" class="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pe-1 no-scrollbar"></div>
             <div id="sf-modal-footer" class="mt-3 border-t border-outline-variant/10 bg-surface-container-low/95 pt-2.5 pb-[max(env(safe-area-inset-bottom),0.1rem)] md:mt-6 md:border-t-0 md:bg-transparent md:pt-0 md:pb-0"></div>
         </aside>
