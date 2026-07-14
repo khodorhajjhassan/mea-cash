@@ -447,9 +447,9 @@ function renderSummary() {
                     <div class="hidden h-[72px] w-[72px] overflow-hidden rounded-[1rem] border border-outline-variant/15 bg-surface sm:block">
                         <img src="${escapeHtml(selectedImage())}" alt="${escapeHtml(title)}" class="h-full w-full object-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/meacash-logo-128.png'">
                     </div>
-                    <div class="min-w-0">
+                    <div class="min-w-0 flex-1">
                         <div class="flex items-start justify-between gap-3">
-                            <div class="min-w-0">
+                            <div class="min-w-0 flex-1 pr-2">
                                 <div class="line-clamp-2 font-headline text-[14px] font-black uppercase leading-tight text-on-surface sm:text-[15px]">${escapeHtml(title)}</div>
                                 <div class="mt-1 font-label text-[8px] uppercase tracking-[0.18em] text-primary-container sm:text-[9px]">${escapeHtml(type)}</div>
                             </div>
@@ -667,8 +667,8 @@ function renderFooter() {
     footer.innerHTML = `
         <div class="grid grid-cols-[minmax(0,1fr)] gap-2.5 sm:grid-cols-[minmax(0,1fr)_54px] sm:gap-3">
             <button id="purchase-now-btn" type="button" class="flex min-h-[56px] items-center justify-center gap-2.5 rounded-[1.2rem] bg-gradient-to-r from-primary-container via-[#18bfff] to-secondary-container px-4 py-3.5 font-headline text-[11px] font-black uppercase tracking-[0.18em] text-on-primary-container shadow-[0_18px_40px_rgba(0,240,255,0.22)] transition-all hover:brightness-105 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 md:gap-3 md:py-4 md:text-sm md:tracking-[0.22em]">
-                <span>${isRtl() ? 'شراء الآن' : 'Purchase Now'}</span>
-                <span class="material-symbols-outlined">bolt</span>
+                <span class="whitespace-nowrap">${isRtl() ? 'شراء الآن' : 'Purchase Now'}</span>
+                <span class="material-symbols-outlined shrink-0">bolt</span>
             </button>
             <div class="hidden sm:block">${shareBtn}</div>
         </div>
@@ -677,7 +677,7 @@ function renderFooter() {
 
 function bindEvents() {
     document.querySelectorAll('[data-select-product]').forEach((button) => {
-        button.addEventListener('click', () => {
+        button.onclick = () => {
             const productId = Number(button.dataset.selectProduct);
             const packageId = button.dataset.selectPackage ? Number(button.dataset.selectPackage) : null;
             const product = currentSubcategory.products.find((item) => Number(item.id) === productId);
@@ -687,42 +687,46 @@ function bindEvents() {
             selectedPackage = packageId ? product.packages?.find((item) => Number(item.id) === packageId) || null : null;
             currentToast = '';
             render();
-        });
+        };
     });
 
     document.querySelectorAll('[data-form-key]').forEach((button) => {
-        button.addEventListener('click', () => {
+        button.onclick = () => {
             selectedFormKey = button.dataset.formKey;
             currentToast = '';
             renderSummary();
             renderFooter();
             bindEvents();
-        });
+        };
     });
 
     document.querySelectorAll('[data-toggle-panel]').forEach((button) => {
-        button.addEventListener('click', () => {
+        button.onclick = () => {
             const panel = button.dataset.togglePanel;
             expandedContent[panel] = !expandedContent[panel];
-            renderSummary();
-            renderFooter();
+            
+            if (panel.startsWith('subcategory-')) {
+                renderHeader();
+            } else {
+                renderSummary();
+            }
             bindEvents();
-        });
+        };
     });
 
     const quantityInput = document.getElementById('qty-input');
     if (quantityInput) {
-        quantityInput.addEventListener('input', (event) => {
+        quantityInput.oninput = (event) => {
             const rawValue = String(event.target.value ?? '').trim();
             currentQuantity = rawValue === '' ? Number.NaN : Number(rawValue);
             validateQuantityField(false);
             const livePrice = document.getElementById('modal-live-price');
             if (livePrice) livePrice.textContent = money(selectedUnitPrice());
-        });
+        };
 
-        quantityInput.addEventListener('blur', () => {
+        quantityInput.onblur = () => {
             validateQuantityField(true);
-        });
+        };
     }
 
     document.querySelectorAll('[data-field-key]').forEach((input) => {
@@ -732,13 +736,16 @@ function bindEvents() {
             if (livePrice) livePrice.textContent = money(selectedUnitPrice());
         };
 
-        input.addEventListener('input', validateCurrentField);
-        input.addEventListener('change', validateCurrentField);
-        input.addEventListener('blur', validateCurrentField);
+        input.oninput = validateCurrentField;
+        input.onchange = validateCurrentField;
+        input.onblur = validateCurrentField;
     });
 
-    document.getElementById('purchase-now-btn')?.addEventListener('click', handlePurchaseNow);
-    document.getElementById('share-btn')?.addEventListener('click', handleShare);
+    const purchaseNowBtn = document.getElementById('purchase-now-btn');
+    if (purchaseNowBtn) purchaseNowBtn.onclick = handlePurchaseNow;
+    
+    const shareBtn = document.getElementById('share-btn');
+    if (shareBtn) shareBtn.onclick = handleShare;
 }
 
 async function handleShare() {
