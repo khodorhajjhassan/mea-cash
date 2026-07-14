@@ -89,7 +89,7 @@
                 <div class="mt-6">
                     <div class="flex flex-wrap items-center gap-3">
                         @foreach($activePaymentLogos as $paymentLogo)
-                            <div class="flex h-11 w-16 items-center justify-center rounded-2xl border border-outline-variant/10 bg-transparent p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+                            <div class="flex h-11 w-16 items-center justify-center bg-transparent p-1">
                                 <img src="{{ $paymentLogo['src'] }}" alt="{{ $paymentLogo['label'] }}" class="h-8 w-auto max-w-[3.25rem] object-contain" loading="lazy">
                             </div>
                         @endforeach
@@ -99,7 +99,7 @@
                     </div>
                     <div class="mt-3 flex flex-wrap items-center gap-2">
                         @foreach($comingSoonPaymentLogos as $paymentLogo)
-                            <div class="flex h-10 min-w-[4.1rem] items-center justify-center rounded-2xl border border-outline-variant/10 bg-transparent px-2.5 py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.05)]">
+                            <div class="flex h-10 min-w-[4.1rem] items-center justify-center bg-transparent px-1.5 py-1">
                                 @if(!empty($paymentLogo['src_dark']))
                                     <img src="{{ $paymentLogo['src'] }}" alt="{{ $paymentLogo['label'] }}" class="mc-logo-light h-6 w-auto max-w-[4.75rem] object-contain" loading="lazy">
                                     <img src="{{ $paymentLogo['src_dark'] }}" alt="{{ $paymentLogo['label'] }}" class="mc-logo-dark h-6 w-auto max-w-[4.75rem] object-contain" loading="lazy">
@@ -157,10 +157,8 @@
                 &copy; {{ date('Y') }} MeaCash. HIGH-FIDELITY DIGITAL ASSETS. ALL RIGHTS RESERVED.
             </p>
             <a href="{{ $safeBrowsingUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-3 rounded-2xl border border-outline-variant/15 bg-surface-container-high/35 px-4 py-3 transition hover:border-primary-container/40 hover:text-primary-container">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
-                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M12 2 4 5v6c0 5.25 3.44 10.17 8 11 4.56-.83 8-5.75 8-11V5l-8-3Zm-1.1 13.3-3.2-3.2 1.4-1.4 1.8 1.79 4-4 1.4 1.42-5.4 5.39Z"/>
-                    </svg>
+                <span class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl">
+                    <img src="{{ asset('images/google-safe.png') }}" alt="Google Safe Browsing" class="h-full w-full object-contain" loading="lazy">
                 </span>
                 <span>
                     <span class="block font-headline text-xs font-black uppercase tracking-widest">{{ __('Google Safe Browsing') }}</span>
