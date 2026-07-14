@@ -80,9 +80,24 @@ const shareableSubcategoryUrl = () => {
 };
 
 const money = (value) => `$${Number(value || 0).toFixed(2)}`;
-const localized = (item, key = 'name') => item?.[`${key}_${isRtl() ? 'ar' : 'en'}`] || item?.[key] || item?.name || '';
+const localizedField = (item, key) => firstNonEmpty(
+    item?.[`${key}_${currentLocale()}`],
+    item?.[key],
+    item?.[`${key}_en`],
+    item?.[`${key}_ar`],
+);
+const localized = (item, key = 'name') => key === 'name'
+    ? firstNonEmpty(
+        item?.[`${key}_${currentLocale()}`],
+        item?.[key],
+        item?.name,
+        item?.name_en,
+        item?.name_ar,
+    )
+    : localizedField(item, key);
 const imageUrl = (item, fallback = '/meacash-logo-64.webp') => item?.image || fallback;
-const descriptionOf = (item) => localized(item, 'description');
+const descriptionOf = (item) => localizedField(item, 'description');
+const redeemOf = (item) => localizedField(item, 'how_to_redeem');
 const selectedImage = () => selectedPackage?.image || selectedProduct?.image || currentSubcategory?.image || '/meacash-logo-64.webp';
 const deliveryLabel = (item) => {
     const type = item?.delivery_type || '';
@@ -295,12 +310,7 @@ function renderHeader() {
     const name = localized(currentSubcategory);
     const categoryName = currentSubcategory.category?.name || currentSubcategory.category_name || '';
     const subcategoryDescription = descriptionOf(currentSubcategory);
-    const subcategoryHowToRedeem = firstNonEmpty(
-        localized(currentSubcategory, 'how_to_redeem'),
-        currentSubcategory?.how_to_redeem,
-        currentSubcategory?.how_to_redeem_en,
-        currentSubcategory?.how_to_redeem_ar
-    );
+    const subcategoryHowToRedeem = redeemOf(currentSubcategory);
 
     header.innerHTML = `
         <div class="h-11 w-1.5 shrink-0 rounded-full bg-primary-container shadow-[0_0_35px_rgba(0,240,255,0.35)]"></div>
@@ -311,13 +321,18 @@ function renderHeader() {
             <p class="mt-2 font-label text-[10px] uppercase tracking-[0.24em] text-outline">
                 ${[categoryName, `${currentSubcategory.products?.length || 0} assets`].filter(Boolean).map(escapeHtml).join(' / ')}
             </p>
-            ${subcategoryDescription ? `<p class="mt-2 line-clamp-2 max-w-xl text-xs leading-relaxed text-on-surface-variant/70">${escapeHtml(subcategoryDescription)}</p>` : ''}
-            ${subcategoryHowToRedeem ? `
-                <div class="mt-3 max-w-xl rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-3">
-                    <div class="mb-1 font-label text-[9px] font-black uppercase tracking-widest text-primary-container">${escapeHtml(isRtl() ? 'طريقة الاسترداد' : 'How To Redeem')}</div>
-                    <div class="text-xs leading-relaxed text-on-surface-variant/80">${escapeHtml(subcategoryHowToRedeem)}</div>
-                </div>
-            ` : ''}
+            ${renderExpandablePanel('subcategory-description', '', subcategoryDescription, {
+                plain: true,
+                previewLimit: 180,
+                wrapperClass: 'mt-2 max-w-xl',
+                bodyClass: 'text-xs leading-relaxed text-on-surface-variant/75',
+                buttonClass: 'mt-2 font-label text-[10px] font-black uppercase tracking-widest text-secondary-container hover:text-primary-container',
+            })}
+            ${renderExpandablePanel('subcategory-redeem', isRtl() ? 'طريقة الاسترداد' : 'How To Redeem', subcategoryHowToRedeem, {
+                previewLimit: 140,
+                wrapperClass: 'mt-3 max-w-xl rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-3.5',
+                bodyClass: 'text-xs leading-relaxed text-on-surface-variant/80',
+            })}
         </div>
     `;
 }
@@ -346,6 +361,24 @@ function renderSelectionCard(item) {
     const active = selectedProduct?.id === item.product.id && ((selectedPackage?.id || null) === (item.package?.id || null));
     const badge = item.badge ? `<div class="absolute top-2 ${isRtl() ? 'left-2' : 'right-2'} rounded-full bg-secondary-container px-2 py-0.5 font-label text-[8px] font-black uppercase tracking-tight text-on-secondary-container">${escapeHtml(item.badge)}</div>` : '';
 
+    const wrapperClass = options.wrapperClass ?? 'mb-5 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-4';
+    const labelClass = options.labelClass ?? 'mb-2 font-label text-[10px] font-black uppercase tracking-widest text-primary-container';
+    const bodyClass = options.bodyClass ?? 'text-xs leading-relaxed text-on-surface-variant';
+    const buttonClass = options.buttonClass ?? 'mt-3 font-label text-[10px] font-black uppercase tracking-widest text-secondary-container hover:text-primary-container';
+
+    if (options.plain) {
+        return `
+            <div class="${wrapperClass}">
+                <div class="${bodyClass}">${escapeHtml(bodyText)}</div>
+                ${shouldCollapse ? `
+                    <button type="button" data-toggle-panel="${escapeHtml(type)}" class="${buttonClass}">
+                        ${toggleLabel}
+                    </button>
+                ` : ''}
+            </div>
+        `;
+    }
+
     return `
         <button type="button" data-select-product="${item.product.id}" data-select-package="${item.package?.id || ''}"
             class="group relative flex min-h-[118px] flex-col rounded-xl border p-2 text-start transition-all duration-300 sm:min-h-[178px] sm:rounded-2xl sm:p-3 ${active ? 'border-primary-container bg-surface-container-high shadow-[0_0_22px_rgba(0,240,255,0.2)] ring-1 ring-primary-container/70' : 'border-transparent bg-surface-container-low hover:-translate-y-1 hover:border-primary-container/30 hover:bg-surface-container-high'}">
@@ -361,6 +394,51 @@ function renderSelectionCard(item) {
     `;
 }
 
+function renderExpandablePanel(type, label, content, options = {}) {
+    if (!content) return '';
+
+    const expanded = expandedContent[type] === true;
+    const previewLimit = options.previewLimit ?? (type.includes('redeem') ? 120 : 160);
+    const normalizedContent = String(content).trim();
+    const shouldCollapse = normalizedContent.length > previewLimit;
+    const previewText = shouldCollapse
+        ? `${normalizedContent.slice(0, previewLimit).trimEnd()}...`
+        : normalizedContent;
+    const bodyText = expanded || !shouldCollapse ? normalizedContent : previewText;
+    const toggleLabel = expanded
+        ? (isRtl() ? 'Ø¹Ø±Ø¶ Ø£Ù‚Ù„' : 'Show less')
+        : (isRtl() ? 'Ø¹Ø±Ø¶ Ø§Ù„Ù…Ø²ÙŠØ¯' : 'Load more');
+    const wrapperClass = options.wrapperClass ?? 'mb-5 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-4';
+    const labelClass = options.labelClass ?? 'mb-2 font-label text-[10px] font-black uppercase tracking-widest text-primary-container';
+    const bodyClass = options.bodyClass ?? 'text-xs leading-relaxed text-on-surface-variant';
+    const buttonClass = options.buttonClass ?? 'mt-3 font-label text-[10px] font-black uppercase tracking-widest text-secondary-container hover:text-primary-container';
+
+    if (options.plain) {
+        return `
+            <div class="${wrapperClass}">
+                <div class="${bodyClass}">${escapeHtml(bodyText)}</div>
+                ${shouldCollapse ? `
+                    <button type="button" data-toggle-panel="${escapeHtml(type)}" class="${buttonClass}">
+                        ${toggleLabel}
+                    </button>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    return `
+        <div class="${wrapperClass}">
+            <div class="${labelClass}">${escapeHtml(label)}</div>
+            <div class="${bodyClass}">${escapeHtml(bodyText)}</div>
+            ${shouldCollapse ? `
+                <button type="button" data-toggle-panel="${escapeHtml(type)}" class="${buttonClass}">
+                    ${toggleLabel}
+                </button>
+            ` : ''}
+        </div>
+    `;
+}
+
 function renderSummary() {
     const summary = getSummary();
     if (!summary || !selectedProduct) return;
@@ -371,12 +449,7 @@ function renderSummary() {
         descriptionOf(currentSubcategory),
         localized(selectedProduct)
     );
-    const productHowToRedeem = firstNonEmpty(
-        localized(selectedProduct, 'how_to_redeem'),
-        selectedProduct?.how_to_redeem,
-        selectedProduct?.how_to_redeem_en,
-        selectedProduct?.how_to_redeem_ar
-    );
+    const productHowToRedeem = redeemOf(selectedProduct);
     const type = friendlyType(selectedProduct);
     const activeForm = selectedProduct.forms?.find((form) => form.key === selectedFormKey) || selectedProduct.forms?.[0] || null;
     const fields = [
@@ -387,21 +460,27 @@ function renderSummary() {
     summary.innerHTML = `
         <div>
             <h2 class="mb-3 font-label text-[11px] font-bold uppercase tracking-widest text-outline">Selected Product</h2>
-            <div class="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-outline-variant/10 bg-surface-container-highest/50 p-2.5 sm:flex-nowrap sm:gap-3 sm:p-3">
-                <div class="hidden h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-outline-variant/20 bg-surface sm:block">
-                    <img src="${escapeHtml(selectedImage())}" alt="${escapeHtml(title)}" class="h-full w-full object-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/meacash-logo-128.png'">
-                </div>
-                <div class="min-w-0 flex-1">
-                    <div class="font-headline text-[13px] font-black uppercase leading-tight text-on-surface sm:text-sm">${escapeHtml(title)}</div>
-                    <div class="mt-1 font-label text-[8px] uppercase tracking-[0.16em] text-primary-container sm:text-[9px] sm:tracking-widest">${escapeHtml(type)}</div>
-                </div>
-                <div class="w-full text-start sm:w-auto sm:text-end">
-                    <div id="modal-live-price" class="font-headline text-[15px] font-black text-primary-container sm:text-base">${money(selectedUnitPrice())}</div>
-                    <div class="font-label text-[9px] uppercase tracking-tight text-outline sm:text-[10px]">${__('total_price')}</div>
+            <div class="mb-4 rounded-[1.35rem] border border-outline-variant/10 bg-surface-container-highest/55 p-3 shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
+                <div class="grid grid-cols-1 items-start gap-3 sm:grid-cols-[72px_minmax(0,1fr)]">
+                    <div class="hidden h-[72px] w-[72px] overflow-hidden rounded-[1rem] border border-outline-variant/15 bg-surface sm:block">
+                        <img src="${escapeHtml(selectedImage())}" alt="${escapeHtml(title)}" class="h-full w-full object-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/meacash-logo-128.png'">
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="line-clamp-2 font-headline text-[14px] font-black uppercase leading-tight text-on-surface sm:text-[15px]">${escapeHtml(title)}</div>
+                                <div class="mt-1 font-label text-[8px] uppercase tracking-[0.18em] text-primary-container sm:text-[9px]">${escapeHtml(type)}</div>
+                            </div>
+                            <div class="shrink-0 text-end">
+                                <div id="modal-live-price" class="font-headline text-[17px] font-black leading-none text-primary-container sm:text-[18px]">${money(selectedUnitPrice())}</div>
+                                <div class="mt-1 font-label text-[9px] uppercase tracking-tight text-outline">${__('total_price')}</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            ${renderExpandablePanel('description', isRtl() ? 'الوصف' : 'Description', subtitle)}
-            ${renderExpandablePanel('redeem', isRtl() ? 'طريقة الاسترداد' : 'How To Redeem', productHowToRedeem)}
+            ${renderExpandablePanel('product-description', isRtl() ? 'الوصف' : 'Description', subtitle)}
+            ${renderExpandablePanel('product-redeem', isRtl() ? 'طريقة الاسترداد' : 'How To Redeem', productHowToRedeem)}
 
             ${renderFormTabs()}
             ${renderQuantity()}
@@ -471,11 +550,11 @@ function openPurchaseConfirmModal(onConfirm) {
     });
 }
 
-function renderExpandablePanel(type, label, content) {
+function renderExpandablePanelLegacy(type, label, content, options = {}) {
     if (!content) return '';
 
     const expanded = expandedContent[type] === true;
-    const previewLimit = type === 'redeem' ? 120 : 160;
+    const previewLimit = options.previewLimit ?? (type.includes('redeem') ? 120 : 160);
     const normalizedContent = String(content).trim();
     const shouldCollapse = normalizedContent.length > previewLimit;
     const previewText = shouldCollapse
@@ -487,11 +566,11 @@ function renderExpandablePanel(type, label, content) {
         : (isRtl() ? 'عرض المزيد' : 'Load more');
 
     return `
-        <div class="mb-5 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-4">
-            <div class="mb-2 font-label text-[10px] font-black uppercase tracking-widest text-primary-container">${escapeHtml(label)}</div>
-            <div class="text-xs leading-relaxed text-on-surface-variant">${escapeHtml(bodyText)}</div>
+        <div class="${wrapperClass}">
+            <div class="${labelClass}">${escapeHtml(label)}</div>
+            <div class="${bodyClass}">${escapeHtml(bodyText)}</div>
             ${shouldCollapse ? `
-                <button type="button" data-toggle-panel="${escapeHtml(type)}" class="mt-3 font-label text-[10px] font-black uppercase tracking-widest text-secondary-container hover:text-primary-container">
+                <button type="button" data-toggle-panel="${escapeHtml(type)}" class="${buttonClass}">
                     ${toggleLabel}
                 </button>
             ` : ''}
@@ -582,15 +661,15 @@ function renderFooter() {
     if (!footer || !selectedProduct) return;
 
     const shareBtn = `
-        <button id="share-btn" type="button" class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-outline-variant/30 bg-surface-container-lowest/50 text-outline transition-all hover:border-secondary-container hover:bg-secondary-container/10 hover:text-secondary-container">
+        <button id="share-btn" type="button" class="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-[1.15rem] border border-outline-variant/20 bg-surface-container-lowest/75 text-outline transition-all hover:border-secondary-container/50 hover:bg-secondary-container/10 hover:text-secondary-container">
             <span class="material-symbols-outlined text-xl">share</span>
         </button>
     `;
 
     if (!isAuthenticated()) {
         footer.innerHTML = `
-            <div class="flex gap-3">
-                <a href="${LOGIN_URL()}" class="flex flex-1 items-center justify-center gap-2.5 rounded-2xl border border-primary-container/30 bg-surface-container-high py-3.5 font-headline text-[11px] font-black uppercase tracking-[0.18em] text-primary-container shadow-[0_0_28px_rgba(0,240,255,0.12)] transition-all hover:border-primary-container hover:bg-primary-container hover:text-on-primary-container md:gap-3 md:py-4 md:text-sm md:tracking-[0.22em]">
+            <div class="grid grid-cols-[minmax(0,1fr)] gap-2.5 sm:grid-cols-[minmax(0,1fr)_54px] sm:gap-3">
+                <a href="${LOGIN_URL()}" class="flex min-h-[54px] items-center justify-center gap-2.5 rounded-[1.2rem] border border-primary-container/30 bg-surface-container-high px-4 py-3.5 font-headline text-[11px] font-black uppercase tracking-[0.18em] text-primary-container shadow-[0_0_28px_rgba(0,240,255,0.12)] transition-all hover:border-primary-container hover:bg-primary-container hover:text-on-primary-container md:gap-3 md:py-4 md:text-sm md:tracking-[0.22em]">
                     <span class="material-symbols-outlined text-lg">lock</span>
                     <span>${isRtl() ? 'سجل الدخول أولاً' : 'Login First'}</span>
                 </a>
@@ -604,8 +683,8 @@ function renderFooter() {
     }
 
     footer.innerHTML = `
-        <div class="flex gap-3">
-            <button id="purchase-now-btn" type="button" class="flex flex-1 items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container py-3.5 font-headline text-[11px] font-black uppercase tracking-[0.18em] text-on-primary-container shadow-[0_0_35px_rgba(0,240,255,0.22)] transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 md:gap-3 md:py-4 md:text-sm md:tracking-[0.22em]">
+        <div class="grid grid-cols-[minmax(0,1fr)] gap-2.5 sm:grid-cols-[minmax(0,1fr)_54px] sm:gap-3">
+            <button id="purchase-now-btn" type="button" class="flex min-h-[56px] items-center justify-center gap-2.5 rounded-[1.2rem] bg-gradient-to-r from-primary-container via-[#18bfff] to-secondary-container px-4 py-3.5 font-headline text-[11px] font-black uppercase tracking-[0.18em] text-on-primary-container shadow-[0_18px_40px_rgba(0,240,255,0.22)] transition-all hover:brightness-105 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 md:gap-3 md:py-4 md:text-sm md:tracking-[0.22em]">
                 <span>${isRtl() ? 'شراء الآن' : 'Purchase Now'}</span>
                 <span class="material-symbols-outlined">bolt</span>
             </button>
