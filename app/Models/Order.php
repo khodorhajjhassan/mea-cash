@@ -109,6 +109,30 @@ class Order extends Model
         return $details;
     }
 
+    public function getFulfillmentHistory(): array
+    {
+        $history = $this->fulfillment_data['fulfillment']['history'] ?? [];
+
+        if (!is_array($history)) {
+            return [];
+        }
+
+        return array_map(function ($entry) {
+            if (isset($entry['note']) && is_string($entry['note'])) {
+                $entry['note'] = $this->normalizeHtmlLinks($entry['note']);
+            }
+
+            return $entry;
+        }, $history);
+    }
+
+    public function getRefundHistory(): array
+    {
+        $history = $this->fulfillment_data['refund_history'] ?? [];
+
+        return is_array($history) ? $history : [];
+    }
+
     /**
      * Ensures links in HTML have protocols and open in new tabs.
      */

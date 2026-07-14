@@ -86,7 +86,9 @@ class TopupController extends Controller
             }
         }
 
-        return view('admin.topups.show', compact('topup', 'receiptUrl'));
+        $canRejectTopup = auth()->user()?->hasRole('super-admin') ?? false;
+
+        return view('admin.topups.show', compact('topup', 'receiptUrl', 'canRejectTopup'));
     }
 
     public function approve(Request $request, TopupRequest $topup)

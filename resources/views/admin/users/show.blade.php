@@ -30,6 +30,12 @@
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 0h7M11 21l5-10 5 10m-8.5-4h7M5 9a18.03 18.03 0 005.5 7.5M5 9a18.03 18.03 0 01-2 2.5"/></svg>
                         {{ $user->preferred_language === 'ar' ? 'Arabic' : 'English' }}
                     </div>
+                    @if($isSuperAdmin)
+                        <div class="flex items-center gap-1.5 text-sm text-slate-500">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Last login: {{ $user->last_login_at?->format('Y-m-d H:i') ?? 'Never' }}
+                        </div>
+                    @endif
                 </div>
             </div>
             <div class="flex flex-col gap-2 text-right">
@@ -61,9 +67,20 @@
                     <h3 class="text-base font-bold text-slate-800">Wallet Balance</h3>
                 </div>
                 <div class="mt-4">
-                    <div class="text-3xl font-black text-green-600">${{ number_format($user->wallet?->balance ?? 0, 2) }}</div>
-                    <p class="text-[10px] text-slate-400 font-medium mt-1 uppercase tracking-tighter">Current available credit</p>
+                    @if($isSuperAdmin)
+                        <div class="text-3xl font-black text-green-600">${{ number_format($user->wallet?->balance ?? 0, 2) }}</div>
+                        <p class="text-[10px] text-slate-400 font-medium mt-1 uppercase tracking-tighter">Current available credit</p>
+                    @else
+                        <div class="text-sm font-semibold text-slate-700">Visible to super admin only</div>
+                        <p class="text-[10px] text-slate-400 font-medium mt-1 uppercase tracking-tighter">Balance is restricted by role</p>
+                    @endif
                 </div>
+                @if($isSuperAdmin)
+                    <div class="mt-4 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                        <span class="font-semibold text-slate-800">Last session:</span>
+                        {{ $user->last_login_at?->format('Y-m-d H:i') ?? 'Never logged in' }}
+                    </div>
+                @endif
                 <button onclick="document.getElementById('refillModal').classList.remove('hidden')" class="btn-primary w-full mt-6 py-3 font-bold uppercase tracking-widest shadow-lg shadow-indigo-100">
                     Refill Wallet
                 </button>
@@ -159,9 +176,9 @@
                             @forelse($user->wallet?->transactions ?? [] as $tx)
                             <tr>
                                 <td><a href="{{ route('admin.transactions.show', $tx) }}" class="text-slate-400 font-mono text-[10px] hover:text-indigo-600">#{{ $tx->id }}</a></td>
-                                <td><span class="text-[10px] font-bold uppercase text-slate-600">{{ str_replace('_',' ',$tx->type->value) }}</span></td>
-                                <td class="font-bold {{ $tx->amount > 0 ? 'text-green-600' : 'text-red-600' }}">
-                                    {{ $tx->amount > 0 ? '+' : '' }}{{ number_format($tx->amount, 2) }}
+                                <td><span class="text-[10px] font-bold uppercase text-slate-600">{{ $tx->typeLabel() }}</span></td>
+                                <td class="font-bold {{ $tx->isCredit() ? 'text-green-600' : 'text-red-600' }}">
+                                    {{ $tx->signedAmountLabel() }}
                                 </td>
                                 <td class="text-[10px] font-medium text-slate-500 uppercase tracking-tighter">
                                     {{ $tx->processor?->name ?? 'System' }}

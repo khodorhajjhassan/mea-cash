@@ -54,7 +54,7 @@
                         <div class="max-h-96 overflow-y-auto">
                             @php($notifications = auth()->user()?->notifications()->latest()->limit(6)->get() ?? collect())
                             @forelse($notifications as $notification)
-                                <a href="{{ $notification->data['link'] ?? '#' }}" class="block p-4 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 {{ $notification->read_at ? 'opacity-60' : '' }}">
+                                <a href="{{ route('admin.notifications.read', $notification->id) }}" class="block p-4 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 {{ $notification->read_at ? 'opacity-60' : '' }}">
                                     <div class="flex gap-3">
                                         <div class="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
                                              @if(($notification->data['icon'] ?? '') == 'order')

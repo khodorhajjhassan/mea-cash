@@ -104,6 +104,7 @@
     $fulfillmentDetails = $order->getFulfillmentDetails();
     $fulfillmentData = array_filter((array) ($fulfillmentDetails['data'] ?? []), fn ($value) => filled($value));
     $userInput = array_filter($order->getUserInput(), fn ($value) => filled($value));
+    $reportHistory = $order->fulfillment_data['report_history'] ?? [];
     $canShowCompletedOrderActions = in_array($status, ['completed', 'reported'], true) && !$isRefunded;
     $supportReportWindowHours = $supportReportDelayHours ?? 4;
     $supportReportExpiresAt = $supportReportWindowHours > 0
@@ -393,6 +394,24 @@
                         </span>
                         @if(filled($order->report->admin_response))
                             <div class="prose prose-invert max-w-md text-xs leading-relaxed text-on-surface-variant">{!! $order->report->admin_response !!}</div>
+                        @endif
+                        @if(is_array($reportHistory) && !empty($reportHistory))
+                            <div class="w-full max-w-md space-y-2 rounded-2xl border border-outline-variant/10 bg-surface-container-low/40 p-3 text-start">
+                                <p class="font-label text-[9px] font-black uppercase tracking-widest text-outline">{{ $locale === 'ar' ? 'سجل المتابعة' : 'Support History' }}</p>
+                                @foreach(array_reverse($reportHistory) as $entry)
+                                    <div class="rounded-xl border border-outline-variant/10 bg-surface-container-lowest/70 p-3">
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="font-label text-[9px] font-black uppercase tracking-widest text-secondary-container">{{ ucfirst(str_replace('_', ' ', $entry['status'] ?? 'update')) }}</span>
+                                            @if(!empty($entry['created_at']))
+                                                <span class="text-[10px] text-outline">{{ \Illuminate\Support\Carbon::parse($entry['created_at'])->format('M d, Y H:i') }}</span>
+                                            @endif
+                                        </div>
+                                        @if(!empty($entry['response']))
+                                            <div class="mt-2 text-xs leading-relaxed text-on-surface-variant">{!! nl2br(e(trim(strip_tags((string) $entry['response'])))) !!}</div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
                         @endif
                         @if($canOpenSupportReport)
                             <button type="button" onclick="document.getElementById('reportModal').classList.remove('hidden')" class="font-headline text-[10px] font-black uppercase tracking-widest text-primary-container hover:underline">

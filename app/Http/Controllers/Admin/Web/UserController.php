@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\Web;
 
+use App\Enums\WalletTransactionType;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\WalletService;
@@ -20,6 +21,8 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
+        $isSuperAdmin = auth()->user()?->hasRole('super-admin') ?? false;
+
         $users = User::query()
             ->with('wallet')
             ->when($request->filled('q'), function ($query) use ($request): void {
@@ -39,15 +42,17 @@ class UserController extends Controller
 
         $filters = $request->only(['q', 'status']);
 
-        return view('admin.users.index', compact('users', 'filters'));
+        return view('admin.users.index', compact('users', 'filters', 'isSuperAdmin'));
     }
 
     public function show(User $user)
     {
+        $isSuperAdmin = auth()->user()?->hasRole('super-admin') ?? false;
+
         $user->load(['wallet', 'orders' => function($q) {
             $q->latest()->limit(10);
         }, 'wallet.transactions' => function($q) {
-            $q->with('processor')->latest()->limit(10);
+            $q->with('processor')->orderByDesc('created_at')->orderByDesc('id')->limit(10);
         }]);
 
         // Calculate total spent on completed orders
@@ -56,7 +61,7 @@ class UserController extends Controller
             ->where('status', OrderStatus::Completed)
             ->sum('total_price');
 
-        return view('admin.users.show', compact('user', 'totalSpent'));
+        return view('admin.users.show', compact('user', 'totalSpent', 'isSuperAdmin'));
     }
 
     public function edit(User $user)
@@ -118,7 +123,7 @@ class UserController extends Controller
         ]);
 
         try {
-            $this->walletService->credit($user, (string) $data['amount'], $data['description'], null, auth()->id());
+            $this->walletService->credit($user, (string) $data['amount'], $data['description'], null, auth()->id(), WalletTransactionType::AdminAdjustment);
 
             return back()->with('success', 'Wallet credited successfully.');
         } catch (Exception $exception) {

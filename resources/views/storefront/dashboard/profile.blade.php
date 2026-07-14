@@ -97,6 +97,11 @@
 
             <div class="my-7 h-px bg-outline-variant/15"></div>
 
+            <a href="{{ route('password.request') }}" class="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-primary-container/20 bg-primary-container/10 px-5 py-4 font-headline text-sm font-black uppercase tracking-[0.18em] text-primary-container transition hover:border-primary-container/50 hover:bg-primary-container/20">
+                <span>{{ $locale === 'ar' ? 'إعادة تعيين كلمة المرور' : 'Reset Password' }}</span>
+                <span class="material-symbols-outlined text-lg">password</span>
+            </a>
+
             <form action="{{ route('store.logout') }}" method="POST">
                 @csrf
                 <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-2xl border border-error/25 bg-error-container/10 px-5 py-4 font-headline text-sm font-black uppercase tracking-[0.18em] text-error transition hover:border-error/50 hover:bg-error-container/20">

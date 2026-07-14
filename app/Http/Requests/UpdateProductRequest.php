@@ -21,6 +21,8 @@ class UpdateProductRequest extends FormRequest
             'name_en' => ['sometimes', 'string', 'max:255'],
             'description_ar' => ['nullable', 'string'],
             'description_en' => ['nullable', 'string'],
+            'how_to_redeem_ar' => ['nullable', 'string'],
+            'how_to_redeem_en' => ['nullable', 'string'],
             'slug' => ['sometimes', 'string', 'max:255'],
             'delivery_type' => ['sometimes', Rule::in(['instant', 'timed', 'manual'])],
             'delivery_time_minutes' => ['nullable', 'integer', 'min:1'],
@@ -33,6 +35,7 @@ class UpdateProductRequest extends FormRequest
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string'],
             'seo_keywords' => ['nullable', 'string'],
+            'seo_image' => ['nullable', 'image', 'max:5120'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
     }

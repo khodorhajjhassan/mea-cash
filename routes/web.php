@@ -35,6 +35,11 @@ use App\Http\Controllers\Storefront\ContactController as StorefrontContactContro
 use App\Http\Controllers\Storefront\CustomerDashboardController;
 use App\Http\Controllers\Storefront\CustomerAuthController;
 use App\Http\Controllers\Storefront\NotificationController as StorefrontNotificationController;
+use App\Mail\PasswordResetOtpMail;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -82,6 +87,66 @@ Route::prefix('{locale}')
             Route::get('login', [UserAuthController::class, 'create'])->name('login');
             Route::post('login', [UserAuthController::class, 'store'])->name('login.store');
             Route::post('logout', [UserAuthController::class, 'destroy'])->name('logout');
+            Route::view('forgot-password', 'storefront.auth.forgot-password')->middleware('guest')->name('password.request');
+            Route::post('forgot-password', function (Request $request) {
+                $data = $request->validate([
+                    'email' => ['required', 'email'],
+                ]);
+
+                $user = User::query()->where('email', $data['email'])->first();
+                if ($user) {
+                    $code = (string) random_int(100000, 999999);
+                    $user->forceFill([
+                        'password_reset_code' => $code,
+                        'password_reset_expires_at' => now()->addMinutes(15),
+                    ])->save();
+
+                    Mail::to($user->email)->queue(new PasswordResetOtpMail(
+                        user: $user,
+                        code: $code,
+                        mailLocale: $user->preferred_language ?: app()->getLocale(),
+                    ));
+                }
+
+                return redirect()->route('password.reset', ['locale' => app()->getLocale(), 'email' => $data['email']])
+                    ->with('success', app()->getLocale() === 'ar'
+                        ? 'تم إرسال رمز إعادة التعيين إذا كان البريد مسجلاً لدينا.'
+                        : 'A reset code was sent if the email exists in our records.');
+            })->middleware('guest')->name('password.email');
+            Route::view('reset-password', 'storefront.auth.reset-password')->middleware('guest')->name('password.reset');
+            Route::post('reset-password', function (Request $request) {
+                $data = $request->validate([
+                    'email' => ['required', 'email'],
+                    'code' => ['required', 'digits:6'],
+                    'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::min(8)],
+                ]);
+
+                $user = User::query()->where('email', $data['email'])->first();
+                if (! $user
+                    || ! $user->password_reset_code
+                    || ! hash_equals((string) $user->password_reset_code, (string) $data['code'])
+                    || ! $user->password_reset_expires_at
+                    || now()->gt($user->password_reset_expires_at)) {
+                    return back()
+                        ->withInput($request->except('password', 'password_confirmation'))
+                        ->withErrors([
+                            'code' => app()->getLocale() === 'ar'
+                                ? 'رمز إعادة التعيين غير صحيح أو منتهي الصلاحية.'
+                                : 'The reset code is invalid or expired.',
+                        ]);
+                }
+
+                $user->forceFill([
+                    'password' => Hash::make($data['password']),
+                    'password_reset_code' => null,
+                    'password_reset_expires_at' => null,
+                ])->save();
+
+                return redirect()->route('login', ['locale' => app()->getLocale()])
+                    ->with('success', app()->getLocale() === 'ar'
+                        ? 'تم تحديث كلمة المرور بنجاح.'
+                        : 'Your password has been updated successfully.');
+            })->middleware('guest')->name('password.update');
         });
 
         // Checkout (auth required)
@@ -105,6 +170,7 @@ Route::prefix('{locale}')
                 Route::post('/wallet/topup', [CustomerDashboardController::class, 'submitTopup'])->name('wallet.topup');
                 Route::get('/profile', [CustomerDashboardController::class, 'profile'])->name('profile');
                 Route::put('/profile', [CustomerDashboardController::class, 'updateProfile'])->name('profile.update');
+                Route::get('/notifications', [StorefrontNotificationController::class, 'index'])->name('notifications.index');
                 Route::get('/notifications/{id}/read', [StorefrontNotificationController::class, 'read'])->name('notifications.read');
                 Route::post('/notifications/read-all', [StorefrontNotificationController::class, 'readAll'])->name('notifications.read-all');
             });
@@ -151,7 +217,7 @@ Route::prefix('{locale}')
                         ->middleware('permission:topups.index')
                         ->middlewareFor('show', 'permission:topups.show');
                     Route::post('topups/{topup}/approve', [TopupController::class, 'approve'])->middleware('permission:topups.approve')->name('topups.approve');
-                    Route::post('topups/{topup}/reject', [TopupController::class, 'reject'])->middleware('permission:topups.reject')->name('topups.reject');
+                    Route::post('topups/{topup}/reject', [TopupController::class, 'reject'])->middleware(['permission:topups.reject', 'role:super-admin'])->name('topups.reject');
 
                     Route::get('transactions/user/{user}', [TransactionController::class, 'user'])->middleware('permission:transactions.index')->name('transactions.user');
                     Route::resource('transactions', TransactionController::class)

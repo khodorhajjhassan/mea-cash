@@ -91,6 +91,8 @@
                     <th>User</th>
                     <th>Type</th>
                     <th>Amount</th>
+                    <th>Balance After</th>
+                    <th>Description</th>
                     <th>Processed By</th>
                     <th>When</th>
                     <th>Actions</th>
@@ -115,13 +117,17 @@
                             $colorClass = $typeColors[$tx->type->value] ?? 'bg-slate-100 text-slate-500';
                         @endphp
                         <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md {{ $colorClass }}">
-                            {{ str_replace('_',' ',$tx->type->value) }}
+                            {{ $tx->typeLabel() }}
                         </span>
                     </td>
                     <td>
-                        <span class="font-bold @if($tx->amount > 0) text-green-600 @else text-red-600 @endif">
-                            {{ $tx->amount > 0 ? '+' : '' }}{{ number_format($tx->amount, 2) }}
+                        <span class="font-bold {{ $tx->isCredit() ? 'text-green-600' : 'text-red-600' }}">
+                            {{ $tx->signedAmountLabel() }}
                         </span>
+                    </td>
+                    <td class="font-semibold text-slate-700">${{ number_format((float) $tx->balance_after, 2) }}</td>
+                    <td class="max-w-[280px]">
+                        <div class="truncate text-xs text-slate-500">{{ $tx->description_en ?: $tx->description_ar ?: '-' }}</div>
                     </td>
                     <td>
                         @if($tx->processor)
@@ -137,7 +143,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center py-12 text-slate-400 italic">No transactions found matching your criteria.</td>
+                    <td colspan="9" class="text-center py-12 text-slate-400 italic">No transactions found matching your criteria.</td>
                 </tr>
                 @endforelse
             </tbody>

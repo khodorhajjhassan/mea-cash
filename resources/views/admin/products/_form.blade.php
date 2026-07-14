@@ -60,6 +60,8 @@
 
 <div class="field mt-4"><label>Description (EN)</label><textarea name="description_en" rows="3">{{ old('description_en', $product->description_en ?? '') }}</textarea></div>
 <div class="field mt-4"><label>Description (AR)</label><textarea name="description_ar" rows="3">{{ old('description_ar', $product->description_ar ?? '') }}</textarea></div>
+<div class="field mt-4"><label>How To Redeem (EN)</label><textarea name="how_to_redeem_en" rows="4">{{ old('how_to_redeem_en', $product->how_to_redeem_en ?? '') }}</textarea></div>
+<div class="field mt-4"><label>How To Redeem (AR)</label><textarea name="how_to_redeem_ar" rows="4" dir="rtl">{{ old('how_to_redeem_ar', $product->how_to_redeem_ar ?? '') }}</textarea></div>
 <script>
 (function () {
     const nameInput = document.getElementById('product-name-en');

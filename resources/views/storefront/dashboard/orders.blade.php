@@ -5,9 +5,10 @@
 @section('content')
 @php
     $locale = app()->getLocale();
-    $statusOptions = ['pending', 'processing', 'completed', 'reported', 'refunded', 'failed'];
+    $statusOptions = ['pending', 'processing', 'completed', 'reported', 'resolved', 'refunded', 'failed'];
     $statusClass = static fn (string $status): string => match ($status) {
         'completed' => 'border-emerald-400/25 bg-emerald-400/10 text-emerald-400',
+        'resolved' => 'border-emerald-400/25 bg-emerald-400/10 text-emerald-400',
         'reported' => 'border-rose-400/25 bg-rose-400/10 text-rose-400',
         'pending', 'processing' => 'border-yellow-500/20 bg-yellow-500/10 text-yellow-500',
         default => 'border-red-500/20 bg-red-500/10 text-red-500',
@@ -106,7 +107,9 @@
         <div class="space-y-3 md:hidden">
             @foreach($orders as $order)
                 @php
-                    $status = $order->status->value ?? $order->status;
+                    $status = ($order->report?->status === 'resolved')
+                        ? 'resolved'
+                        : ($order->status->value ?? $order->status);
                     $productImage = $order->product?->image
                         ? (str_starts_with($order->product->image, 'http') ? $order->product->image : \Illuminate\Support\Facades\Storage::url($order->product->image))
                         : asset('meacash-logo-128.png');
@@ -117,7 +120,7 @@
                             <div class="font-headline text-sm font-black uppercase text-on-surface">#{{ $order->order_number }}</div>
                             <div class="mt-1 font-label text-[9px] uppercase tracking-widest text-outline">{{ $order->created_at->format('M d, Y') }}</div>
                         </div>
-                        <span class="inline-flex items-center rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-widest {{ $statusClass($status) }}">{{ ucfirst($status) }}</span>
+                        <span class="inline-flex items-center rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-widest {{ $statusClass($status) }}">{{ ucfirst(str_replace('_', ' ', $status)) }}</span>
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-outline-variant/15 bg-surface-container-lowest p-1.5">
@@ -150,7 +153,9 @@
                     <tbody class="divide-y divide-outline-variant/5">
                         @foreach($orders as $order)
                             @php
-                                $status = $order->status->value ?? $order->status;
+                                $status = ($order->report?->status === 'resolved')
+                                    ? 'resolved'
+                                    : ($order->status->value ?? $order->status);
                                 $productImage = $order->product?->image
                                     ? (str_starts_with($order->product->image, 'http') ? $order->product->image : \Illuminate\Support\Facades\Storage::url($order->product->image))
                                     : asset('meacash-logo-128.png');
@@ -182,7 +187,7 @@
                                 </td>
                                 <td class="py-6 font-headline text-sm font-black text-on-surface">${{ number_format($order->total_price, 2) }}</td>
                                 <td class="py-6">
-                                    <span class="inline-flex items-center rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-widest {{ $statusClass($status) }}">{{ ucfirst($status) }}</span>
+                                    <span class="inline-flex items-center rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-widest {{ $statusClass($status) }}">{{ ucfirst(str_replace('_', ' ', $status)) }}</span>
                                 </td>
                                 <td class="py-6 pe-8 text-end">
                                     <span class="font-label text-[10px] font-bold uppercase tracking-wider text-outline">{{ $order->created_at->format('M d, Y') }}</span>

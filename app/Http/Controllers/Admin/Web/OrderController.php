@@ -84,7 +84,9 @@ class OrderController extends Controller
             'product.subcategory:id,product_type_id', 
             'product.subcategory.productTypeDefinition:id,key,schema',
             'package:id,name_en',
-            'items'
+            'items',
+            'report',
+            'reports',
         ]);
 
         return view('admin.orders.show', compact('order'));

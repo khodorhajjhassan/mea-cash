@@ -9,10 +9,13 @@ use App\Models\Order;
 use App\Models\TopupRequest;
 use App\Models\PaymentMethod;
 use App\Notifications\UserNotification;
+use App\Notifications\AdminNotification;
 use App\Services\SettingsService;
 use App\Services\EmailNotificationService;
 use App\Services\WalletService;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 
 class CustomerDashboardController extends Controller
@@ -83,14 +86,24 @@ class CustomerDashboardController extends Controller
         $filters = $request->validate([
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date', 'after_or_equal:from'],
-            'status' => ['nullable', 'string', Rule::in(array_map(fn (OrderStatus $status) => $status->value, OrderStatus::cases()))],
+            'status' => ['nullable', 'string', Rule::in([
+                ...array_map(fn (OrderStatus $status) => $status->value, OrderStatus::cases()),
+                'resolved',
+            ])],
         ]);
 
         $orders = Order::where('user_id', auth()->id())
-            ->with(['product', 'package'])
+            ->with(['product', 'package', 'report'])
             ->when($filters['from'] ?? null, fn ($query, $from) => $query->whereDate('created_at', '>=', $from))
             ->when($filters['to'] ?? null, fn ($query, $to) => $query->whereDate('created_at', '<=', $to))
-            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+            ->when($filters['status'] ?? null, function ($query, $status) {
+                if ($status === 'resolved') {
+                    $query->whereHas('report', fn ($reportQuery) => $reportQuery->where('status', 'resolved'));
+                    return;
+                }
+
+                $query->where('status', $status);
+            })
             ->latest()
             ->paginate(20)
             ->withQueryString();
@@ -104,7 +117,7 @@ class CustomerDashboardController extends Controller
     public function orderDetail(string $orderNumber)
     {
         $order = Order::where('order_number', $orderNumber)
-            ->with(['product.subcategory.productTypeDefinition:id,name,key,schema', 'product.subcategory.category', 'package', 'items', 'feedback', 'report'])
+            ->with(['product.subcategory.productTypeDefinition:id,name,key,schema', 'product.subcategory.category', 'package', 'items', 'feedback', 'report', 'reports'])
             ->firstOrFail();
 
         if ((int) $order->user_id !== (int) auth()->id()) {
@@ -172,15 +185,82 @@ class CustomerDashboardController extends Controller
             return back()->with('error', $request->boolean('is_ar') ? 'يوجد بلاغ مفتوح لهذا الطلب بالفعل.' : 'A report is already open for this order.');
         }
 
-        Feedback::create([
-            'user_id' => auth()->id(),
-            'order_id' => $order->id,
-            'type' => 'report',
-            'rating' => 1,
-            'issue_type' => $validated['issue_type'],
-            'comment' => $validated['comment'],
-            'status' => 'open',
-        ]);
+        $report = $order->reports()->first();
+
+        if ($report) {
+            $fulfillmentData = is_object($order->fulfillment_data) && method_exists($order->fulfillment_data, 'getArrayCopy')
+                ? $order->fulfillment_data->getArrayCopy()
+                : (array) ($order->fulfillment_data ?? []);
+
+            $reportHistory = $fulfillmentData['report_history'] ?? [];
+            if (!is_array($reportHistory)) {
+                $reportHistory = [];
+            }
+
+            if (filled($report->comment) || filled($report->admin_response)) {
+                $reportHistory[] = [
+                    'status' => $report->status ?? 'resolved',
+                    'response' => trim(implode("\n\n", array_filter([
+                        filled($report->comment) ? 'Customer: '.$report->comment : null,
+                        filled($report->admin_response) ? 'Admin: '.$report->admin_response : null,
+                    ]))),
+                    'created_at' => optional($report->updated_at ?? $report->created_at)?->toIso8601String(),
+                    'created_by' => 'system',
+                ];
+
+                $order->update([
+                    'fulfillment_data' => array_merge($fulfillmentData, ['report_history' => $reportHistory]),
+                ]);
+            }
+
+            $report->update([
+                'rating' => 1,
+                'issue_type' => $validated['issue_type'],
+                'comment' => $validated['comment'],
+                'status' => 'open',
+                'resolved_at' => null,
+                'admin_response' => null,
+            ]);
+
+            $admins = User::query()
+                ->where(function ($query): void {
+                    $query->where('is_admin', true)
+                        ->orWhereHas('roles', fn ($roleQuery) => $roleQuery->whereIn('name', ['admin', 'super-admin']));
+                })
+                ->where('is_active', true)
+                ->get();
+
+            if ($admins->isNotEmpty()) {
+                $payload = $report->toAdminNotification();
+                Notification::send($admins, new AdminNotification($payload));
+                $this->emails->toAdmins([
+                    'en' => [
+                        'subject' => $payload['type'] ?? 'Admin Notification',
+                        'title' => $payload['type'] ?? 'Admin Notification',
+                        'message' => $payload['message'] ?? '',
+                        'action_url' => $payload['link'] ?? null,
+                        'action_text' => 'Open in Admin',
+                    ],
+                    'ar' => [
+                        'subject' => $payload['type'] ?? 'تنبيه إداري',
+                        'title' => $payload['type'] ?? 'تنبيه إداري',
+                        'message' => $payload['message'] ?? '',
+                        'action_url' => $payload['link'] ?? null,
+                        'action_text' => 'فتح في الإدارة',
+                    ],
+                ]);
+            }
+        } else {
+            $report = Feedback::create([
+                'user_id' => auth()->id(),
+                'order_id' => $order->id,
+                'type' => 'report',
+                'rating' => 1,
+                'issue_type' => $validated['issue_type'],
+                'comment' => $validated['comment'],
+                'status' => 'open',
+            ]);
+        }
 
         $order->update(['status' => OrderStatus::Reported]);
 
@@ -194,7 +274,7 @@ class CustomerDashboardController extends Controller
                 'action_text' => 'View Reported Order',
                 'details' => [
                     'Order' => '#'.$order->order_number,
-                    'Issue' => str_replace('_', ' ', $report->issue_type ?? ''),
+                    'Issue' => str_replace('_', ' ', (string) $report->issue_type),
                 ],
             ],
             'ar' => [
@@ -222,7 +302,8 @@ class CustomerDashboardController extends Controller
         $balance = $this->walletService->getBalance($user);
 
         $transactions = $user->wallet?->transactions()
-            ->latest('created_at')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->paginate(20) ?? collect();
 
         $topupRequests = TopupRequest::where('user_id', $user->id)

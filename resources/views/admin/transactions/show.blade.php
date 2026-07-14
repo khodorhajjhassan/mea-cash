@@ -30,8 +30,8 @@
                 </div>
                 <div>
                     <label class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Amount</label>
-                    <p class="text-2xl font-bold @if($transaction->amount > 0) text-green-600 @else text-red-600 @endif">
-                        {{ $transaction->amount > 0 ? '+' : '' }}{{ number_format($transaction->amount, 2) }}
+                    <p class="text-2xl font-bold {{ $transaction->isCredit() ? 'text-green-600' : 'text-red-600' }}">
+                        {{ $transaction->signedAmountLabel() }}
                     </p>
                 </div>
                 <div>
@@ -115,8 +115,12 @@
         @endif
     </section>
 
+    @php
+        $previousAdminUrl = url()->previous();
+        $safeBackUrl = str_contains($previousAdminUrl, '/admin/') ? $previousAdminUrl : route('admin.transactions.index');
+    @endphp
     <div class="flex justify-between items-center">
-        <a href="{{ route('admin.transactions.index') }}" class="btn-ghost">Back to List</a>
+        <a href="{{ $safeBackUrl }}" class="btn-ghost">Back</a>
         @if($transaction->wallet?->user)
             <a href="{{ route('admin.users.show', $transaction->wallet->user) }}" class="btn-primary">View User Profile</a>
         @endif

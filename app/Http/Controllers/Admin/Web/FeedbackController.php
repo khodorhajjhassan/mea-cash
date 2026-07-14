@@ -65,17 +65,44 @@ class FeedbackController extends Controller
             'admin_response' => ['nullable', 'string', 'max:2000'],
         ]);
 
+        $adminResponse = filled($data['admin_response'] ?? null)
+            ? trim((string) $data['admin_response'])
+            : null;
+
         $feedback->update([
             'status' => $data['status'],
-            'admin_response' => $data['admin_response'] ?? null,
+            'admin_response' => $adminResponse,
             'resolved_at' => in_array($data['status'], ['resolved', 'refunded'], true) ? now() : null,
         ]);
+
+        if ($feedback->type === 'report' && $feedback->order && $adminResponse) {
+            $fulfillmentData = is_object($feedback->order->fulfillment_data) && method_exists($feedback->order->fulfillment_data, 'getArrayCopy')
+                ? $feedback->order->fulfillment_data->getArrayCopy()
+                : (array) ($feedback->order->fulfillment_data ?? []);
+
+            $reportHistory = $fulfillmentData['report_history'] ?? [];
+            if (!is_array($reportHistory)) {
+                $reportHistory = [];
+            }
+
+            $reportHistory[] = [
+                'status' => $data['status'],
+                'response' => $adminResponse,
+                'created_at' => now()->toIso8601String(),
+                'created_by' => (string) (auth()->user()?->name ?? 'Admin'),
+            ];
+
+            $feedback->order->update([
+                'fulfillment_data' => array_merge($fulfillmentData, ['report_history' => $reportHistory]),
+            ]);
+        }
 
         if ($feedback->type === 'report' && $feedback->order) {
             $feedback->order->update([
                 'status' => match ($data['status']) {
                     'open', 'reviewing' => OrderStatus::Reported,
                     'resolved' => OrderStatus::Completed,
+                    'refunded' => OrderStatus::Refunded,
                     default => $feedback->order->status,
                 },
             ]);

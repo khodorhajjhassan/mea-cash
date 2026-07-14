@@ -137,18 +137,21 @@ function bindModalEvents() {
 }
 
 async function handleShare() {
-    // Note: The resource version usually shares the subcategory if it's a subcategory-based modal
-    // but here we deal with currentProduct. For compatibility with the user's request:
-    const slug = currentProduct?.slug || '';
-    const url = window.location.origin + (isRtl() ? '/ar' : '/en') + '/subcategory/' + slug;
+    const url = new URL(window.location.origin + (isRtl() ? '/ar' : '/en'));
+    if (currentProduct?.slug) {
+        url.searchParams.set('subcategory', currentProduct.slug);
+    }
+    if (currentProduct?.id) {
+        url.searchParams.set('product', currentProduct.id);
+    }
     const title = localized(currentProduct);
     const text = descriptionOf(currentProduct) || title;
 
     try {
         if (navigator.share) {
-            await navigator.share({ title, text, url });
+            await navigator.share({ title, text, url: url.toString() });
         } else {
-            await navigator.clipboard.writeText(url);
+            await navigator.clipboard.writeText(url.toString());
             const toast = document.getElementById('sf-modal-toast');
             if (toast) {
                 toast.innerHTML = `<div class="p-3 bg-primary-container/10 border border-primary-container/30 text-primary-container rounded-xl text-xs uppercase tracking-widest">${isRtl() ? 'تم نسخ الرابط!' : 'Link copied!'}</div>`;
@@ -157,6 +160,20 @@ async function handleShare() {
     } catch (err) {
         if (err.name !== 'AbortError') console.error('Share failed:', err);
     }
+}
+
+function renderExpandablePreview(content, limit = 160) {
+    const normalizedContent = String(content || '').trim();
+    if (!normalizedContent) return { text: '', expandable: false };
+
+    if (normalizedContent.length <= limit) {
+        return { text: normalizedContent, expandable: false };
+    }
+
+    return {
+        text: `${normalizedContent.slice(0, limit).trimEnd()}...`,
+        expandable: true,
+    };
 }
 
 async function handlePurchaseNow() {

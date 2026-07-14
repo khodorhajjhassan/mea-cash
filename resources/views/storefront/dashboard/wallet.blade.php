@@ -188,16 +188,16 @@
 
             @if(method_exists($transactions, 'isNotEmpty') ? $transactions->isNotEmpty() : $transactions->count() > 0)
                 <div class="space-y-3 md:hidden">
-                    @foreach($transactions as $tx)
-                        @php
-                            $type = $tx->type->value ?? $tx->type;
-                            $isCredit = in_array($type, ['topup', 'refund'], true);
-                        @endphp
+                        @foreach($transactions as $tx)
+                            @php
+                                $type = $tx->type->value ?? $tx->type;
+                                $isCredit = method_exists($tx, 'isCredit') ? $tx->isCredit() : ((float) $tx->amount > 0);
+                            @endphp
                         <div class="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-4">
                             <div class="mb-3 flex items-center justify-between gap-3">
-                                <span class="sf-pill sf-pill-{{ $isCredit ? 'completed' : 'pending' }}">{{ ucfirst(str_replace('_', ' ', $type)) }}</span>
+                                <span class="sf-pill sf-pill-{{ $isCredit ? 'completed' : 'pending' }}">{{ method_exists($tx, 'typeLabel') ? $tx->typeLabel() : ucfirst(str_replace('_', ' ', $type)) }}</span>
                                 <span class="font-headline text-sm font-black" style="color: {{ $isCredit ? 'var(--sf-green)' : 'var(--sf-hot-red)' }};">
-                                    {{ $isCredit ? '+' : '-' }}${{ number_format($tx->amount, 2) }}
+                                    {{ method_exists($tx, 'signedAmountLabel') ? $tx->signedAmountLabel() : (($isCredit ? '+' : '-') . '$' . number_format(abs((float) $tx->amount), 2)) }}
                                 </span>
                             </div>
                             <div class="flex items-center justify-between border-t border-outline-variant/10 pt-3">
@@ -223,12 +223,12 @@
                             @foreach($transactions as $tx)
                                 @php
                                     $type = $tx->type->value ?? $tx->type;
-                                    $isCredit = in_array($type, ['topup', 'refund'], true);
+                                    $isCredit = method_exists($tx, 'isCredit') ? $tx->isCredit() : ((float) $tx->amount > 0);
                                 @endphp
                                 <tr>
-                                    <td><span class="sf-pill sf-pill-{{ $isCredit ? 'completed' : 'pending' }}">{{ ucfirst(str_replace('_', ' ', $type)) }}</span></td>
+                                    <td><span class="sf-pill sf-pill-{{ $isCredit ? 'completed' : 'pending' }}">{{ method_exists($tx, 'typeLabel') ? $tx->typeLabel() : ucfirst(str_replace('_', ' ', $type)) }}</span></td>
                                     <td class="font-bold" style="color: {{ $isCredit ? 'var(--sf-green)' : 'var(--sf-hot-red)' }};">
-                                        {{ $isCredit ? '+' : '-' }}${{ number_format($tx->amount, 2) }}
+                                        {{ method_exists($tx, 'signedAmountLabel') ? $tx->signedAmountLabel() : (($isCredit ? '+' : '-') . '$' . number_format(abs((float) $tx->amount), 2)) }}
                                     </td>
                                     <td>${{ number_format($tx->balance_after, 2) }}</td>
                                     <td class="text-xs text-on-surface-variant">{{ $tx->{"description_{$locale}"} ?? $tx->description_en }}</td>

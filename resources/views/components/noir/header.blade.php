@@ -17,6 +17,15 @@
 
     $storeNotifications = $storeNotifications ?? collect();
     $storeUnreadCount = $storeUnreadCount ?? 0;
+    $resolveStoreIcon = static function (?string $icon): string {
+        return match ($icon) {
+            'order' => 'receipt_long',
+            'wallet' => 'account_balance_wallet',
+            'star' => 'grade',
+            'verified', 'task_alt', 'support_agent', 'currency_exchange', 'receipt_long', 'payments', 'inventory_2', 'notifications' => $icon,
+            default => filled($icon) ? $icon : 'notifications',
+        };
+    };
 @endphp
 
 <header
@@ -169,6 +178,7 @@
                             <span class="material-symbols-outlined text-xl">notifications</span>
                             @if($storeUnreadCount > 0)
                                 <span
+                                    id="store-notification-count"
                                     class="absolute -top-1 -end-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary-container px-1 text-[10px] font-black text-on-secondary-container ring-2 ring-background">
                                     {{ $storeUnreadCount > 9 ? '9+' : $storeUnreadCount }}
                                 </span>
@@ -190,13 +200,14 @@
                             </div>
 
                             <div class="max-h-80 overflow-y-auto no-scrollbar">
+                                <div id="store-notification-list">
                                 @forelse($storeNotifications as $notification)
                                     <a href="{{ route('store.notifications.read', $notification->id) }}"
                                         class="flex gap-3 border-b border-outline-variant/8 p-4 transition hover:bg-primary-container/10 {{ $notification->read_at ? 'opacity-60' : '' }}">
                                         <span
                                             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary-container/15 bg-primary-container/10 text-primary-container">
                                             <span
-                                                class="material-symbols-outlined text-lg">{{ $notification->data['icon'] ?? 'notifications' }}</span>
+                                                class="material-symbols-outlined text-lg">{{ $resolveStoreIcon($notification->data['icon'] ?? 'notifications') }}</span>
                                         </span>
                                         <span class="min-w-0 flex-1">
                                             <span
@@ -211,6 +222,7 @@
                                     <div class="p-8 text-center font-label text-[10px] uppercase tracking-widest text-outline">
                                         {{ __('No notifications yet') }}</div>
                                 @endforelse
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -240,6 +252,12 @@
                 </div>
 
                 @auth
+                    <form method="POST" action="{{ route('logout') }}" class="inline-flex">
+                        @csrf
+                        <button type="submit" class="scale-95 active:opacity-80 transition-transform inline-flex text-rose-500 hover:text-rose-600" aria-label="{{ __('Sign out') }}">
+                            <span class="material-symbols-outlined" data-icon="logout">logout</span>
+                        </button>
+                    </form>
                     <a href="{{ route('store.dashboard') }}"
                         class="scale-95 active:opacity-80 transition-transform inline-flex">
                         <span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
@@ -261,6 +279,7 @@
             document.addEventListener('DOMContentLoaded', () => {
                 const bell = document.getElementById('store-notification-bell');
                 const dropdown = document.getElementById('store-notification-dropdown');
+                const notificationList = document.getElementById('store-notification-list');
                 const themeToggles = document.querySelectorAll('.mc-theme-toggle');
                 
                 const syncThemeToggles = () => {
@@ -290,6 +309,76 @@
 
                 if (!bell || !dropdown) return;
 
+                const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;',
+                }[char]));
+
+                const resolveNotificationIcon = (icon) => {
+                    const map = {
+                        order: 'receipt_long',
+                        wallet: 'account_balance_wallet',
+                        star: 'grade',
+                    };
+
+                    return map[icon] || icon || 'notifications';
+                };
+
+                const refreshNotifications = async () => {
+                    try {
+                        const response = await fetch(@js(route('store.notifications.index')), {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+
+                        if (!response.ok) return;
+
+                        const data = await response.json();
+                        const unreadCount = Number(data.unread_count || 0);
+                        const currentNotificationCount = document.getElementById('store-notification-count');
+
+                        if (notificationList) {
+                            if (Array.isArray(data.notifications) && data.notifications.length) {
+                                notificationList.innerHTML = data.notifications.map((notification) => `
+                                    <a href="${notification.read_url}" class="flex gap-3 border-b border-outline-variant/8 p-4 transition hover:bg-primary-container/10 ${notification.read_at ? 'opacity-60' : ''}">
+                                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary-container/15 bg-primary-container/10 text-primary-container">
+                                            <span class="material-symbols-outlined text-lg">${escapeHtml(resolveNotificationIcon(notification.icon))}</span>
+                                        </span>
+                                        <span class="min-w-0 flex-1">
+                                            <span class="block truncate font-headline text-xs font-black uppercase text-on-surface">${escapeHtml(notification.type || 'Notification')}</span>
+                                            <span class="mt-1 line-clamp-2 block text-xs leading-relaxed text-on-surface-variant">${escapeHtml(notification.message || '')}</span>
+                                            <span class="mt-1 block font-label text-[9px] uppercase tracking-widest text-outline">${escapeHtml(notification.created_at_human || '')}</span>
+                                        </span>
+                                    </a>
+                                `).join('');
+                            } else {
+                                notificationList.innerHTML = `<div class="p-8 text-center font-label text-[10px] uppercase tracking-widest text-outline">${@js(__('No notifications yet'))}</div>`;
+                            }
+                        }
+
+                        if (unreadCount > 0) {
+                            if (currentNotificationCount) {
+                                currentNotificationCount.textContent = unreadCount > 9 ? '9+' : String(unreadCount);
+                            } else {
+                                bell.insertAdjacentHTML('beforeend', `
+                                    <span id="store-notification-count" class="absolute -top-1 -end-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary-container px-1 text-[10px] font-black text-on-secondary-container ring-2 ring-background">
+                                        ${unreadCount > 9 ? '9+' : unreadCount}
+                                    </span>
+                                `);
+                            }
+                        } else {
+                            document.getElementById('store-notification-count')?.remove();
+                        }
+                    } catch (error) {
+                        console.error('Notification refresh failed:', error);
+                    }
+                };
+
                 bell.addEventListener('click', () => {
                     dropdown.classList.toggle('hidden');
                 });
@@ -299,6 +388,9 @@
                         dropdown.classList.add('hidden');
                     }
                 });
+
+                refreshNotifications();
+                window.setInterval(refreshNotifications, 60000);
             });
         </script>
     @endpush

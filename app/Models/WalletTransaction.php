@@ -52,4 +52,23 @@ class WalletTransaction extends Model
     {
         return $this->morphTo();
     }
+
+    public function isCredit(): bool
+    {
+        return (float) $this->amount > 0;
+    }
+
+    public function signedAmountLabel(): string
+    {
+        $amount = abs((float) $this->amount);
+
+        return sprintf('%s$%s', $this->isCredit() ? '+' : '-', number_format($amount, 2));
+    }
+
+    public function typeLabel(): string
+    {
+        $type = $this->type instanceof \BackedEnum ? $this->type->value : (string) $this->type;
+
+        return ucwords(str_replace('_', ' ', $type));
+    }
 }

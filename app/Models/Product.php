@@ -19,6 +19,8 @@ class Product extends Model
         'name_en',
         'description_ar',
         'description_en',
+        'how_to_redeem_ar',
+        'how_to_redeem_en',
         'slug',
         'delivery_type',
         'delivery_time_minutes',

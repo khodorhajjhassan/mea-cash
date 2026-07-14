@@ -8,6 +8,19 @@
     $refundUrl = route('store.page', ['locale' => $locale, 'slug' => 'refund-terms']);
 
     $siteSettings = $siteSettings ?? [];
+    $safeBrowsingUrl = 'https://transparencyreport.google.com/safe-browsing/search?url=meacash.io';
+    $activePaymentLogos = [
+        ['label' => 'Whish Money', 'src' => 'https://www.google.com/s2/favicons?domain=whish.money&sz=128'],
+        ['label' => 'USDT', 'src' => 'https://cdn.simpleicons.org/tether/26A17B'],
+        ['label' => 'Western Union', 'src' => 'https://cdn.simpleicons.org/westernunion/FFDD00'],
+    ];
+    $comingSoonPaymentLogos = [
+        ['label' => 'Mastercard', 'src' => 'https://cdn.simpleicons.org/mastercard'],
+        ['label' => 'Visa', 'src' => 'https://cdn.simpleicons.org/visa/1A1F71', 'src_dark' => 'https://cdn.simpleicons.org/visa/ffffff'],
+        ['label' => 'Google Pay', 'src' => 'https://cdn.simpleicons.org/googlepay', 'src_dark' => 'https://cdn.simpleicons.org/googlepay/ffffff'],
+        ['label' => 'Apple Pay', 'src' => 'https://cdn.simpleicons.org/applepay/000000', 'src_dark' => 'https://cdn.simpleicons.org/applepay/ffffff'],
+        ['label' => 'PayPal', 'src' => 'https://cdn.simpleicons.org/paypal'],
+    ];
 
     $footerSocials = [
         ['key' => 'social_facebook',  'label' => 'Facebook',  'icon' => '<path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>'],
@@ -72,6 +85,31 @@
                         @endif
                     @endforeach
                 </div>
+
+                <div class="mt-6">
+                    <div class="flex flex-wrap items-center gap-3">
+                        @foreach($activePaymentLogos as $paymentLogo)
+                            <div class="flex h-11 w-16 items-center justify-center rounded-2xl border border-outline-variant/10 bg-transparent p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+                                <img src="{{ $paymentLogo['src'] }}" alt="{{ $paymentLogo['label'] }}" class="h-8 w-auto max-w-[3.25rem] object-contain" loading="lazy">
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="mt-4 font-label text-[9px] font-black uppercase tracking-[0.26em] text-outline">
+                        Coming Soon
+                    </div>
+                    <div class="mt-3 flex flex-wrap items-center gap-2">
+                        @foreach($comingSoonPaymentLogos as $paymentLogo)
+                            <div class="flex h-10 min-w-[4.1rem] items-center justify-center rounded-2xl border border-outline-variant/10 bg-transparent px-2.5 py-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.05)]">
+                                @if(!empty($paymentLogo['src_dark']))
+                                    <img src="{{ $paymentLogo['src'] }}" alt="{{ $paymentLogo['label'] }}" class="mc-logo-light h-6 w-auto max-w-[4.75rem] object-contain" loading="lazy">
+                                    <img src="{{ $paymentLogo['src_dark'] }}" alt="{{ $paymentLogo['label'] }}" class="mc-logo-dark h-6 w-auto max-w-[4.75rem] object-contain" loading="lazy">
+                                @else
+                                    <img src="{{ $paymentLogo['src'] }}" alt="{{ $paymentLogo['label'] }}" class="h-6 w-auto max-w-[4.75rem] object-contain" loading="lazy">
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
 
             <div>
@@ -118,6 +156,17 @@
             <p class="text-center font-headline text-[10px] uppercase tracking-[0.24em] text-on-surface-variant md:text-start md:tracking-[0.3em]">
                 &copy; {{ date('Y') }} MeaCash. HIGH-FIDELITY DIGITAL ASSETS. ALL RIGHTS RESERVED.
             </p>
+            <a href="{{ $safeBrowsingUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-3 rounded-2xl border border-outline-variant/15 bg-surface-container-high/35 px-4 py-3 transition hover:border-primary-container/40 hover:text-primary-container">
+                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M12 2 4 5v6c0 5.25 3.44 10.17 8 11 4.56-.83 8-5.75 8-11V5l-8-3Zm-1.1 13.3-3.2-3.2 1.4-1.4 1.8 1.79 4-4 1.4 1.42-5.4 5.39Z"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="block font-headline text-xs font-black uppercase tracking-widest">{{ __('Google Safe Browsing') }}</span>
+                    <span class="block font-label text-[9px] uppercase tracking-[0.22em] text-outline">{{ __('Check meacash.io') }}</span>
+                </span>
+            </a>
         </div>
     </div>
 </footer>

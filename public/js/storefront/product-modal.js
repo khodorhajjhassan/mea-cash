@@ -19,6 +19,10 @@ let currentQuantity = 1;
 let currentToast = '';
 let previousBodyOverflow = '';
 let previousBodyOverflowX = '';
+let expandedContent = {
+    description: false,
+    redeem: false,
+};
 
 const getBackdrop = () => document.getElementById('sf-modal-backdrop');
 const getHeaderContent = () => document.getElementById('sf-modal-header-content');
@@ -114,6 +118,8 @@ const orderTypeLabel = (product) => {
 const friendlyType = (product) => {
     return [orderTypeLabel(product), deliveryLabel(product)].filter(Boolean).join(' / ');
 };
+const normalizedText = (value) => String(value ?? '').trim();
+const firstNonEmpty = (...values) => values.map(normalizedText).find((value) => value !== '') || '';
 const compactNumber = (value) => {
     const number = Number(value);
     if (!Number.isFinite(number) || number <= 0) return '';
@@ -136,7 +142,8 @@ function selectedUnitPrice() {
     if (selectedPackage) return Number(selectedPackage.selling_price || 0);
 
     if (selectedProduct.product_type === 'custom_quantity') {
-        return Number(selectedProduct.selling_price || 0) * currentQuantity;
+        const quantity = Number.isFinite(currentQuantity) && currentQuantity > 0 ? currentQuantity : 0;
+        return Number(selectedProduct.selling_price || 0) * quantity;
     }
 
     return Number(selectedProduct.selling_price || 0);
@@ -177,6 +184,10 @@ function syncProductDefaults(product) {
     selectedPackage = null;
     selectedFormKey = (product.forms?.find((form) => form.is_default) || product.forms?.[0])?.key || null;
     currentQuantity = Number(product.min_quantity || 1);
+    expandedContent = {
+        description: false,
+        redeem: false,
+    };
 }
 
 async function openSubcategoryModal(slug, productId = null) {
@@ -207,6 +218,17 @@ function closeProductModal() {
     selectedFormKey = null;
     currentQuantity = 1;
     currentToast = '';
+    expandedContent = {
+        description: false,
+        redeem: false,
+    };
+
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('subcategory') || url.searchParams.has('product')) {
+        url.searchParams.delete('subcategory');
+        url.searchParams.delete('product');
+        window.history.replaceState({}, '', url.toString());
+    }
 }
 
 window.openSubcategoryModal = openSubcategoryModal;
@@ -273,6 +295,12 @@ function renderHeader() {
     const name = localized(currentSubcategory);
     const categoryName = currentSubcategory.category?.name || currentSubcategory.category_name || '';
     const subcategoryDescription = descriptionOf(currentSubcategory);
+    const subcategoryHowToRedeem = firstNonEmpty(
+        localized(currentSubcategory, 'how_to_redeem'),
+        currentSubcategory?.how_to_redeem,
+        currentSubcategory?.how_to_redeem_en,
+        currentSubcategory?.how_to_redeem_ar
+    );
 
     header.innerHTML = `
         <div class="h-11 w-1.5 shrink-0 rounded-full bg-primary-container shadow-[0_0_35px_rgba(0,240,255,0.35)]"></div>
@@ -284,6 +312,12 @@ function renderHeader() {
                 ${[categoryName, `${currentSubcategory.products?.length || 0} assets`].filter(Boolean).map(escapeHtml).join(' / ')}
             </p>
             ${subcategoryDescription ? `<p class="mt-2 line-clamp-2 max-w-xl text-xs leading-relaxed text-on-surface-variant/70">${escapeHtml(subcategoryDescription)}</p>` : ''}
+            ${subcategoryHowToRedeem ? `
+                <div class="mt-3 max-w-xl rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-3">
+                    <div class="mb-1 font-label text-[9px] font-black uppercase tracking-widest text-primary-container">${escapeHtml(isRtl() ? 'طريقة الاسترداد' : 'How To Redeem')}</div>
+                    <div class="text-xs leading-relaxed text-on-surface-variant/80">${escapeHtml(subcategoryHowToRedeem)}</div>
+                </div>
+            ` : ''}
         </div>
     `;
 }
@@ -314,15 +348,15 @@ function renderSelectionCard(item) {
 
     return `
         <button type="button" data-select-product="${item.product.id}" data-select-package="${item.package?.id || ''}"
-            class="group relative flex min-h-[132px] flex-col rounded-xl border p-2 text-start transition-all duration-300 sm:min-h-[178px] sm:rounded-2xl sm:p-3 ${active ? 'border-primary-container bg-surface-container-high shadow-[0_0_22px_rgba(0,240,255,0.2)] ring-1 ring-primary-container/70' : 'border-transparent bg-surface-container-low hover:-translate-y-1 hover:border-primary-container/30 hover:bg-surface-container-high'}">
+            class="group relative flex min-h-[118px] flex-col rounded-xl border p-2 text-start transition-all duration-300 sm:min-h-[178px] sm:rounded-2xl sm:p-3 ${active ? 'border-primary-container bg-surface-container-high shadow-[0_0_22px_rgba(0,240,255,0.2)] ring-1 ring-primary-container/70' : 'border-transparent bg-surface-container-low hover:-translate-y-1 hover:border-primary-container/30 hover:bg-surface-container-high'}">
             ${badge}
             ${active ? `<span class="material-symbols-outlined absolute top-2 ${isRtl() ? 'left-2' : 'right-2'} text-lg text-primary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>` : ''}
-            <div class="mb-2 flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-surface-container-lowest/60 sm:mb-3">
-                <img src="${escapeHtml(imageUrl({ image: item.image }))}" alt="${escapeHtml(item.title)}" class="h-full w-full object-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/meacash-logo-128.png'">
+            <div class="mb-2 flex aspect-square max-h-[82px] items-center justify-center overflow-hidden rounded-xl bg-surface-container-lowest/60 sm:mb-3 sm:max-h-none">
+                <img src="${escapeHtml(imageUrl({ image: item.image }))}" alt="${escapeHtml(item.title)}" class="h-full w-full object-contain p-1 sm:object-cover sm:p-0" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/meacash-logo-128.png'">
             </div>
-            <div class="line-clamp-2 min-h-[30px] font-headline text-[10px] font-black uppercase leading-tight text-on-surface sm:min-h-[42px] sm:text-[13px]">${escapeHtml(item.title)}</div>
-            <div class="mt-1 truncate font-label text-[8px] font-bold uppercase tracking-widest text-outline sm:mt-2 sm:text-[9px]">${escapeHtml(item.subtitle)}</div>
-            <div class="mt-auto pt-2 font-headline text-sm font-black text-primary-container sm:pt-3 sm:text-base">${money(item.price)}</div>
+            <div class="line-clamp-2 min-h-[26px] font-headline text-[9px] font-black uppercase leading-tight text-on-surface sm:min-h-[42px] sm:text-[13px]">${escapeHtml(item.title)}</div>
+            <div class="mt-1 truncate font-label text-[7px] font-bold uppercase tracking-[0.16em] text-outline sm:mt-2 sm:text-[9px]">${escapeHtml(item.subtitle)}</div>
+            <div class="mt-auto pt-1.5 font-headline text-[13px] font-black text-primary-container sm:pt-3 sm:text-base">${money(item.price)}</div>
         </button>
     `;
 }
@@ -332,7 +366,17 @@ function renderSummary() {
     if (!summary || !selectedProduct) return;
 
     const title = selectedPackage ? localized(selectedPackage) : localized(selectedProduct);
-    const subtitle = descriptionOf(selectedProduct) || descriptionOf(currentSubcategory) || localized(selectedProduct);
+    const subtitle = firstNonEmpty(
+        descriptionOf(selectedProduct),
+        descriptionOf(currentSubcategory),
+        localized(selectedProduct)
+    );
+    const productHowToRedeem = firstNonEmpty(
+        localized(selectedProduct, 'how_to_redeem'),
+        selectedProduct?.how_to_redeem,
+        selectedProduct?.how_to_redeem_en,
+        selectedProduct?.how_to_redeem_ar
+    );
     const type = friendlyType(selectedProduct);
     const activeForm = selectedProduct.forms?.find((form) => form.key === selectedFormKey) || selectedProduct.forms?.[0] || null;
     const fields = [
@@ -342,26 +386,115 @@ function renderSummary() {
 
     summary.innerHTML = `
         <div>
-            <h2 class="mb-4 font-label text-xs font-bold uppercase tracking-widest text-outline">Selected Product</h2>
-            <div class="mb-5 flex flex-wrap items-center gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-highest/50 p-3 sm:flex-nowrap">
-                <div class="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-outline-variant/20 bg-surface">
+            <h2 class="mb-3 font-label text-[11px] font-bold uppercase tracking-widest text-outline">Selected Product</h2>
+            <div class="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-outline-variant/10 bg-surface-container-highest/50 p-2.5 sm:flex-nowrap sm:gap-3 sm:p-3">
+                <div class="hidden h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-outline-variant/20 bg-surface sm:block">
                     <img src="${escapeHtml(selectedImage())}" alt="${escapeHtml(title)}" class="h-full w-full object-cover" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/meacash-logo-128.png'">
                 </div>
                 <div class="min-w-0 flex-1">
-                    <div class="font-headline text-sm font-black uppercase leading-tight text-on-surface">${escapeHtml(title)}</div>
-                    <div class="mt-1 font-label text-[9px] uppercase tracking-widest text-primary-container">${escapeHtml(type)}</div>
+                    <div class="font-headline text-[13px] font-black uppercase leading-tight text-on-surface sm:text-sm">${escapeHtml(title)}</div>
+                    <div class="mt-1 font-label text-[8px] uppercase tracking-[0.16em] text-primary-container sm:text-[9px] sm:tracking-widest">${escapeHtml(type)}</div>
                 </div>
                 <div class="w-full text-start sm:w-auto sm:text-end">
-                    <div id="modal-live-price" class="font-headline text-base font-black text-primary-container">${money(selectedUnitPrice())}</div>
-                    <div class="font-label text-[10px] uppercase tracking-tight text-outline">${__('total_price')}</div>
+                    <div id="modal-live-price" class="font-headline text-[15px] font-black text-primary-container sm:text-base">${money(selectedUnitPrice())}</div>
+                    <div class="font-label text-[9px] uppercase tracking-tight text-outline sm:text-[10px]">${__('total_price')}</div>
                 </div>
             </div>
-            ${subtitle ? `<div class="mb-5 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-4 text-xs leading-relaxed text-on-surface-variant">${escapeHtml(subtitle)}</div>` : ''}
+            ${renderExpandablePanel('description', isRtl() ? 'الوصف' : 'Description', subtitle)}
+            ${renderExpandablePanel('redeem', isRtl() ? 'طريقة الاسترداد' : 'How To Redeem', productHowToRedeem)}
 
             ${renderFormTabs()}
             ${renderQuantity()}
             <div class="space-y-4">${fields.map(renderField).join('')}</div>
-            ${currentToast}
+            <div id="modal-inline-toast">${currentToast}</div>
+        </div>
+    `;
+}
+
+function closePurchaseConfirmModal() {
+    document.getElementById('purchase-confirm-backdrop')?.remove();
+}
+
+function openPurchaseConfirmModal(onConfirm) {
+    closePurchaseConfirmModal();
+
+    const title = selectedPackage ? localized(selectedPackage) : localized(selectedProduct);
+    const quantity = selectedProduct?.product_type === 'custom_quantity' ? currentQuantity : 1;
+    const backdrop = document.createElement('div');
+    backdrop.id = 'purchase-confirm-backdrop';
+    backdrop.className = 'fixed inset-0 z-[120] flex items-center justify-center bg-background/85 p-4 backdrop-blur-xl';
+    backdrop.innerHTML = `
+        <div class="absolute inset-0" data-close-purchase-confirm="1"></div>
+        <div class="relative w-full max-w-md rounded-[28px] border border-outline-variant/20 bg-surface-container p-6 shadow-[0_28px_90px_rgba(0,0,0,0.65)]">
+            <button type="button" data-close-purchase-confirm="1" class="absolute end-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-lowest text-outline transition hover:text-secondary-container">
+                <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+            <div class="mb-6 pe-10">
+                <p class="font-headline text-xl font-black uppercase tracking-tight text-on-surface">
+                    ${escapeHtml(isRtl() ? 'تأكيد الشراء' : 'Confirm Purchase')}
+                </p>
+                <p class="mt-2 text-xs leading-relaxed text-on-surface-variant">
+                    ${escapeHtml(isRtl() ? 'هل أنت متأكد أنك تريد شراء هذا المنتج؟' : 'Are you sure you want to purchase this product?')}
+                </p>
+            </div>
+            <div class="rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-4">
+                <div class="font-headline text-sm font-black uppercase text-on-surface">${escapeHtml(title)}</div>
+                <div class="mt-2 flex items-center justify-between gap-3 text-xs text-on-surface-variant">
+                    <span>${escapeHtml(isRtl() ? 'الكمية' : 'Quantity')}</span>
+                    <span class="font-black text-on-surface">${escapeHtml(String(quantity))}</span>
+                </div>
+                <div class="mt-2 flex items-center justify-between gap-3 text-xs text-on-surface-variant">
+                    <span>${escapeHtml(isRtl() ? 'السعر الإجمالي' : 'Total Price')}</span>
+                    <span class="font-headline text-base font-black text-primary-container">${escapeHtml(money(selectedUnitPrice()))}</span>
+                </div>
+            </div>
+            <div class="mt-6 flex gap-3">
+                <button type="button" data-close-purchase-confirm="1" class="flex-1 rounded-2xl border border-outline-variant/20 bg-surface-container-low px-4 py-3 font-label text-[11px] font-black uppercase tracking-[0.2em] text-on-surface-variant transition hover:bg-surface-container-high">
+                    ${escapeHtml(isRtl() ? 'إلغاء' : 'Cancel')}
+                </button>
+                <button type="button" id="purchase-confirm-btn" class="flex-1 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container px-4 py-3 font-headline text-[11px] font-black uppercase tracking-[0.2em] text-on-primary-container transition hover:scale-[1.01] active:scale-[0.99]">
+                    ${escapeHtml(isRtl() ? 'تأكيد الشراء' : 'Confirm Purchase')}
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(backdrop);
+
+    backdrop.querySelectorAll('[data-close-purchase-confirm="1"]').forEach((element) => {
+        element.addEventListener('click', closePurchaseConfirmModal);
+    });
+
+    backdrop.querySelector('#purchase-confirm-btn')?.addEventListener('click', () => {
+        closePurchaseConfirmModal();
+        onConfirm();
+    });
+}
+
+function renderExpandablePanel(type, label, content) {
+    if (!content) return '';
+
+    const expanded = expandedContent[type] === true;
+    const previewLimit = type === 'redeem' ? 120 : 160;
+    const normalizedContent = String(content).trim();
+    const shouldCollapse = normalizedContent.length > previewLimit;
+    const previewText = shouldCollapse
+        ? `${normalizedContent.slice(0, previewLimit).trimEnd()}...`
+        : normalizedContent;
+    const bodyText = expanded || !shouldCollapse ? normalizedContent : previewText;
+    const toggleLabel = expanded
+        ? (isRtl() ? 'عرض أقل' : 'Show less')
+        : (isRtl() ? 'عرض المزيد' : 'Load more');
+
+    return `
+        <div class="mb-5 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-4">
+            <div class="mb-2 font-label text-[10px] font-black uppercase tracking-widest text-primary-container">${escapeHtml(label)}</div>
+            <div class="text-xs leading-relaxed text-on-surface-variant">${escapeHtml(bodyText)}</div>
+            ${shouldCollapse ? `
+                <button type="button" data-toggle-panel="${escapeHtml(type)}" class="mt-3 font-label text-[10px] font-black uppercase tracking-widest text-secondary-container hover:text-primary-container">
+                    ${toggleLabel}
+                </button>
+            ` : ''}
         </div>
     `;
 }
@@ -391,11 +524,8 @@ function renderQuantity() {
                     ${__('min', {val: Number(selectedProduct.min_quantity || 1)})} / ${__('max', {val: selectedProduct.max_quantity ? Number(selectedProduct.max_quantity) : '∞'})}
                 </div>
             </div>
-            <div class="relative">
-                <input id="qty-input" type="number" min="${selectedProduct.min_quantity || 1}" max="${selectedProduct.max_quantity || ''}" value="${currentQuantity}"
-                    class="w-full rounded-xl border-0 bg-surface-container-lowest px-4 py-3 font-headline text-lg font-black text-secondary-container placeholder:text-outline-variant outline-none">
-                <div class="absolute bottom-0 start-0 h-[2px] w-0 bg-gradient-to-r from-primary-container to-secondary-container transition-all duration-500 group-focus-within:w-full"></div>
-            </div>
+            <input id="qty-input" type="number" min="${selectedProduct.min_quantity || 1}" max="${selectedProduct.max_quantity || ''}" value="${currentQuantity}"
+                class="w-full rounded-xl border border-outline-variant/20 bg-surface-container-lowest px-4 py-3 font-headline text-lg font-black text-secondary-container placeholder:text-outline-variant outline-none transition focus:border-primary-container focus:ring-2 focus:ring-primary-container/15">
             <div id="err-quantity" class="mt-2 px-1 font-label text-[10px] uppercase tracking-widest text-error hidden"></div>
             <p class="mt-2 px-1 font-label text-[10px] uppercase tracking-widest text-outline">Rate: ${money(selectedProduct.price_per_unit || selectedProduct.selling_price)} each</p>
         </div>
@@ -427,7 +557,7 @@ function renderField(field) {
         return `
             <div class="group">
                 <label class="mb-2 ms-1 block font-label text-[10px] font-bold uppercase tracking-widest text-outline">${label}</label>
-                <select name="form_data[${escapeHtml(field.key)}]" class="w-full rounded-xl border-0 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface outline-none">
+                <select name="form_data[${escapeHtml(field.key)}]" data-field-key="${escapeHtml(field.key)}" class="w-full rounded-xl border border-outline-variant/20 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface outline-none transition focus:border-primary-container focus:ring-2 focus:ring-primary-container/15">
                     <option value="">${escapeHtml(field.placeholder || __('select_option'))}</option>
                     ${options}
                 </select>
@@ -439,11 +569,8 @@ function renderField(field) {
     return `
         <div class="group">
             <label class="mb-2 ms-1 block font-label text-[10px] font-bold uppercase tracking-widest text-outline">${label}</label>
-            <div class="relative">
-                <input type="${escapeHtml(field.type || 'text')}" name="form_data[${escapeHtml(field.key)}]" placeholder="${escapeHtml(field.placeholder || '')}"${numberAttrs}
-                    class="w-full rounded-xl border-0 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface placeholder:text-outline-variant outline-none">
-                <div class="absolute bottom-0 start-0 h-[2px] w-0 bg-gradient-to-r from-primary-container to-secondary-container transition-all duration-500 group-focus-within:w-full"></div>
-            </div>
+            <input type="${escapeHtml(field.type || 'text')}" name="form_data[${escapeHtml(field.key)}]" data-field-key="${escapeHtml(field.key)}" placeholder="${escapeHtml(field.placeholder || '')}"${numberAttrs}
+                class="w-full rounded-xl border border-outline-variant/20 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface placeholder:text-outline-variant outline-none transition focus:border-primary-container focus:ring-2 focus:ring-primary-container/15">
             ${rangeHint}
             <div id="err-${escapeHtml(field.key)}" class="mt-1 hidden font-label text-[10px] uppercase tracking-widest text-error"></div>
         </div>
@@ -463,11 +590,11 @@ function renderFooter() {
     if (!isAuthenticated()) {
         footer.innerHTML = `
             <div class="flex gap-3">
-                <a href="${LOGIN_URL()}" class="flex flex-1 items-center justify-center gap-3 rounded-2xl border border-primary-container/30 bg-surface-container-high py-4 font-headline text-sm font-black uppercase tracking-[0.22em] text-primary-container shadow-[0_0_28px_rgba(0,240,255,0.12)] transition-all hover:border-primary-container hover:bg-primary-container hover:text-on-primary-container">
+                <a href="${LOGIN_URL()}" class="flex flex-1 items-center justify-center gap-2.5 rounded-2xl border border-primary-container/30 bg-surface-container-high py-3.5 font-headline text-[11px] font-black uppercase tracking-[0.18em] text-primary-container shadow-[0_0_28px_rgba(0,240,255,0.12)] transition-all hover:border-primary-container hover:bg-primary-container hover:text-on-primary-container md:gap-3 md:py-4 md:text-sm md:tracking-[0.22em]">
                     <span class="material-symbols-outlined text-lg">lock</span>
                     <span>${isRtl() ? 'سجل الدخول أولاً' : 'Login First'}</span>
                 </a>
-                ${shareBtn}
+                <div class="hidden sm:block">${shareBtn}</div>
             </div>
             <p class="mt-3 text-center font-label text-[10px] uppercase tracking-widest text-outline">
                 ${isRtl() ? 'يجب تسجيل الدخول لإكمال الشراء' : 'Please login to purchase this product'}
@@ -478,11 +605,11 @@ function renderFooter() {
 
     footer.innerHTML = `
         <div class="flex gap-3">
-            <button id="purchase-now-btn" type="button" class="flex flex-1 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container py-4 font-headline text-sm font-black uppercase tracking-[0.22em] text-on-primary-container shadow-[0_0_35px_rgba(0,240,255,0.22)] transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
+            <button id="purchase-now-btn" type="button" class="flex flex-1 items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container py-3.5 font-headline text-[11px] font-black uppercase tracking-[0.18em] text-on-primary-container shadow-[0_0_35px_rgba(0,240,255,0.22)] transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 md:gap-3 md:py-4 md:text-sm md:tracking-[0.22em]">
                 <span>${isRtl() ? 'شراء الآن' : 'Purchase Now'}</span>
                 <span class="material-symbols-outlined">bolt</span>
             </button>
-            ${shareBtn}
+            <div class="hidden sm:block">${shareBtn}</div>
         </div>
     `;
 }
@@ -512,45 +639,41 @@ function bindEvents() {
         });
     });
 
+    document.querySelectorAll('[data-toggle-panel]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const panel = button.dataset.togglePanel;
+            expandedContent[panel] = !expandedContent[panel];
+            renderSummary();
+            renderFooter();
+            bindEvents();
+        });
+    });
+
     const quantityInput = document.getElementById('qty-input');
     if (quantityInput) {
         quantityInput.addEventListener('input', (event) => {
-            const min = Number(selectedProduct.min_quantity || 1);
-            const max = Number(selectedProduct.max_quantity || Number.MAX_SAFE_INTEGER);
-            const next = Number(event.target.value || min);
-            currentQuantity = Math.max(min, Math.min(max, next));
+            const rawValue = String(event.target.value ?? '').trim();
+            currentQuantity = rawValue === '' ? Number.NaN : Number(rawValue);
+            validateQuantityField(false);
             const livePrice = document.getElementById('modal-live-price');
             if (livePrice) livePrice.textContent = money(selectedUnitPrice());
+        });
+
+        quantityInput.addEventListener('blur', () => {
+            validateQuantityField(true);
         });
     }
 
-    document.querySelectorAll('[name^="form_data"][type="number"]').forEach((input) => {
-        input.addEventListener('input', () => {
-            const min = input.min !== '' ? Number(input.min) : null;
-            const max = input.max !== '' ? Number(input.max) : null;
-            const value = Number(input.value);
-            const match = input.name.match(/\[(.*?)\]/);
-            const error = match ? document.getElementById(`err-${match[1]}`) : null;
-
-            if (!error || input.value === '') {
-                error?.classList.add('hidden');
-                return;
-            }
-
-            if ((Number.isFinite(min) && value < min) || (Number.isFinite(max) && value > max)) {
-                error.textContent = [
-                    Number.isFinite(min) ? __('min', {val: compactNumber(min)}) : '',
-                    Number.isFinite(max) ? __('max', {val: compactNumber(max)}) : '',
-                ].filter(Boolean).join(' / ');
-                error.classList.remove('hidden');
-            } else {
-                error.textContent = '';
-                error.classList.add('hidden');
-            }
-
+    document.querySelectorAll('[data-field-key]').forEach((input) => {
+        const validateCurrentField = () => {
+            validateDynamicField(input);
             const livePrice = document.getElementById('modal-live-price');
             if (livePrice) livePrice.textContent = money(selectedUnitPrice());
-        });
+        };
+
+        input.addEventListener('input', validateCurrentField);
+        input.addEventListener('change', validateCurrentField);
+        input.addEventListener('blur', validateCurrentField);
     });
 
     document.getElementById('purchase-now-btn')?.addEventListener('click', handlePurchaseNow);
@@ -588,29 +711,221 @@ function clearErrors() {
     });
 }
 
+function setCurrentToast(message = '') {
+    currentToast = message;
+    const host = document.getElementById('modal-inline-toast');
+    if (host) host.innerHTML = message;
+}
+
+function activeFields() {
+    const activeForm = selectedProduct?.forms?.find((form) => form.key === selectedFormKey) || selectedProduct?.forms?.[0] || null;
+
+    return [
+        ...(selectedProduct?.fields || []),
+        ...(activeForm?.fields || []),
+    ];
+}
+
 function hasFieldErrors(errors) {
     return Object.keys(errors || {}).length > 0;
 }
 
+function setFieldError(fieldKey, message = '') {
+    const el = document.getElementById(`err-${fieldKey}`);
+    if (!el) return;
+
+    if (message) {
+        el.textContent = message;
+        el.classList.remove('hidden');
+        return;
+    }
+
+    el.textContent = '';
+    el.classList.add('hidden');
+}
+
+function focusFieldByKey(fieldKey) {
+    const input = fieldKey === 'quantity'
+        ? document.getElementById('qty-input')
+        : document.querySelector(`[data-field-key="${CSS.escape(fieldKey)}"]`);
+
+    if (!input) return;
+
+    input.focus({ preventScroll: true });
+    input.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+}
+
+function validateDynamicField(input) {
+    if (!input?.dataset?.fieldKey) return true;
+
+    const field = activeFields().find((item) => item.key === input.dataset.fieldKey);
+    if (!field) return true;
+
+    const rawValue = String(input.value ?? '').trim();
+
+    if (field.required && rawValue === '') {
+        setFieldError(field.key, __('required'));
+        return false;
+    }
+
+    if (rawValue === '') {
+        setFieldError(field.key);
+        return true;
+    }
+
+    if (field.type === 'number') {
+        const numericValue = Number(rawValue);
+        const min = field.min !== null && field.min !== undefined && field.min !== '' ? Number(field.min) : null;
+        const max = field.max !== null && field.max !== undefined && field.max !== '' ? Number(field.max) : null;
+
+        if (!Number.isFinite(numericValue)) {
+            setFieldError(field.key, __('invalid_value'));
+            return false;
+        }
+
+        if ((Number.isFinite(min) && numericValue < min) || (Number.isFinite(max) && numericValue > max)) {
+            setFieldError(field.key, [
+                Number.isFinite(min) ? __('min', { val: compactNumber(min) }) : '',
+                Number.isFinite(max) ? __('max', { val: compactNumber(max) }) : '',
+            ].filter(Boolean).join(' / '));
+            return false;
+        }
+    }
+
+    setFieldError(field.key);
+    return true;
+}
+
+function validateQuantityField(showRequired = false) {
+    if (selectedProduct?.product_type !== 'custom_quantity') return true;
+
+    const input = document.getElementById('qty-input');
+    if (!input) return true;
+
+    const rawValue = String(input.value ?? '').trim();
+    const min = Number(selectedProduct.min_quantity || 1);
+    const max = Number(selectedProduct.max_quantity || Number.MAX_SAFE_INTEGER);
+
+    if (rawValue === '') {
+        setFieldError('quantity', showRequired ? __('required') : '');
+        return !showRequired;
+    }
+
+    const numericValue = Number(rawValue);
+    if (!Number.isFinite(numericValue)) {
+        setFieldError('quantity', __('invalid_value'));
+        return false;
+    }
+
+    if (numericValue < min || numericValue > max) {
+        setFieldError('quantity', [
+            __('min', { val: compactNumber(min) }),
+            Number.isFinite(max) && max !== Number.MAX_SAFE_INTEGER ? __('max', { val: compactNumber(max) }) : '',
+        ].filter(Boolean).join(' / '));
+        return false;
+    }
+
+    setFieldError('quantity');
+    return true;
+}
+
 function showErrors(errors) {
+    let firstFieldKey = null;
+
     Object.entries(errors || {}).forEach(([key, messages]) => {
         // Handle "form_data.field_key" and flat "quantity" or other keys
-        const fieldKey = key.startsWith('form_data.') ? key.replace('form_data.', '') : key;
-        const el = document.getElementById(`err-${fieldKey}`);
-        if (el) {
-            el.textContent = messages[0] || 'Invalid value';
-            el.classList.remove('hidden');
+        const fieldKey = key.startsWith('form_data.') ? key.split('.').pop() : key;
+        if (!firstFieldKey) firstFieldKey = fieldKey;
+        setFieldError(fieldKey, messages[0] || __('invalid_value'));
+    });
+
+    if (firstFieldKey) {
+        focusFieldByKey(firstFieldKey);
+    }
+}
+
+function validatePurchaseInputs() {
+    const errors = {};
+
+    activeFields().forEach((field) => {
+        const input = document.querySelector(`[data-field-key="${CSS.escape(field.key)}"]`);
+        if (!input) return;
+
+        const rawValue = String(input.value ?? '').trim();
+
+        if (field.required && rawValue === '') {
+            errors[field.key] = [__('required')];
+            return;
+        }
+
+        if (rawValue === '') {
+            return;
+        }
+
+        if (field.type === 'number') {
+            const numericValue = Number(rawValue);
+            const min = field.min !== null && field.min !== undefined && field.min !== '' ? Number(field.min) : null;
+            const max = field.max !== null && field.max !== undefined && field.max !== '' ? Number(field.max) : null;
+
+            if (!Number.isFinite(numericValue)) {
+                errors[field.key] = [__('invalid_value')];
+                return;
+            }
+
+            if ((Number.isFinite(min) && numericValue < min) || (Number.isFinite(max) && numericValue > max)) {
+                errors[field.key] = [[
+                    Number.isFinite(min) ? __('min', { val: compactNumber(min) }) : '',
+                    Number.isFinite(max) ? __('max', { val: compactNumber(max) }) : '',
+                ].filter(Boolean).join(' / ')];
+            }
         }
     });
+
+    if (selectedProduct?.product_type === 'custom_quantity') {
+        const quantityInput = document.getElementById('qty-input');
+        const min = Number(selectedProduct.min_quantity || 1);
+        const max = Number(selectedProduct.max_quantity || Number.MAX_SAFE_INTEGER);
+        const rawQuantity = String(quantityInput?.value ?? '').trim();
+
+        if (rawQuantity === '') {
+            errors.quantity = [__('required')];
+            return errors;
+        }
+
+        if (!Number.isFinite(currentQuantity) || currentQuantity < min || currentQuantity > max) {
+            errors.quantity = [[
+                __('min', { val: compactNumber(min) }),
+                Number.isFinite(max) && max !== Number.MAX_SAFE_INTEGER ? __('max', { val: compactNumber(max) }) : '',
+            ].filter(Boolean).join(' / ')];
+        }
+    }
+
+    return errors;
 }
 
 async function handlePurchaseNow() {
+    if (!selectedProduct) return;
+
+    clearErrors();
+    setCurrentToast('');
+    const validationErrors = validatePurchaseInputs();
+
+    if (hasFieldErrors(validationErrors)) {
+        showErrors(validationErrors);
+        return;
+    }
+
+    openPurchaseConfirmModal(() => executePurchaseNow());
+}
+
+async function executePurchaseNow() {
     if (!selectedProduct) return;
 
     const button = document.getElementById('purchase-now-btn');
     const formData = {};
 
     clearErrors();
+    setCurrentToast('');
     document.querySelectorAll('[name^="form_data"]').forEach((input) => {
         const match = input.name.match(/\[(.*?)\]/);
         if (match) formData[match[1]] = input.value;
@@ -648,12 +963,9 @@ async function handlePurchaseNow() {
         const data = await res.json();
 
         if (!res.ok) {
-            currentToast = hasFieldErrors(data.errors)
+            setCurrentToast(hasFieldErrors(data.errors)
                 ? ''
-                : `<div class="mt-5 rounded-xl border border-error/30 bg-error-container/10 p-3 font-label text-xs uppercase tracking-widest text-error">${escapeHtml(data.message || __('review_errors'))}</div>`;
-            renderSummary();
-            renderFooter();
-            bindEvents();
+                : `<div class="mt-5 rounded-xl border border-error/30 bg-error-container/10 p-3 font-label text-xs uppercase tracking-widest text-error">${escapeHtml(data.message || __('review_errors'))}</div>`);
             showErrors(data.errors || {});
             return;
         }
@@ -676,18 +988,14 @@ async function handlePurchaseNow() {
                 return;
             }
 
-            currentToast = `<div class="mt-5 rounded-xl border border-error/30 bg-error-container/10 p-3 font-label text-xs uppercase tracking-widest text-error">${escapeHtml(checkoutData.message || 'Could not complete purchase.')}</div>`;
-            renderSummary();
-            renderFooter();
-            bindEvents();
+            setCurrentToast(`<div class="mt-5 rounded-xl border border-error/30 bg-error-container/10 p-3 font-label text-xs uppercase tracking-widest text-error">${escapeHtml(checkoutData.message || 'Could not complete purchase.')}</div>`);
             return;
         }
 
         window.location.href = checkoutData.redirect_url || data.redirect_url || CHECKOUT_URL();
     } catch (error) {
         console.error('Purchase Error:', error);
-        currentToast = `<div class="mt-5 rounded-xl border border-error/30 bg-error-container/10 p-3 font-label text-xs uppercase tracking-widest text-error">Could not start purchase. Please try again.</div>`;
-        renderSummary();
+        setCurrentToast(`<div class="mt-5 rounded-xl border border-error/30 bg-error-container/10 p-3 font-label text-xs uppercase tracking-widest text-error">Could not start purchase. Please try again.</div>`);
     } finally {
         if (button) {
             button.disabled = false;

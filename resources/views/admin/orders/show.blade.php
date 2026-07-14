@@ -34,6 +34,11 @@
                 </div>
             </div>
             <div class="flex gap-2">
+                @if($order->report)
+                    <a href="{{ route('admin.feedback.show', $order->report) }}" class="btn-primary py-2 px-4 text-[10px] font-bold uppercase tracking-widest h-auto leading-none">
+                        Open Report
+                    </a>
+                @endif
                 @php
                 $statusColors = [
                     'pending' => 'bg-amber-100 text-amber-700',
@@ -88,10 +93,12 @@
         <div class="lg:col-span-2 space-y-6">
             @php($delivery = $order->getFulfillmentDetails())
             @php($details = $delivery['data'] ?? [])
-            @if($order->status !== App\Enums\OrderStatus::Refunded)
+            @php($activeReport = $order->reports()->whereIn('status', ['open', 'reviewing'])->latest('id')->first())
+            @php($canEditFulfillment = $order->status !== App\Enums\OrderStatus::Refunded && ($order->status !== App\Enums\OrderStatus::Completed || $activeReport))
+            @if($canEditFulfillment)
             <section class="panel border-2 border-indigo-50 leading-relaxed shadow-sm">
                 <div class="panel-head border-b border-slate-100 pb-3">
-                    <h3 class="text-base font-semibold text-indigo-900">{{ $order->status === App\Enums\OrderStatus::Completed ? 'Update Fulfillment' : 'Order Fulfillment' }}</h3>
+                    <h3 class="text-base font-semibold text-indigo-900">{{ $order->status === App\Enums\OrderStatus::Completed ? 'Resolve Report & Update Fulfillment' : 'Order Fulfillment' }}</h3>
                     <span class="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded uppercase font-bold tracking-tight">
                         {{ $order->product?->resolvedProductTypeLabel() ?? 'Manual Service' }}
                     </span>
@@ -163,9 +170,39 @@
                     </div>
 
                     <button class="btn-primary w-full py-4 text-base font-bold shadow-lg shadow-indigo-100 ring-4 ring-indigo-50 leading-relaxed uppercase tracking-wider">
-                        {{ $order->status === App\Enums\OrderStatus::Completed ? 'Update & Send Details' : 'Complete & Send Details' }}
+                        {{ $order->status === App\Enums\OrderStatus::Completed ? 'Resolve Report & Send Updated Details' : 'Complete & Send Details' }}
                     </button>
                 </form>
+            </section>
+            @elseif($order->status === App\Enums\OrderStatus::Completed)
+            <section class="panel border border-emerald-100 bg-emerald-50/40">
+                <div class="panel-head border-b border-emerald-100 pb-3">
+                    <h3 class="text-base font-semibold text-emerald-900">Fulfillment Locked</h3>
+                </div>
+                <div class="mt-4 space-y-4">
+                    <div class="rounded-2xl border border-emerald-100 bg-white/70 p-4 text-sm leading-relaxed text-slate-700">
+                        The final product has already been delivered to the customer. To protect the delivery trail, fulfillment updates are disabled until the customer opens a support report.
+                    </div>
+
+                    @if(!empty($details))
+                        <div class="grid gap-4 md:grid-cols-2">
+                            @foreach($details as $d_key => $d_val)
+                                @continue(empty($d_val))
+                                <div class="rounded-xl border border-emerald-100 bg-white p-3">
+                                    <p class="text-[10px] uppercase font-bold text-slate-400 mb-1">{{ str_replace('_', ' ', $d_key) }}</p>
+                                    <div class="text-sm font-medium text-slate-900 break-all">{!! $d_val !!}</div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    @if($delivery['admin_note'] ?? null)
+                        <div class="rounded-xl border border-emerald-100 bg-white p-4">
+                            <p class="text-xs text-slate-500 font-medium mb-1">Latest Admin Note</p>
+                            <div class="text-sm text-slate-800 italic">{!! $delivery['admin_note'] !!}</div>
+                        </div>
+                    @endif
+                </div>
             </section>
             @else
             <section class="panel bg-green-50/30 border- green-100">
@@ -194,6 +231,28 @@
                     </div>
                     @endif
 
+                    @if($order->getFulfillmentHistory())
+                    <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Fulfillment History</p>
+                        <div class="mt-3 space-y-3">
+                            @foreach(array_reverse($order->getFulfillmentHistory()) as $entry)
+                                <div class="rounded-xl border border-slate-200 bg-white p-3">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">{{ str_replace('_', ' ', $entry['action'] ?? 'fulfilled') }}</p>
+                                        <p class="text-[10px] text-slate-400">{{ \Illuminate\Support\Carbon::parse($entry['created_at'])->format('Y-m-d H:i') }}</p>
+                                    </div>
+                                    @if(!empty($entry['note']))
+                                        <div class="mt-2 text-sm text-slate-700">{!! $entry['note'] !!}</div>
+                                    @endif
+                                    @if(!empty($entry['report_comment']))
+                                        <div class="mt-2 text-xs text-slate-500">Customer report: {{ $entry['report_comment'] }}</div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
                     @if($order->status === App\Enums\OrderStatus::Refunded)
                     <div class="mt-6 p-6 bg-rose-50 border border-rose-100 rounded-3xl">
                         <div class="flex items-center gap-3 mb-4">
@@ -211,6 +270,22 @@
                             <div class="bg-white/50 border border-rose-100/50 p-4 rounded-xl">
                                 <p class="text-xs text-slate-400 font-bold uppercase mb-1">Reason / Note</p>
                                 <p class="text-sm text-slate-800 italic">"{{ $order->refund_notes }}"</p>
+                            </div>
+                        @endif
+
+                        @if($order->getRefundHistory())
+                            <div class="mt-4 space-y-3">
+                                @foreach(array_reverse($order->getRefundHistory()) as $entry)
+                                    <div class="rounded-xl border border-rose-100 bg-white/70 p-3">
+                                        <div class="flex flex-wrap items-center justify-between gap-2">
+                                            <p class="text-[10px] font-bold uppercase tracking-wider text-rose-400">Refund Update</p>
+                                            <p class="text-[10px] text-slate-400">{{ \Illuminate\Support\Carbon::parse($entry['created_at'])->format('Y-m-d H:i') }}</p>
+                                        </div>
+                                        @if(!empty($entry['note']))
+                                            <p class="mt-2 text-sm text-slate-700">{{ $entry['note'] }}</p>
+                                        @endif
+                                    </div>
+                                @endforeach
                             </div>
                         @endif
                     </div>

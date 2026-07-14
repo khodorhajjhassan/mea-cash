@@ -59,9 +59,11 @@ class CustomerAuthController extends Controller
 
             // If admin, redirect to admin dashboard
             if (Auth::user()?->is_admin) {
+                Auth::user()?->forceFill(['last_login_at' => now()])->save();
                 return redirect()->route('admin.dashboard');
             }
 
+            Auth::user()?->forceFill(['last_login_at' => now()])->save();
             return redirect()->intended(route('store.dashboard'))
                 ->with('success', __('storefront.auth.welcome_back'));
         } catch (\Exception $exception) {
@@ -155,6 +157,7 @@ class CustomerAuthController extends Controller
         $request->session()->forget(['pending_registration_user_id', 'pending_registration_email']);
         Auth::login($user);
         $request->session()->regenerate();
+        $user->forceFill(['last_login_at' => now()])->save();
 
         return redirect()->route('store.dashboard')->with('success', __('storefront.auth.welcome'));
     }

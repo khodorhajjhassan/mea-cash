@@ -27,6 +27,8 @@ class UpdateSubcategoryRequest extends FormRequest
             'name_en' => ['sometimes', 'string', 'max:255'],
             'description_ar' => ['nullable', 'string'],
             'description_en' => ['nullable', 'string'],
+            'how_to_redeem_ar' => ['nullable', 'string'],
+            'how_to_redeem_en' => ['nullable', 'string'],
             'slug' => ['sometimes', 'string', 'max:255', Rule::unique('subcategories', 'slug')->ignore($subcategory->id)],
             'image' => ['nullable', 'image', 'max:5120'],
             'is_active' => ['sometimes', 'boolean'],
@@ -34,6 +36,8 @@ class UpdateSubcategoryRequest extends FormRequest
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string'],
+            'seo_keywords' => ['nullable', 'string'],
+            'seo_image' => ['nullable', 'image', 'max:5120'],
         ];
     }
 }

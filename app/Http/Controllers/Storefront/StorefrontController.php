@@ -76,8 +76,10 @@ class StorefrontController extends Controller
             ->orderByDesc('is_featured')
             ->orderBy('sort_order');
  
+        $isSharedModalRequest = $request->filled('subcategory') && $request->filled('product');
+
         // Subcategory filter
-        if ($request->filled('subcategory')) {
+        if ($request->filled('subcategory') && ! $isSharedModalRequest) {
             $subSlug = $request->input('subcategory');
             $subcategory = Subcategory::where('slug', $subSlug)->first();
             if ($subcategory) {
@@ -343,6 +345,9 @@ class StorefrontController extends Controller
             'description' => $subcategory->{"description_{$locale}"},
             'description_en' => $subcategory->description_en,
             'description_ar' => $subcategory->description_ar,
+            'how_to_redeem' => $subcategory->{"how_to_redeem_{$locale}"},
+            'how_to_redeem_en' => $subcategory->how_to_redeem_en,
+            'how_to_redeem_ar' => $subcategory->how_to_redeem_ar,
             'delivery_type' => $subcategory->delivery_type,
             'delivery_time_minutes' => $subcategory->delivery_time_minutes,
             'image' => (function() use ($subcategory) {
@@ -363,6 +368,9 @@ class StorefrontController extends Controller
                     'description' => $product->{"description_{$locale}"},
                     'description_en' => $product->description_en,
                     'description_ar' => $product->description_ar,
+                    'how_to_redeem' => $product->{"how_to_redeem_{$locale}"},
+                    'how_to_redeem_en' => $product->how_to_redeem_en,
+                    'how_to_redeem_ar' => $product->how_to_redeem_ar,
                     'image' => (function() use ($product) {
                         if (!$product->image) return null;
                         return str_starts_with($product->image, 'http') ? $product->image : \Illuminate\Support\Facades\Storage::url($product->image);

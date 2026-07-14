@@ -20,6 +20,10 @@
                     <th>ID</th>
                     <th>Name</th>
                     <th>Email</th>
+                    @if($isSuperAdmin)
+                        <th>Wallet</th>
+                        <th>Last Login</th>
+                    @endif
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -30,6 +34,10 @@
                     <td>#{{ $user->id }}</td>
                     <td>{{ $user->name }}</td>
                     <td>{{ $user->email }}</td>
+                    @if($isSuperAdmin)
+                        <td class="font-semibold text-emerald-700">${{ number_format((float) ($user->wallet?->balance ?? 0), 2) }}</td>
+                        <td>{{ $user->last_login_at?->format('Y-m-d H:i') ?? 'Never' }}</td>
+                    @endif
                     <td>
                         <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md {{ $user->is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
                             {{ $user->is_active ? 'Active':'Inactive' }}
@@ -40,7 +48,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="text-center py-8 text-slate-400">No users found.</td></tr>
+                <tr><td colspan="{{ $isSuperAdmin ? 7 : 5 }}" class="text-center py-8 text-slate-400">No users found.</td></tr>
                 @endforelse
             </tbody>
         </table>

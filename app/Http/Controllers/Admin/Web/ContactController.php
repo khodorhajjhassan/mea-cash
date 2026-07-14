@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ContactMessage;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ContactController extends Controller
 {
@@ -47,7 +48,16 @@ class ContactController extends Controller
     public function destroy(ContactMessage $contact)
     {
         try {
-            $contact->delete();
+            DB::transaction(function () use ($contact): void {
+                $escapedLink = addcslashes(route('admin.contact.show', $contact), '\/');
+
+                DB::table('notifications')
+                    ->where('type', 'App\\Notifications\\AdminNotification')
+                    ->where('data', 'like', '%"link":"'.$escapedLink.'"%')
+                    ->delete();
+
+                $contact->delete();
+            });
 
             return back()->with('success', 'Contact message deleted.');
         } catch (Exception $exception) {

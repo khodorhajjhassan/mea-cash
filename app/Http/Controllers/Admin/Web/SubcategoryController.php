@@ -67,6 +67,9 @@ class SubcategoryController extends Controller
             if ($request->hasFile('image')) {
                 $data['image'] = $this->imageStorage->storeAsWebp($request->file('image'), 'catalog/subcategories');
             }
+            if ($request->hasFile('seo_image')) {
+                $data['seo_image'] = $this->imageStorage->storeAsWebp($request->file('seo_image'), 'catalog/subcategories/seo');
+            }
 
             Subcategory::query()->create($data);
 
@@ -106,6 +109,9 @@ class SubcategoryController extends Controller
             if ($request->hasFile('image')) {
                 $data['image'] = $this->imageStorage->storeAsWebp($request->file('image'), 'catalog/subcategories', $subcategory->image);
             }
+            if ($request->hasFile('seo_image')) {
+                $data['seo_image'] = $this->imageStorage->storeAsWebp($request->file('seo_image'), 'catalog/subcategories/seo', $subcategory->seo_image);
+            }
 
             $subcategory->update($data);
 
@@ -121,6 +127,7 @@ class SubcategoryController extends Controller
     {
         try {
             $this->imageStorage->delete($subcategory->image);
+            $this->imageStorage->delete($subcategory->seo_image);
             $subcategory->delete();
 
             return redirect()->route('admin.subcategories.index')->with('success', 'Subcategory deleted successfully.');

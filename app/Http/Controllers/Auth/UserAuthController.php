@@ -41,9 +41,11 @@ class UserAuthController extends Controller
             }
 
             if (Auth::user()?->is_admin) {
+                Auth::user()?->forceFill(['last_login_at' => now()])->save();
                 return redirect()->route('admin.dashboard', ['locale' => app()->getLocale()]);
             }
 
+            Auth::user()?->forceFill(['last_login_at' => now()])->save();
             return redirect()->route('store.dashboard', ['locale' => app()->getLocale()])->with('success', 'Logged in successfully.');
         } catch (\Exception $exception) {
             report($exception);

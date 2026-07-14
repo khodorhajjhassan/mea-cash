@@ -81,6 +81,9 @@ class ProductController extends Controller
             if ($request->hasFile('image')) {
                 $data['image'] = $this->imageStorage->storeAsWebp($request->file('image'), 'catalog/products');
             }
+            if ($request->hasFile('seo_image')) {
+                $data['seo_image'] = $this->imageStorage->storeAsWebp($request->file('seo_image'), 'catalog/products/seo');
+            }
  
             Product::query()->create($data);
  
@@ -122,6 +125,9 @@ class ProductController extends Controller
             if ($request->hasFile('image')) {
                 $data['image'] = $this->imageStorage->storeAsWebp($request->file('image'), 'catalog/products', $product->image);
             }
+            if ($request->hasFile('seo_image')) {
+                $data['seo_image'] = $this->imageStorage->storeAsWebp($request->file('seo_image'), 'catalog/products/seo', $product->seo_image);
+            }
  
             $product->update($data);
  
@@ -137,6 +143,7 @@ class ProductController extends Controller
     {
         try {
             $this->imageStorage->delete($product->image);
+            $this->imageStorage->delete($product->seo_image);
             $product->delete();
  
             return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully.');

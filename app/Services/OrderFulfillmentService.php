@@ -12,6 +12,7 @@ use App\Models\ProductCode;
 use App\Notifications\UserNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use RuntimeException;
 
 class OrderFulfillmentService
 {
@@ -30,6 +31,10 @@ class OrderFulfillmentService
     public function fulfill(Order $order, array $data): Order
     {
         return DB::transaction(function () use ($order, $data) {
+            if ($order->status === OrderStatus::Completed && !$order->reports()->whereIn('status', ['open', 'reviewing'])->exists()) {
+                throw new RuntimeException('Delivered orders are locked. Ask the customer to open a report before updating fulfillment.');
+            }
+
             $type = FulfillmentType::from($data['fulfillment_type']);
             
             // 1. Prepare fulfillment payload
@@ -66,6 +71,29 @@ class OrderFulfillmentService
                 ? $order->fulfillment_data->getArrayCopy()
                 : (array) ($order->fulfillment_data ?? []);
 
+            $fulfillmentHistory = $existingFulfillmentData['fulfillment']['history'] ?? [];
+            if (!is_array($fulfillmentHistory)) {
+                $fulfillmentHistory = [];
+            }
+
+            $activeReport = Feedback::query()
+                ->where('order_id', $order->id)
+                ->where('type', 'report')
+                ->whereIn('status', ['open', 'reviewing'])
+                ->latest('id')
+                ->first();
+
+            $fulfillmentHistory[] = [
+                'action' => $order->status === OrderStatus::Completed ? 'updated_delivery' : 'fulfilled',
+                'note' => $data['admin_note'] ?? '',
+                'report_issue_type' => $activeReport?->issue_type,
+                'report_comment' => $activeReport?->comment,
+                'created_at' => now()->toIso8601String(),
+                'created_by' => (string) (auth()->user()?->name ?? 'Admin'),
+            ];
+
+            $fulfillmentPayload['history'] = $fulfillmentHistory;
+
             // 3. Update Order status and data
             $order->update([
                 'status' => OrderStatus::Completed,
@@ -73,14 +101,9 @@ class OrderFulfillmentService
                 'fulfillment_data' => array_merge($existingFulfillmentData, ['fulfillment' => $fulfillmentPayload]),
             ]);
 
-            $openReport = Feedback::query()
-                ->where('order_id', $order->id)
-                ->where('type', 'report')
-                ->whereIn('status', ['open', 'reviewing'])
-                ->latest('id')
-                ->first();
+            $hadActiveReport = $activeReport !== null;
 
-            $openReport?->update([
+            $activeReport?->update([
                     'status' => 'resolved',
                     'admin_response' => $data['admin_note'] ?? null,
                     'resolved_at' => now(),
@@ -93,10 +116,12 @@ class OrderFulfillmentService
             }
 
             $order->user?->notify(new UserNotification([
-                'type' => 'Order Completed',
-                'message' => "Order #{$order->order_number} is completed. Your delivery details are ready.",
+                'type' => $hadActiveReport ? 'Order Resolved' : 'Order Completed',
+                'message' => $hadActiveReport
+                    ? "Your reported order #{$order->order_number} was resolved. Updated delivery details are ready."
+                    : "Order #{$order->order_number} is completed. Your delivery details are ready.",
                 'link' => route('store.orders.detail', $order->order_number),
-                'icon' => 'verified',
+                'icon' => $hadActiveReport ? 'task_alt' : 'verified',
             ]));
 
             return $order;
@@ -140,10 +165,39 @@ class OrderFulfillmentService
     public function processRefund(Order $order, ?string $notes = null, bool $notifyEmail = false): Order
     {
         return DB::transaction(function () use ($order, $notes, $notifyEmail) {
+            $existingFulfillmentData = is_object($order->fulfillment_data) && method_exists($order->fulfillment_data, 'getArrayCopy')
+                ? $order->fulfillment_data->getArrayCopy()
+                : (array) ($order->fulfillment_data ?? []);
+
+            $refundHistory = $existingFulfillmentData['refund_history'] ?? [];
+            if (!is_array($refundHistory)) {
+                $refundHistory = [];
+            }
+
+            $refundHistory[] = [
+                'note' => $notes,
+                'created_at' => now()->toIso8601String(),
+                'created_by' => (string) (auth()->user()?->name ?? 'Admin'),
+            ];
+
             // 1. Update order status and notes
             $order->update([
                 'status' => OrderStatus::Refunded,
                 'refund_notes' => $notes,
+                'fulfillment_data' => array_merge($existingFulfillmentData, ['refund_history' => $refundHistory]),
+            ]);
+
+            $activeReport = Feedback::query()
+                ->where('order_id', $order->id)
+                ->where('type', 'report')
+                ->whereIn('status', ['open', 'reviewing'])
+                ->latest('id')
+                ->first();
+
+            $activeReport?->update([
+                'status' => 'refunded',
+                'admin_response' => $notes,
+                'resolved_at' => now(),
             ]);
 
             // 2. Process financial refund back to wallet

@@ -39,6 +39,14 @@
         <label>Description (AR)</label>
         <textarea name="description_ar" rows="3" dir="rtl" placeholder="الوصف الذي يظهر تحت عنوان النافذة في المتجر.">{{ old('description_ar', $subcategory->description_ar ?? '') }}</textarea>
     </div>
+    <div class="field md:col-span-2">
+        <label>How To Redeem (EN)</label>
+        <textarea name="how_to_redeem_en" rows="4" placeholder="Redeem steps shown in the storefront.">{{ old('how_to_redeem_en', $subcategory->how_to_redeem_en ?? '') }}</textarea>
+    </div>
+    <div class="field md:col-span-2">
+        <label>How To Redeem (AR)</label>
+        <textarea name="how_to_redeem_ar" rows="4" dir="rtl" placeholder="خطوات الاسترداد التي تظهر في المتجر.">{{ old('how_to_redeem_ar', $subcategory->how_to_redeem_ar ?? '') }}</textarea>
+    </div>
     <div class="field"><label>Slug</label><input type="text" name="slug" value="{{ old('slug', $subcategory->slug ?? '') }}"></div>
     <div class="field"><label>Sort Order</label><input type="number" min="0" name="sort_order" value="{{ old('sort_order', $subcategory->sort_order ?? 0) }}"></div>
     <div class="field"><label>Status</label><select name="is_active"><option value="1" @selected(old('is_active', $subcategory->is_active ?? true)==1)>Active</option><option value="0" @selected(old('is_active', $subcategory->is_active ?? true)==0)>Disabled</option></select></div>

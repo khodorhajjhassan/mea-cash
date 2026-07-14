@@ -189,6 +189,13 @@
                 <span class="material-symbols-outlined">manage_accounts</span>
                 <span class="font-headline text-sm font-black uppercase text-on-surface">{{ __('User Profile') }}</span>
             </a>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="mobile-profile-link w-full">
+                    <span class="material-symbols-outlined text-rose-500">logout</span>
+                    <span class="font-headline text-sm font-black uppercase text-on-surface">{{ __('Sign Out') }}</span>
+                </button>
+            </form>
         </div>
     @else
         <div class="space-y-3">

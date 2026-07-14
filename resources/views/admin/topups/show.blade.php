@@ -73,9 +73,15 @@
                         Approve & Credit Wallet
                     </button>
                     
-                    <button type="button" onclick="document.getElementById('rejectModal').classList.remove('hidden')" class="btn-danger-outline py-3 px-8 text-base font-semibold">
-                        Reject Request
-                    </button>
+                    @if($canRejectTopup)
+                        <button type="button" onclick="document.getElementById('rejectModal').classList.remove('hidden')" class="btn-danger-outline py-3 px-8 text-base font-semibold">
+                            Reject Request
+                        </button>
+                    @else
+                        <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                            Only a super admin can reject a top-up request.
+                        </div>
+                    @endif
                 </div>
             </section>
             @else

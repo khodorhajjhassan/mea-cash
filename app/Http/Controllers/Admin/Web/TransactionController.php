@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\Web;
 
+use App\Enums\WalletTransactionType;
 use App\Http\Controllers\Controller;
 use App\Enums\OrderStatus;
 use App\Models\Order;
@@ -41,7 +42,8 @@ class TransactionController extends Controller
         $summaryQuery = clone $transactionQuery;
 
         $transactions = $transactionQuery
-            ->latest('id')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->paginate(25)
             ->withQueryString();
 
@@ -98,7 +100,8 @@ class TransactionController extends Controller
                 });
             })
             ->when($request->filled('type'), fn ($query) => $query->where('type', $request->string('type')->value()))
-            ->latest('id')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->paginate(25)
             ->withQueryString();
 
@@ -120,9 +123,9 @@ class TransactionController extends Controller
             $amount = (float) $data['amount'];
 
             if ($amount > 0) {
-                $this->walletService->credit($user, $amount, $data['description'], null, auth()->id());
+                $this->walletService->credit($user, (string) $amount, $data['description'], null, auth()->id(), WalletTransactionType::AdminAdjustment);
             } else {
-                $this->walletService->debit($user, abs($amount), $data['description'], null, auth()->id());
+                $this->walletService->debit($user, (string) abs($amount), $data['description'], null, auth()->id(), WalletTransactionType::AdminAdjustment);
             }
 
             return back()->with('success', 'Wallet adjustment processed.');

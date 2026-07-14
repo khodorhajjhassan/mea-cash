@@ -24,6 +24,8 @@ class Subcategory extends Model
         'is_featured',
         'description_ar',
         'description_en',
+        'how_to_redeem_ar',
+        'how_to_redeem_en',
         'sort_order',
         'seo_title',
         'seo_description',

@@ -27,6 +27,11 @@
                 @error('password') <p class="text-xs mt-1" style="color: var(--sf-hot-red);">{{ $message }}</p> @enderror
             </div>
 
+            <div class="text-end">
+                <a href="{{ route('password.request') }}" class="text-sm font-semibold text-primary-container hover:text-secondary-container">
+                    {{ $locale == 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot password?' }}
+                </a>
+            </div>
             <div class="flex items-center gap-2">
                 <input type="checkbox" name="remember" id="remember" class="rounded border-outline-variant bg-surface-container-lowest text-primary-container focus:ring-primary-container">
                 <label for="remember" class="text-sm text-on-surface-variant">{{ $locale == 'ar' ? 'تذكرني' : 'Remember me' }}</label>
