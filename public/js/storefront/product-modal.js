@@ -361,24 +361,6 @@ function renderSelectionCard(item) {
     const active = selectedProduct?.id === item.product.id && ((selectedPackage?.id || null) === (item.package?.id || null));
     const badge = item.badge ? `<div class="absolute top-2 ${isRtl() ? 'left-2' : 'right-2'} rounded-full bg-secondary-container px-2 py-0.5 font-label text-[8px] font-black uppercase tracking-tight text-on-secondary-container">${escapeHtml(item.badge)}</div>` : '';
 
-    const wrapperClass = options.wrapperClass ?? 'mb-5 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/35 p-4';
-    const labelClass = options.labelClass ?? 'mb-2 font-label text-[10px] font-black uppercase tracking-widest text-primary-container';
-    const bodyClass = options.bodyClass ?? 'text-xs leading-relaxed text-on-surface-variant';
-    const buttonClass = options.buttonClass ?? 'mt-3 font-label text-[10px] font-black uppercase tracking-widest text-secondary-container hover:text-primary-container';
-
-    if (options.plain) {
-        return `
-            <div class="${wrapperClass}">
-                <div class="${bodyClass}">${escapeHtml(bodyText)}</div>
-                ${shouldCollapse ? `
-                    <button type="button" data-toggle-panel="${escapeHtml(type)}" class="${buttonClass}">
-                        ${toggleLabel}
-                    </button>
-                ` : ''}
-            </div>
-        `;
-    }
-
     return `
         <button type="button" data-select-product="${item.product.id}" data-select-package="${item.package?.id || ''}"
             class="group relative flex min-h-[118px] flex-col rounded-xl border p-2 text-start transition-all duration-300 sm:min-h-[178px] sm:rounded-2xl sm:p-3 ${active ? 'border-primary-container bg-surface-container-high shadow-[0_0_22px_rgba(0,240,255,0.2)] ring-1 ring-primary-container/70' : 'border-transparent bg-surface-container-low hover:-translate-y-1 hover:border-primary-container/30 hover:bg-surface-container-high'}">

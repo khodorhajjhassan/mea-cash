@@ -329,7 +329,7 @@
 
                 const refreshNotifications = async () => {
                     try {
-                        const response = await fetch(@js(route('store.notifications.index')), {
+                        const response = await fetch(@js(route('store.notifications.index', [], false)), {
                             headers: {
                                 'Accept': 'application/json',
                                 'X-Requested-With': 'XMLHttpRequest',
