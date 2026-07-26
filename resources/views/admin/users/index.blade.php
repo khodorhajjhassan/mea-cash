@@ -32,8 +32,26 @@
                 @forelse($users as $user)
                 <tr>
                     <td>#{{ $user->id }}</td>
-                    <td>{{ $user->name }}</td>
-                    <td>{{ $user->email }}</td>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <span>{{ $user->name }}</span>
+                            @if($user->auth_provider === 'google')
+                                <span class="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sky-700">
+                                    Google
+                                </span>
+                            @endif
+                        </div>
+                    </td>
+                    <td>
+                        <div class="flex flex-col gap-1">
+                            <span>{{ $user->email }}</span>
+                            @if($user->auth_provider === 'google')
+                                <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                                    Signed in with Google
+                                </span>
+                            @endif
+                        </div>
+                    </td>
                     @if($isSuperAdmin)
                         <td class="font-semibold text-emerald-700">${{ number_format((float) ($user->wallet?->balance ?? 0), 2) }}</td>
                         <td>{{ $user->last_login_at?->format('Y-m-d H:i') ?? 'Never' }}</td>

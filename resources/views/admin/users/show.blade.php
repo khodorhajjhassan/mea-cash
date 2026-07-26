@@ -16,6 +16,11 @@
                     <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-md {{ $user->is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
                         {{ $user->is_active ? 'Active' : 'Inactive' }}
                     </span>
+                    @if($user->auth_provider === 'google')
+                        <span class="inline-flex items-center rounded-full bg-sky-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-700">
+                            Signed in with Google
+                        </span>
+                    @endif
                 </div>
                 <div class="flex flex-wrap gap-x-6 gap-y-1 mt-2">
                     <div class="flex items-center gap-1.5 text-sm text-slate-500">
@@ -25,6 +30,10 @@
                     <div class="flex items-center gap-1.5 text-sm text-slate-500">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                         {{ $user->phone ?: 'No phone' }}
+                    </div>
+                    <div class="flex items-center gap-1.5 text-sm text-slate-500">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 1.657-1.567 3-3.5 3S5 12.657 5 11s1.567-3 3.5-3S12 9.343 12 11zm0 0V8m0 3c0 1.657 1.567 3 3.5 3S19 12.657 19 11s-1.567-3-3.5-3S12 9.343 12 11zm0 0v5m0 0h3m-3 0H9"/></svg>
+                        {{ $user->auth_provider === 'google' ? 'Authentication: Google' : 'Authentication: Email / Password' }}
                     </div>
                     <div class="flex items-center gap-1.5 text-sm text-slate-500">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 0h7M11 21l5-10 5 10m-8.5-4h7M5 9a18.03 18.03 0 005.5 7.5M5 9a18.03 18.03 0 01-2 2.5"/></svg>
