@@ -78,6 +78,11 @@ const shareableSubcategoryUrl = () => {
     if (selectedProduct?.id) url.searchParams.set('product', selectedProduct.id);
     return url.toString();
 };
+const loginRedirectUrl = () => {
+    const url = new URL(LOGIN_URL(), window.location.origin);
+    url.searchParams.set('redirect_to', shareableSubcategoryUrl());
+    return url.toString();
+};
 
 const money = (value) => `$${Number(value || 0).toFixed(2)}`;
 const localizedField = (item, key) => firstNonEmpty(
@@ -651,7 +656,7 @@ function renderFooter() {
     if (!isAuthenticated()) {
         footer.innerHTML = `
             <div class="grid grid-cols-[minmax(0,1fr)] gap-2.5 sm:grid-cols-[minmax(0,1fr)_54px] sm:gap-3">
-                <a href="${LOGIN_URL()}" class="flex min-h-[54px] items-center justify-center gap-2.5 rounded-[1.2rem] border border-primary-container/30 bg-surface-container-high px-4 py-3.5 font-headline text-[11px] font-black uppercase tracking-wider text-primary-container shadow-[0_0_28px_rgba(0,240,255,0.12)] transition-all hover:border-primary-container hover:bg-primary-container hover:text-on-primary-container md:gap-3 md:py-4 md:text-sm md:tracking-widest">
+                <a href="${loginRedirectUrl()}" class="flex min-h-[54px] items-center justify-center gap-2.5 rounded-[1.2rem] border border-primary-container/30 bg-surface-container-high px-4 py-3.5 font-headline text-[11px] font-black uppercase tracking-wider text-primary-container shadow-[0_0_28px_rgba(0,240,255,0.12)] transition-all hover:border-primary-container hover:bg-primary-container hover:text-on-primary-container md:gap-3 md:py-4 md:text-sm md:tracking-widest">
                     <span class="material-symbols-outlined text-lg">lock</span>
                     <span>${isRtl() ? 'سجل الدخول أولاً' : 'Login First'}</span>
                 </a>
@@ -1024,7 +1029,7 @@ async function executePurchaseNow() {
         });
 
         if (res.status === 401) {
-            window.location.href = LOGIN_URL();
+            window.location.href = loginRedirectUrl();
             return;
         }
 

@@ -6,9 +6,13 @@
     $privacyUrl = route('store.page', ['locale' => $locale, 'slug' => 'privacy-policy']);
     $termsUrl = route('store.page', ['locale' => $locale, 'slug' => 'terms-and-conditions']);
     $refundUrl = route('store.page', ['locale' => $locale, 'slug' => 'refund-terms']);
+    $loginUrl = route('login', ['locale' => $locale, 'redirect_to' => request()->fullUrl()]);
 
     $siteSettings = $siteSettings ?? [];
     $safeBrowsingUrl = 'https://transparencyreport.google.com/safe-browsing/search?url=meacash.io';
+    $trustpilotUrl = 'https://www.trustpilot.com/evaluate/meacash.io';
+    $trustpilotLightLogo = asset('images/trustpilot-light.svg');
+    $trustpilotDarkLogo = asset('images/trustpilot-dark.svg');
     $activePaymentLogos = [
         ['label' => 'Whish Money', 'src' => 'https://www.google.com/s2/favicons?domain=whish.money&sz=128'],
         ['label' => 'USDT', 'src' => 'https://cdn.simpleicons.org/tether/26A17B'],
@@ -38,7 +42,6 @@
         <span class="material-symbols-outlined font-bold">arrow_upward</span>
     </button>
 
-    {{-- Mobile Footer --}}
     <div class="px-4 py-8 md:hidden">
         <div class="mx-auto max-w-md rounded-[1.75rem] border border-outline-variant/10 bg-surface-container-low/55 p-5 text-center">
             <div class="flex items-center justify-center">
@@ -46,8 +49,7 @@
                 <img src="{{ asset('meacash-logo-dark.png') }}" alt="MeaCash" class="mc-logo-dark h-8 w-auto object-contain" loading="lazy">
             </div>
 
-            <nav class="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-3 font-label text-[10px] font-black uppercase tracking-widest text-on-surface-variant"
-                aria-label="{{ __('Footer links') }}">
+            <nav class="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-3 font-label text-[10px] font-black uppercase tracking-widest text-on-surface-variant" aria-label="{{ __('Footer links') }}">
                 <a class="transition hover:text-primary-container" href="{{ $aboutUrl }}">{{ __('About') }}</a>
                 <a class="transition hover:text-primary-container" href="{{ $contactUrl }}">{{ __('Contact Us') }}</a>
                 <a class="transition hover:text-primary-container" href="{{ $privacyUrl }}">{{ __('Privacy Policy') }}</a>
@@ -56,12 +58,30 @@
             </nav>
 
             <p class="mt-5 font-label text-[9px] font-black uppercase tracking-[0.2em] text-outline/75">
-                &copy; {{ date('Y') }} MeaCash
+                &copy; {{ date('Y') }} MEGAHASH
             </p>
+            <p class="mt-2 text-[10px] leading-relaxed text-on-surface-variant">
+                Registered Commercial Establishment in Lebanon | C.R. 2066923 | MOF# 3869285
+            </p>
+
+            <div class="mt-5 flex flex-col gap-3">
+                <a href="{{ $trustpilotUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-2xl border border-outline-variant/15 bg-surface-container-high/35 px-4 py-3 transition hover:border-primary-container/40">
+                    <img src="{{ $trustpilotLightLogo }}" alt="Trustpilot" class="mc-logo-light h-12 w-auto max-w-full object-contain" loading="lazy">
+                    <img src="{{ $trustpilotDarkLogo }}" alt="Trustpilot" class="mc-logo-dark h-12 w-auto max-w-full object-contain" loading="lazy">
+                </a>
+                <a href="{{ $safeBrowsingUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-3 rounded-2xl border border-outline-variant/15 bg-surface-container-high/35 px-4 py-3 transition hover:border-primary-container/40 hover:text-primary-container">
+                    <span class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl">
+                        <img src="{{ asset('images/google-safe.png') }}" alt="Google Safe Browsing" class="h-full w-full object-contain" loading="lazy">
+                    </span>
+                    <span>
+                        <span class="block font-headline text-[11px] font-black uppercase tracking-widest">{{ __('Google Safe Browsing') }}</span>
+                        <span class="block font-label text-[9px] uppercase tracking-[0.22em] text-outline">{{ __('Check meacash.io') }}</span>
+                    </span>
+                </a>
+            </div>
         </div>
     </div>
 
-    {{-- Desktop Footer --}}
     <div class="hidden pb-10 pt-20 md:block">
         <div class="mx-auto grid max-w-[1440px] grid-cols-1 gap-10 px-8 md:grid-cols-2 lg:grid-cols-5 lg:gap-8">
             <div class="lg:col-span-2">
@@ -73,7 +93,6 @@
                     {{ __('noir.footer_tagline') }}
                 </p>
 
-                {{-- Social Media Icons --}}
                 <div class="flex items-center gap-3">
                     @foreach($footerSocials as $fs)
                         @if(!empty($siteSettings[$fs['key']] ?? ''))
@@ -132,8 +151,8 @@
                         <li><a class="transition-colors hover:text-secondary-container" href="{{ route('store.wallet', ['locale' => $locale]) }}">{{ __('Wallet') }}</a></li>
                         <li><a class="transition-colors hover:text-secondary-container" href="{{ route('store.orders', ['locale' => $locale]) }}">{{ __('Orders') }}</a></li>
                     @else
-                        <li><a class="transition-colors hover:text-secondary-container" href="{{ route('login') }}">{{ __('Login') }}</a></li>
-                        <li><a class="transition-colors hover:text-secondary-container" href="{{ route('store.register', ['locale' => $locale]) }}">{{ __('Create Account') }}</a></li>
+                        <li><a class="transition-colors hover:text-secondary-container" href="{{ $loginUrl }}">{{ __('Login') }}</a></li>
+                        <li><a class="transition-colors hover:text-secondary-container" href="{{ route('store.register', ['locale' => $locale, 'redirect_to' => request()->fullUrl()]) }}">{{ __('Create Account') }}</a></li>
                     @endauth
                     <li><a class="transition-colors hover:text-secondary-container" href="{{ $contactUrl }}">{{ __('Contact Us') }}</a></li>
                     <li><a class="transition-colors hover:text-secondary-container" href="{{ $refundUrl }}">{{ __('Terms of Refunds') }}</a></li>
@@ -153,18 +172,29 @@
         </div>
 
         <div class="mx-auto mt-16 flex max-w-[1440px] flex-col items-center justify-between gap-6 border-t border-outline-variant/10 px-8 pt-8 md:mt-20 md:flex-row">
-            <p class="text-center font-headline text-[10px] uppercase tracking-[0.24em] text-on-surface-variant md:text-start md:tracking-[0.3em]">
-                &copy; {{ date('Y') }} MeaCash. HIGH-FIDELITY DIGITAL ASSETS. ALL RIGHTS RESERVED.
-            </p>
-            <a href="{{ $safeBrowsingUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-3 rounded-2xl border border-outline-variant/15 bg-surface-container-high/35 px-4 py-3 transition hover:border-primary-container/40 hover:text-primary-container">
-                <span class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl">
-                    <img src="{{ asset('images/google-safe.png') }}" alt="Google Safe Browsing" class="h-full w-full object-contain" loading="lazy">
-                </span>
-                <span>
-                    <span class="block font-headline text-xs font-black uppercase tracking-widest">{{ __('Google Safe Browsing') }}</span>
-                    <span class="block font-label text-[9px] uppercase tracking-[0.22em] text-outline">{{ __('Check meacash.io') }}</span>
-                </span>
-            </a>
+            <div class="text-center md:text-start">
+                <p class="font-headline text-[10px] uppercase tracking-[0.24em] text-on-surface-variant md:tracking-[0.3em]">
+                    &copy; {{ date('Y') }} MEGAHASH
+                </p>
+                <p class="mt-2 text-sm text-on-surface-variant">
+                    Registered Commercial Establishment in Lebanon | C.R. 2066923 | MOF# 3869285
+                </p>
+            </div>
+            <div class="flex flex-col gap-3 sm:flex-row">
+                <a href="{{ $trustpilotUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-2xl border border-outline-variant/15 bg-surface-container-high/35 px-4 py-3 transition hover:border-primary-container/40">
+                    <img src="{{ $trustpilotLightLogo }}" alt="Trustpilot" class="mc-logo-light h-12 w-auto max-w-full object-contain" loading="lazy">
+                    <img src="{{ $trustpilotDarkLogo }}" alt="Trustpilot" class="mc-logo-dark h-12 w-auto max-w-full object-contain" loading="lazy">
+                </a>
+                <a href="{{ $safeBrowsingUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-3 rounded-2xl border border-outline-variant/15 bg-surface-container-high/35 px-4 py-3 transition hover:border-primary-container/40 hover:text-primary-container">
+                    <span class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl">
+                        <img src="{{ asset('images/google-safe.png') }}" alt="Google Safe Browsing" class="h-full w-full object-contain" loading="lazy">
+                    </span>
+                    <span>
+                        <span class="block font-headline text-xs font-black uppercase tracking-widest">{{ __('Google Safe Browsing') }}</span>
+                        <span class="block font-label text-[9px] uppercase tracking-[0.22em] text-outline">{{ __('Check meacash.io') }}</span>
+                    </span>
+                </a>
+            </div>
         </div>
     </div>
 </footer>

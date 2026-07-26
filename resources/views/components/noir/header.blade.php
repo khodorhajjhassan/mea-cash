@@ -1,5 +1,6 @@
 @php
     $locale = app()->getLocale();
+    $loginUrl = route('login', ['locale' => $locale, 'redirect_to' => request()->fullUrl()]);
     $targetLocale = $locale === 'ar' ? 'en' : 'ar';
     $segments = request()->segments();
     $query = request()->except('lang');
@@ -263,7 +264,7 @@
                         <span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
                     </a>
                 @else
-                    <a href="{{ route('login') }}"
+                    <a href="{{ $loginUrl }}"
                         class="scale-95 active:opacity-80 transition-transform inline-flex">
                         <span class="material-symbols-outlined" data-icon="login">login</span>
                     </a>

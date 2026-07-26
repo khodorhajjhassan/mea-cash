@@ -49,6 +49,10 @@ use Illuminate\Support\Facades\Route;
 */
 Route::redirect('/', '/en');
 
+Route::get('/auth/google/callback', [CustomerAuthController::class, 'handleGoogleCallback'])
+    ->middleware('guest')
+    ->name('login.google.callback.global');
+
 Route::prefix('{locale}')
     ->whereIn('locale', ['en', 'ar'])
     ->group(function (): void {
@@ -84,9 +88,11 @@ Route::prefix('{locale}')
         Route::post('/customer/logout', [CustomerAuthController::class, 'logout'])->name('store.logout')->middleware('auth');
 
         Route::prefix('auth')->group(function (): void {
-            Route::get('login', [UserAuthController::class, 'create'])->name('login');
-            Route::post('login', [UserAuthController::class, 'store'])->name('login.store');
-            Route::post('logout', [UserAuthController::class, 'destroy'])->name('logout');
+            Route::get('login', [CustomerAuthController::class, 'showLogin'])->middleware('guest')->name('login');
+            Route::post('login', [CustomerAuthController::class, 'login'])->middleware('guest')->name('login.store');
+            Route::get('google/redirect', [CustomerAuthController::class, 'redirectToGoogle'])->middleware('guest')->name('login.google');
+            Route::get('google/callback', [CustomerAuthController::class, 'handleGoogleCallback'])->middleware('guest')->name('login.google.callback');
+            Route::post('logout', [CustomerAuthController::class, 'logout'])->name('logout');
             Route::view('forgot-password', 'storefront.auth.forgot-password')->middleware('guest')->name('password.request');
             Route::post('forgot-password', function (Request $request) {
                 $data = $request->validate([

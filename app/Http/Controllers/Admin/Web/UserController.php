@@ -38,7 +38,7 @@ class UserController extends Controller
             })
             ->latest('id')
             ->paginate(20)
-            ->withQueryString();
+            ->withQueryString();    
 
         $filters = $request->only(['q', 'status']);
 

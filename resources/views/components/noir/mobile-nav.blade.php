@@ -1,5 +1,6 @@
 @php
     $locale = app()->getLocale();
+    $loginUrl = route('login', ['locale' => $locale, 'redirect_to' => request()->fullUrl()]);
     $targetLocale = $locale === 'ar' ? 'en' : 'ar';
     $segments = request()->segments();
     $query = request()->except('lang');
@@ -199,11 +200,11 @@
         </div>
     @else
         <div class="space-y-3">
-            <a href="{{ route('login') }}" class="flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container px-5 py-4 font-headline text-sm font-black uppercase tracking-[0.2em] text-on-primary-container">
+            <a href="{{ $loginUrl }}" class="flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container px-5 py-4 font-headline text-sm font-black uppercase tracking-[0.2em] text-on-primary-container">
                 <span class="material-symbols-outlined">lock_open</span>
                 <span>{{ __('Login First') }}</span>
             </a>
-            <a href="{{ route('store.register') }}" class="mobile-profile-link"><span class="material-symbols-outlined">person_add</span><span>{{ __('Create Account') }}</span></a>
+            <a href="{{ route('store.register', ['locale' => $locale, 'redirect_to' => request()->fullUrl()]) }}" class="mobile-profile-link"><span class="material-symbols-outlined">person_add</span><span>{{ __('Create Account') }}</span></a>
         </div>
     @endauth
 </div>
